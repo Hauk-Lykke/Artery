@@ -35,7 +35,7 @@ def a_star(start: np.ndarray, goal: np.ndarray, obstacles: List[Room], ax=None) 
     closed_set = set()
     
     iterations = 0
-    max_iterations = 1000  # Increased max iterations
+    max_iterations = 1000
     
     while not open_list.empty() and iterations < max_iterations:
         iterations += 1
@@ -74,25 +74,29 @@ def a_star(start: np.ndarray, goal: np.ndarray, obstacles: List[Room], ax=None) 
                 ax.plot(neighbor_pos[0], neighbor_pos[1], 'go', markersize=2)
                 plt.pause(0.001)  # Add a small pause to update the plot
         
-        if iterations % 1000 == 0:
+        if iterations % 100 == 0:
             print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")
     
     print(f"No path found from {start} to {goal} after {iterations} iterations")
     return []
 
 def point_in_room(point: np.ndarray, room: Room) -> bool:
+    """
+    Determine if a point is inside a room using the ray-casting algorithm.
+    """
     x, y = point
-    n = len(room.corners)
+    poly = room.corners
+    n = len(poly)
     inside = False
-    p1x, p1y = room.corners[0]
+    p1x, p1y = poly[0]
     for i in range(n + 1):
-        p2x, p2y = room.corners[i % n]
-        if y > min(p1y, p2y) - 0.3:
-            if y <= max(p1y, p2y) + 0.3:
-                if x <= max(p1x, p2x) + 0.3:
+        p2x, p2y = poly[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
                     if p1y != p2y:
                         xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                    if p1x == p2x or x <= xinters + 0.3:
+                    if p1x == p2x or x <= xinters:
                         inside = not inside
         p1x, p1y = p2x, p2y
     return inside
