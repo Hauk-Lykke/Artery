@@ -11,6 +11,7 @@ class AHU:
     def __init__(self, position: Tuple[float, float]):
         self.position = np.array(position)
 
+
 def manhattan_distance(a: np.ndarray, b: np.ndarray) -> float:
     return np.sum(np.abs(a - b))
 
@@ -41,17 +42,11 @@ def route_ducts(rooms: List[Room], ahu: AHU):
     visualize_layout(rooms, ahu, ax)
     
     # Create a direct route to the furthest room
-    main_route = create_direct_route(ahu.position, furthest_room.center)
-    
-    # Create branch routes
-    branch_routes = create_branch_routes(rooms, main_route)
-    
-    # Visualize main route and branches
-    visualize_routing([main_route], ax, 'r-', 3)
-    visualize_routing(branch_routes, ax, 'g-', 2)
+    index_route = create_direct_route(ahu.position, furthest_room.center)
+    visualize_routing([index_route], ax)
     
     plt.show()
-    return main_route, branch_routes
+    return [index_route]
 
 def visualize_layout(rooms: List[Room], ahu: AHU, ax):
     # Plot rooms
@@ -70,11 +65,11 @@ def visualize_layout(rooms: List[Room], ahu: AHU, ax):
     ax.axis('equal')
     ax.grid(True)
 
-def visualize_routing(routes: List[List[np.ndarray]], ax, color: str, linewidth: int):
+def visualize_routing(routes: List[List[np.ndarray]], ax):
     # Plot routes
     for route in routes:
         route_array = np.array(route)
-        ax.plot(route_array[:, 0], route_array[:, 1], color, linewidth=linewidth)
+        ax.plot(route_array[:, 0], route_array[:, 1], 'r-', linewidth=2)
 
 # Example usage with adjacent rooms
 rooms = [
@@ -85,8 +80,5 @@ rooms = [
 ]
 ahu = AHU((2.5, 2.5))  # AHU position adjusted to be within the bottom-left room
 
-main_route, branch_routes = route_ducts(rooms, ahu)
-print(f"Main route: {main_route}")
-print(f"Number of branch routes: {len(branch_routes)}")
-for i, branch in enumerate(branch_routes):
-    print(f"Branch {i+1}: {branch}")
+routes = route_ducts(rooms, ahu)
+print(f"Route created: {routes[0]}")
