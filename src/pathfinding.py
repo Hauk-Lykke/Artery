@@ -4,6 +4,8 @@ from src.components import Node, Room
 from queue import PriorityQueue
 import matplotlib as plt
 
+from components import AHU, Room
+
 def point_in_room(point: np.ndarray, room: Room) -> bool:
     x, y = point
     n = len(room.corners)
