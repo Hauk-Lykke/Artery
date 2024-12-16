@@ -11,6 +11,71 @@ class AHU:
     def __init__(self, position: Tuple[float, float]):
         self.position = np.array(position)
 
+class Node:
+    def __init__(self, position: np.ndarray, parent=None):
+        self.position = position
+        self.parent = parent
+        self.g = 0
+        self.h = 0
+        self.f = 0
+
+    def __lt__(self, other):
+        return self.f < other.f
+
+
+def a_star(start: np.ndarray, goal: np.ndarray, obstacles: List[Room], ax=None) -> List[np.ndarray]:
+    start_node = Node(start)
+    end_node = Node(goal)
+    
+    open_list = PriorityQueue()
+    open_list.put((0, start_node))
+    closed_set = set()
+    
+    iterations = 0
+    max_iterations = 1000
+    
+    while not open_list.empty() and iterations < max_iterations:
+        iterations += 1
+        current_node = open_list.get()[1]
+        
+        if np.allclose(current_node.position, end_node.position, atol=0.5):
+            path = []
+            while current_node:
+                path.append(current_node.position)
+                current_node = current_node.parent
+            print(f"Path found in {iterations} iterations")
+            return path[::-1]
+        
+        closed_set.add(tuple(map(round, current_node.position)))
+        
+        for dx, dy in [(0, 0.5), (0.5, 0), (0, -0.5), (-0.5, 0)]:
+            neighbor_pos = current_node.position + np.array([dx, dy])
+            
+            if tuple(map(round, neighbor_pos)) in closed_set:
+                continue
+            
+            if any(point_in_room(neighbor_pos, room) for room in obstacles):
+                if ax:
+                    ax.plot(neighbor_pos[0], neighbor_pos[1], 'rx', markersize=3)
+                plt.pause(0.001)  # Add a small pause to update the plot
+                continue
+            
+            neighbor = Node(neighbor_pos, current_node)
+            neighbor.g = current_node.g + manhattan_distance(current_node.position, neighbor_pos)
+            neighbor.h = manhattan_distance(neighbor_pos, end_node.position)
+            neighbor.f = neighbor.g + neighbor.h
+            
+            open_list.put((neighbor.f, neighbor))
+            
+            if ax:
+                ax.plot(neighbor_pos[0], neighbor_pos[1], 'go', markersize=2)
+                plt.pause(0.001)  # Add a small pause to update the plot
+        
+        if iterations % 100 == 0:
+            print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")
+    
+    print(f"No path found from {start} to {goal} after {iterations} iterations")
+    return []
 
 def manhattan_distance(a: np.ndarray, b: np.ndarray) -> float:
     return np.sum(np.abs(a - b))
