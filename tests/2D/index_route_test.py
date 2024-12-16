@@ -1,6 +1,11 @@
-from src.components import AHU, Node, Room
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
+from components import AHU, Node, Room
 import pathfinding as pf
-import routing
+import routing 
 import pytest
 
 def test_four_rooms():
@@ -19,3 +24,4 @@ def test_four_rooms():
 	assert(True)
 
 
+test_four_rooms()
