@@ -1,15 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List, Tuple
-
-class Room:
-    def __init__(self, corners: List[Tuple[float, float]]):
-        self.corners = np.array(corners)
-        self.center = np.mean(corners, axis=0)
-
-class AHU:
-    def __init__(self, position: Tuple[float, float]):
-        self.position = np.array(position)
+from components import AHU, Room
+from typing import List
 
 def manhattan_distance(a: np.ndarray, b: np.ndarray) -> float:
     return np.sum(np.abs(a - b))
