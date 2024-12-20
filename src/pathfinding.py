@@ -20,8 +20,8 @@ class MovementCost(Cost):
 class WallCrossingCost(Cost):
     def __init__(self, wall: Wall):
         self.wall = wall
-        self.perpendicular_cost = 5.0
-        self.angled_cost = 10.0
+        self.perpendicular_cost = 3.0
+        self.angled_cost = 6.0
     
     def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
         """Check if line segments (p1,p2) and (p3,p4) intersect"""
@@ -45,7 +45,7 @@ class WallProximityCost(Cost):
     def __init__(self, wall: Wall):
         self.wall = wall
         self.proximity_threshold = 1.0  # Distance at which wall proximity affects cost
-        self.proximity_penalty = 2.0    # Penalty multiplier for being near walls
+        self.proximity_penalty = 1.0    # Penalty multiplier for being near walls
         
     def _point_to_line_distance(self, point: np.ndarray) -> float:
         """Calculate the shortest distance from a point to the wall segment"""
@@ -91,8 +91,8 @@ class EuclideanDistance(Heuristic):
 class WallCrossingHeuristic(Heuristic):
     def __init__(self, wall: Wall):
         self.wall = wall
-        self.perpendicular_cost = 5.0
-        self.angled_cost = 10.0
+        self.perpendicular_cost = 3.0
+        self.angled_cost = 6.0
     
     def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
         """Check if line segments (p1,p2) and (p3,p4) intersect"""
@@ -138,9 +138,9 @@ class Pathfinder:
         proximity_costs = []
         for room in rooms:
             for wall in room.walls:
-                wall_costs.append((WallCrossingCost(wall), 0.5))
-                wall_heuristics.append((WallCrossingHeuristic(wall), 0.5))
-                proximity_costs.append((WallProximityCost(wall), 0.4))
+                wall_costs.append((WallCrossingCost(wall), 0.3))
+                wall_heuristics.append((WallCrossingHeuristic(wall), 0.3))
+                proximity_costs.append((WallProximityCost(wall), 0.2))
         
         # Create composite cost with movement, wall crossings, and wall proximity
         self.composite_cost = CompositeCost([(MovementCost(), 1.0)] + wall_costs + proximity_costs)
@@ -186,12 +186,15 @@ class Pathfinder:
                 print(f"Path found in {iterations} iterations")
                 return path[::-1], costs[::-1]
             
-            closed_set.add(tuple(map(round, current_node.position)))
+            # Add small offset before rounding to handle floating point imprecision
+            closed_pos = tuple(map(lambda x: round(x + 1e-10), current_node.position))
+            closed_set.add(closed_pos)
             
             for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
                 neighbor_pos = current_node.position + np.array([dx, dy])
+                neighbor_pos_rounded = tuple(map(lambda x: round(x + 1e-10), neighbor_pos))
                 
-                if tuple(map(round, neighbor_pos)) in closed_set:
+                if neighbor_pos_rounded in closed_set:
                     continue
                 
                 neighbor = Node(neighbor_pos, current_node)
