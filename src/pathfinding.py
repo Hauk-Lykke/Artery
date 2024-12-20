@@ -207,10 +207,32 @@ class Pathfinder:
                 open_list.put((neighbor.f, neighbor))
                 
                 if ax:
-                    # Color the attempted nodes based on their cost
-                    normalized_cost = neighbor.g / (neighbor.g + 1)  # Normalize to prevent division by zero
+                    # Initialize colorbar if not already done
+                    if not hasattr(ax, '_cost_mapper'):
+                        ax._cost_mapper = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(vmin=0, vmax=1))
+                        ax._colorbar = plt.colorbar(ax._cost_mapper, ax=ax, label='Path Cost')
+                        # Store initial axis limits
+                        ax._xlim = ax.get_xlim()
+                        ax._ylim = ax.get_ylim()
+                    
+                    # Update the maximum cost seen so far
+                    current_max_cost = max(neighbor.g for _, neighbor in list(open_list.queue) + [(0, current_node)])
+                    
+                    # Update normalization for colorbar
+                    ax._cost_mapper.norm.vmax = current_max_cost
+                    
+                    # Color the attempted nodes based on cost relative to current maximum
+                    normalized_cost = neighbor.g / current_max_cost if current_max_cost > 0 else 0
                     color = plt.cm.viridis(normalized_cost)
                     ax.plot(neighbor_pos[0], neighbor_pos[1], 'o', color=color, markersize=2)
+                    
+                    # Restore axis limits
+                    ax.set_xlim(ax._xlim)
+                    ax.set_ylim(ax._ylim)
+                    
+                    # Update colorbar
+                    ax._colorbar.update_normal(ax._cost_mapper)
+                    
                     # Add a longer pause every 10 iterations, otherwise use a small pause
                     plt.pause(0.1 if iterations % 10 == 0 else 0.001)
             

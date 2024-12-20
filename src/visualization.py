@@ -22,15 +22,17 @@ def visualize_layout(rooms: List[Room], ahu: AHU, ax):
     ax.grid(True)
 
 def visualize_routing(routes: List[Tuple[List[np.ndarray], List[float]]], ax):
+    # Find global maximum cost for consistent color mapping
+    global_max_cost = max(max(costs) for _, costs in routes)
+    
     # Plot routes with color grading based on cost
     for route, costs in routes:
         route_array = np.array(route)
         points = route_array[:-1]  # All points except the last
         next_points = route_array[1:]  # All points except the first
         
-        # Normalize costs for color mapping
-        max_cost = max(costs)
-        normalized_costs = np.array(costs[:-1]) / max_cost if max_cost > 0 else np.zeros_like(costs[:-1])
+        # Normalize costs using global maximum
+        normalized_costs = np.array(costs[:-1]) / global_max_cost if global_max_cost > 0 else np.zeros_like(costs[:-1])
         
         # Create line segments colored by cost
         for i in range(len(points)):
@@ -39,6 +41,10 @@ def visualize_routing(routes: List[Tuple[List[np.ndarray], List[float]]], ax):
                    [points[i][1], next_points[i][1]], 
                    c=color, linewidth=2)
     
-    # Add colorbar
-    sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(vmin=0, vmax=max_cost))
-    plt.colorbar(sm, ax=ax, label='Path Cost')
+    # Update existing colorbar if present, otherwise create new one
+    if hasattr(ax, '_cost_mapper'):
+        ax._cost_mapper.norm.vmax = global_max_cost
+        ax._colorbar.update_normal(ax._cost_mapper)
+    else:
+        ax._cost_mapper = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
+        ax._colorbar = plt.colorbar(ax._cost_mapper, ax=ax, label='Path Cost')
