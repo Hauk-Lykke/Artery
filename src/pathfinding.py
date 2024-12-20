@@ -132,19 +132,21 @@ class Pathfinder:
     def __init__(self, rooms: List[Room]):
         self.rooms = rooms
         
-        # Initialize euclidean distance heuristic
-        self.euclidean_h = EuclideanDistance()
-        
-        # Create wall crossing and proximity costs
+        # Create wall crossing costs and heuristics
         wall_costs = []
+        wall_heuristics = []
         proximity_costs = []
         for room in rooms:
             for wall in room.walls:
                 wall_costs.append((WallCrossingCost(wall), 0.5))
+                wall_heuristics.append((WallCrossingHeuristic(wall), 0.5))
                 proximity_costs.append((WallProximityCost(wall), 0.4))
         
         # Create composite cost with movement, wall crossings, and wall proximity
         self.composite_cost = CompositeCost([(MovementCost(), 1.0)] + wall_costs + proximity_costs)
+        
+        # Create composite heuristic with euclidean distance and wall crossings
+        self.composite_h = CompositeHeuristic([(EuclideanDistance(), 1.0)] + wall_heuristics)
     
     def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
         diff = np.abs(a - b)
@@ -154,7 +156,7 @@ class Pathfinder:
         return max(self.rooms, key=lambda room: self.euclidean_distance(room.center, ahu.position))
 
     def a_star(self, start: np.ndarray, goal: np.ndarray, 
-               heuristic: Heuristic = None, cost: Cost = None, ax=None) -> List[np.ndarray]:
+               heuristic: Heuristic = None, cost: Cost = None, ax=None) -> Tuple[List[np.ndarray], List[float]]:
         if heuristic is None:
             heuristic = EuclideanDistance()
         if cost is None:
@@ -176,11 +178,13 @@ class Pathfinder:
             
             if np.allclose(current_node.position, end_node.position, atol=0.5):
                 path = []
+                costs = []
                 while current_node:
                     path.append(current_node.position)
+                    costs.append(current_node.g)
                     current_node = current_node.parent
                 print(f"Path found in {iterations} iterations")
-                return path[::-1]
+                return path[::-1], costs[::-1]
             
             closed_set.add(tuple(map(round, current_node.position)))
             
@@ -203,14 +207,17 @@ class Pathfinder:
                 open_list.put((neighbor.f, neighbor))
                 
                 if ax:
-                    ax.plot(neighbor_pos[0], neighbor_pos[1], 'go', markersize=2)
+                    # Color the attempted nodes based on their cost
+                    normalized_cost = neighbor.g / (neighbor.g + 1)  # Normalize to prevent division by zero
+                    color = plt.cm.morgenstemning(normalized_cost)
+                    ax.plot(neighbor_pos[0], neighbor_pos[1], 'o', color=color, markersize=2)
                     plt.pause(0.001)  # Add a small pause to update the plot
             
             if iterations % 100 == 0:
                 print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")
         
         print(f"No path found from {start} to {goal} after {iterations} iterations")
-        return []
+        return [], []
 
     def create_direct_route(self, start: np.ndarray, end: np.ndarray) -> List[np.ndarray]:
         return [start, end]

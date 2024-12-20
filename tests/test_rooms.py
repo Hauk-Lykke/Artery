@@ -103,4 +103,4 @@ def test_create_example_rooms_11():
 
 
     routes, fig, ax = routing.route_ducts(rooms, ahu)
-    plt.close(fig)  # Clean up the figure after test
+    # plt.close(fig)  # Clean up the figure after test

@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from src.components import AHU, Node, Room, Wall
 from src.pathfinding import (
     Pathfinder, EuclideanDistance, MovementCost, 
-    WallCrossingCost, WallProximityCost, CompositeCost
+    WallCrossingCost, WallProximityCost, CompositeCost,
+    WallCrossingHeuristic, CompositeHeuristic
 )
 import src.routing as routing
 import pytest
@@ -22,14 +23,11 @@ def test_four_rooms():
     ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
     pathfinder = Pathfinder(rooms)
     
-    # Create euclidean distance heuristic
-    euclidean = EuclideanDistance()
-    
-    # Create wall crossing costs for shared walls
+    # Create wall crossing costs and heuristics for shared walls
     vertical_wall = Wall((5, 0), (5, 10))  # Vertical wall between left and right rooms
     horizontal_wall = Wall((0, 5), (10, 5))  # Horizontal wall between top and bottom rooms
     
-    # Create composite cost for g calculation with both walls
+    # Create composite cost with movement, wall crossings, and wall proximity
     composite_cost = CompositeCost([
         (MovementCost(), 1.0),
         (WallCrossingCost(vertical_wall), 0.5),
@@ -38,14 +36,23 @@ def test_four_rooms():
         (WallProximityCost(horizontal_wall), 0.4)
     ])
     
+    # Create composite heuristic with euclidean distance and wall crossings
+    composite_h = CompositeHeuristic([
+        (EuclideanDistance(), 1.0),
+        (WallCrossingHeuristic(vertical_wall), 0.5),
+        (WallCrossingHeuristic(horizontal_wall), 0.5)
+    ])
+    
     # Test path to top-right room
     start = ahu.position
     goal = np.array([7.5, 7.5])  # Center of top-right room
     
-    path = pathfinder.a_star(start, goal, euclidean, composite_cost)
+    path, costs = pathfinder.a_star(start, goal, composite_h, composite_cost)
     
     # Verify path exists
     assert len(path) > 0, "No path found"
+    assert len(costs) > 0, "No costs returned"
+    assert len(path) == len(costs), "Path and costs lengths don't match"
     
     # Verify path starts and ends at correct points
     assert np.allclose(path[0], start, atol=0.5), "Path doesn't start at AHU"
@@ -56,7 +63,9 @@ def test_four_rooms():
     # plt.close(fig)  # Clean up the figure after test
     assert len(routes) > 0, "No routes created"
     
-    # Verify each route starts at AHU
-    for route in routes:
+    # Verify each route starts at AHU and has costs
+    for route, costs in routes:
         assert len(route) > 0, "Empty route found"
+        assert len(costs) > 0, "Empty costs found"
+        assert len(route) == len(costs), "Route and costs lengths don't match"
         assert np.allclose(route[0], ahu.position, atol=0.5), "Route doesn't start at AHU"
