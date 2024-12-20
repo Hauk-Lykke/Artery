@@ -41,6 +41,36 @@ class WallCrossingCost(Cost):
         angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
         return self.perpendicular_cost if abs(90 - angle) <= 5 else self.angled_cost
 
+class WallProximityCost(Cost):
+    def __init__(self, wall: Wall):
+        self.wall = wall
+        self.proximity_threshold = 1.0  # Distance at which wall proximity affects cost
+        self.proximity_penalty = 2.0    # Penalty multiplier for being near walls
+        
+    def _point_to_line_distance(self, point: np.ndarray) -> float:
+        """Calculate the shortest distance from a point to the wall segment"""
+        wall_vec = self.wall.vector
+        wall_len_sq = np.dot(wall_vec, wall_vec)
+        if wall_len_sq == 0:
+            return np.linalg.norm(point - self.wall.start)
+        
+        t = max(0, min(1, np.dot(point - self.wall.start, wall_vec) / wall_len_sq))
+        projection = self.wall.start + t * wall_vec
+        return np.linalg.norm(point - projection)
+        
+    def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+        # Check proximity for both current and next positions
+        current_dist = self._point_to_line_distance(current)
+        next_dist = self._point_to_line_distance(next)
+        
+        cost = 0
+        if current_dist < self.proximity_threshold:
+            cost += (self.proximity_threshold - current_dist) * self.proximity_penalty
+        if next_dist < self.proximity_threshold:
+            cost += (self.proximity_threshold - next_dist) * self.proximity_penalty
+            
+        return cost
+
 class CompositeCost(Cost):
     def __init__(self, costs: List[Tuple[Cost, float]]):
         self.costs = costs  # List of (cost, weight) tuples
@@ -105,14 +135,16 @@ class Pathfinder:
         # Initialize euclidean distance heuristic
         self.euclidean_h = EuclideanDistance()
         
-        # Create wall crossing costs from room walls
+        # Create wall crossing and proximity costs
         wall_costs = []
+        proximity_costs = []
         for room in rooms:
             for wall in room.walls:
                 wall_costs.append((WallCrossingCost(wall), 0.5))
+                proximity_costs.append((WallProximityCost(wall), 0.4))
         
-        # Create composite cost with movement and wall crossings
-        self.composite_cost = CompositeCost([(MovementCost(), 1.0)] + wall_costs)
+        # Create composite cost with movement, wall crossings, and wall proximity
+        self.composite_cost = CompositeCost([(MovementCost(), 1.0)] + wall_costs + proximity_costs)
     
     def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
         diff = np.abs(a - b)

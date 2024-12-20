@@ -5,7 +5,7 @@ from queue import PriorityQueue
 from src.components import AHU, Node, Room, Wall
 from src.pathfinding import (
     Pathfinder, EuclideanDistance, MovementCost, 
-    WallCrossingCost, CompositeCost
+    WallCrossingCost, WallProximityCost, CompositeCost
 )
 
 def route_ducts(rooms: List[Room], ahu: AHU):

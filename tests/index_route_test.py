@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from src.components import AHU, Node, Room, Wall
 from src.pathfinding import (
     Pathfinder, EuclideanDistance, MovementCost, 
-    WallCrossingCost, CompositeCost
+    WallCrossingCost, WallProximityCost, CompositeCost
 )
 import src.routing as routing
 import pytest
@@ -33,7 +33,9 @@ def test_four_rooms():
     composite_cost = CompositeCost([
         (MovementCost(), 1.0),
         (WallCrossingCost(vertical_wall), 0.5),
-        (WallCrossingCost(horizontal_wall), 0.5)
+        (WallCrossingCost(horizontal_wall), 0.5),
+        (WallProximityCost(vertical_wall), 0.4),
+        (WallProximityCost(horizontal_wall), 0.4)
     ])
     
     # Test path to top-right room
