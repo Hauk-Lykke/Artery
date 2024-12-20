@@ -11,6 +11,14 @@ from src.pathfinding import (
 import src.routing as routing
 import pytest
 
+@pytest.fixture(autouse=True)
+def mpl_test_settings():
+    import matplotlib
+    matplotlib.use('TkAgg')
+    plt.ion()
+    yield
+    plt.close('all')
+
 def test_four_rooms():
     # Create four rooms in a 2x2 grid
     rooms = [
@@ -60,7 +68,6 @@ def test_four_rooms():
     
     # Test full routing
     routes, fig, ax = routing.route_ducts(rooms, ahu)
-    # plt.close(fig)  # Clean up the figure after test
     assert len(routes) > 0, "No routes created"
     
     # Verify each route starts at AHU and has costs
@@ -69,3 +76,6 @@ def test_four_rooms():
         assert len(costs) > 0, "Empty costs found"
         assert len(route) == len(costs), "Route and costs lengths don't match"
         assert np.allclose(route[0], ahu.position, atol=0.5), "Route doesn't start at AHU"
+    
+    # Keep the figure open until manually closed
+    plt.show(block=True)

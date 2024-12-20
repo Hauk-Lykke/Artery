@@ -209,9 +209,10 @@ class Pathfinder:
                 if ax:
                     # Color the attempted nodes based on their cost
                     normalized_cost = neighbor.g / (neighbor.g + 1)  # Normalize to prevent division by zero
-                    color = plt.cm.morgenstemning(normalized_cost)
+                    color = plt.cm.viridis(normalized_cost)
                     ax.plot(neighbor_pos[0], neighbor_pos[1], 'o', color=color, markersize=2)
-                    plt.pause(0.001)  # Add a small pause to update the plot
+                    # Add a longer pause every 10 iterations, otherwise use a small pause
+                    plt.pause(0.1 if iterations % 10 == 0 else 0.001)
             
             if iterations % 100 == 0:
                 print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")
