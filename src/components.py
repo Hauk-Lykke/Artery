@@ -20,4 +20,10 @@ class Node:
 
     def __lt__(self, other):
         return self.f < other.f
+    
+class Wall:
+    def __init__(self,startpoint,endpoint):
+        self.start = startpoint
+        self.end = endpoint
+        
 
