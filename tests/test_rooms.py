@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
+import matplotlib.pyplot as plt
 from src.components import AHU, Room, Wall
-from src.pathfinding import WallCrossingHeuristic, ManhattanDistance, CompositeHeuristic
+from src.pathfinding import WallCrossingHeuristic, EuclideanDistance, CompositeHeuristic
 import src.routing as routing
 
 def test_wall_creation():
@@ -46,11 +47,11 @@ def test_wall_crossing_heuristic():
 
 def test_composite_heuristic():
     room = Room([(0, 0), (10, 0), (10, 10), (0, 10)])
-    manhattan = ManhattanDistance()
+    euclidean = EuclideanDistance()
     wall_crossing = WallCrossingHeuristic(room.walls[3])  # Left wall
     
     composite = CompositeHeuristic([
-        (manhattan, 1.0),
+        (euclidean, 1.0),
         (wall_crossing, 1.0)
     ])
     
@@ -59,7 +60,7 @@ def test_composite_heuristic():
     end = np.array([11, 5])
     
     expected_cost = (
-        manhattan.calculate(start, end) +  # Manhattan distance
+        euclidean.calculate(start, end) +  # Euclidean distance
         wall_crossing.calculate(start, end)  # Wall crossing cost
     )
     
@@ -101,4 +102,5 @@ def test_create_example_rooms_11():
     ahu = AHU((2.5, 2.5))  # AHU position adjusted to be within the bottom-left room
 
 
-    routes = routing.route_ducts(rooms, ahu)
+    routes, fig, ax = routing.route_ducts(rooms, ahu)
+    plt.close(fig)  # Clean up the figure after test

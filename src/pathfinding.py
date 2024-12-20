@@ -2,7 +2,7 @@ from typing import List, Tuple, Protocol
 import numpy as np
 from src.components import Node, Room, Wall, AHU
 from queue import PriorityQueue
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 from math import atan2, pi
 
@@ -13,13 +13,15 @@ class Cost(ABC):
 
 class MovementCost(Cost):
     def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-        return np.sum(np.abs(current - next))
+        diff = np.abs(current - next)
+        # Use Euclidean distance for more accurate diagonal costs
+        return np.sqrt(np.sum(diff * diff))
 
 class WallCrossingCost(Cost):
     def __init__(self, wall: Wall):
         self.wall = wall
-        self.perpendicular_cost = 3.0
-        self.angled_cost = 7.0
+        self.perpendicular_cost = 5.0
+        self.angled_cost = 10.0
     
     def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
         """Check if line segments (p1,p2) and (p3,p4) intersect"""
@@ -51,15 +53,16 @@ class Heuristic(ABC):
     def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
         pass
 
-class ManhattanDistance(Heuristic):
+class EuclideanDistance(Heuristic):
     def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-        return np.sum(np.abs(current - goal))
+        diff = np.abs(current - goal)
+        return np.sqrt(np.sum(diff * diff))
 
 class WallCrossingHeuristic(Heuristic):
     def __init__(self, wall: Wall):
         self.wall = wall
-        self.perpendicular_cost = 3.0
-        self.angled_cost = 7.0
+        self.perpendicular_cost = 5.0
+        self.angled_cost = 10.0
     
     def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
         """Check if line segments (p1,p2) and (p3,p4) intersect"""
@@ -96,33 +99,32 @@ class CompositeHeuristic(Heuristic):
         return sum(weight * h.calculate(current, goal) for h, weight in self.heuristics)
 
 class Pathfinder:
-    @staticmethod
-    def point_in_room(point: np.ndarray, room: Room) -> bool:
-        x, y = point
-        n = len(room.corners)
-        inside = False
-        p1x, p1y = room.corners[0]
-        for i in range(n + 1):
-            p2x, p2y = room.corners[i % n]
-            if y > min(p1y, p2y) - 0.3:
-                if y <= max(p1y, p2y) + 0.3:
-                    if x <= max(p1x, p2x) + 0.3:
-                        if p1y != p2y:
-                            xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                        if p1x == p2x or x <= xinters + 0.3:
-                            inside = not inside
-            p1x, p1y = p2x, p2y
-        return inside
+    def __init__(self, rooms: List[Room]):
+        self.rooms = rooms
+        
+        # Initialize euclidean distance heuristic
+        self.euclidean_h = EuclideanDistance()
+        
+        # Create wall crossing costs from room walls
+        wall_costs = []
+        for room in rooms:
+            for wall in room.walls:
+                wall_costs.append((WallCrossingCost(wall), 0.5))
+        
+        # Create composite cost with movement and wall crossings
+        self.composite_cost = CompositeCost([(MovementCost(), 1.0)] + wall_costs)
+    
+    def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
+        diff = np.abs(a - b)
+        return np.sqrt(np.sum(diff * diff))
 
-    @staticmethod
-    def manhattan_distance(a: np.ndarray, b: np.ndarray) -> float:
-        return np.sum(np.abs(a - b))
+    def find_furthest_room(self, ahu: AHU) -> Room:
+        return max(self.rooms, key=lambda room: self.euclidean_distance(room.center, ahu.position))
 
-    @classmethod
-    def a_star(cls, start: np.ndarray, goal: np.ndarray, obstacles: List[Room], 
+    def a_star(self, start: np.ndarray, goal: np.ndarray, 
                heuristic: Heuristic = None, cost: Cost = None, ax=None) -> List[np.ndarray]:
         if heuristic is None:
-            heuristic = ManhattanDistance()
+            heuristic = EuclideanDistance()
         if cost is None:
             cost = MovementCost()
             
@@ -150,14 +152,10 @@ class Pathfinder:
             
             closed_set.add(tuple(map(round, current_node.position)))
             
-            for dx, dy in [(0, 0.5), (0.5, 0), (0, -0.5), (-0.5, 0)]:
+            for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
                 neighbor_pos = current_node.position + np.array([dx, dy])
                 
                 if tuple(map(round, neighbor_pos)) in closed_set:
-                    continue
-                
-                # Skip positions inside rooms
-                if any(cls.point_in_room(neighbor_pos, room) for room in obstacles):
                     continue
                 
                 neighbor = Node(neighbor_pos, current_node)
@@ -182,10 +180,5 @@ class Pathfinder:
         print(f"No path found from {start} to {goal} after {iterations} iterations")
         return []
 
-    @classmethod
-    def find_furthest_room(cls, rooms: List[Room], ahu: AHU) -> Room:
-        return max(rooms, key=lambda room: cls.manhattan_distance(room.center, ahu.position))
-
-    @staticmethod
-    def create_direct_route(start: np.ndarray, end: np.ndarray) -> List[np.ndarray]:
+    def create_direct_route(self, start: np.ndarray, end: np.ndarray) -> List[np.ndarray]:
         return [start, end]
