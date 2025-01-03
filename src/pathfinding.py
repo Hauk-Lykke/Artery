@@ -4,6 +4,9 @@ from src.components import Room, Wall, AHU, FloorPlan
 from src.core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
+from src.visualization import PathfindingVisualizer
+from src.structural import StandardWallCost, WallCosts
+from src.geometry import line_intersection
 from abc import ABC, abstractmethod
 from math import atan2, pi
 
@@ -12,36 +15,6 @@ class MovementCost(Cost):
 		diff = np.abs(current - next)
 		# Use Euclidean distance for more accurate diagonal costs
 		return np.sqrt(np.sum(diff * diff))
-
-class WallProximityCost(Cost):
-	def __init__(self, wall: Wall):
-		self.wall = wall
-		self.proximity_threshold = 1.0  # Distance at which wall proximity affects cost
-		self.proximity_penalty = 1.0    # Penalty multiplier for being near walls
-		
-	def _point_to_line_distance(self, point: np.ndarray) -> float:
-		"""Calculate the shortest distance from a point to the wall segment"""
-		wall_vec = self.wall.vector
-		wall_len_sq = np.dot(wall_vec, wall_vec)
-		if wall_len_sq == 0:
-			return np.linalg.norm(point - self.wall.start)
-		
-		t = max(0, min(1, np.dot(point - self.wall.start, wall_vec) / wall_len_sq))
-		projection = self.wall.start + t * wall_vec
-		return np.linalg.norm(point - projection)
-		
-	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-		# Check proximity for both current and next positions
-		current_dist = self._point_to_line_distance(current)
-		next_dist = self._point_to_line_distance(next)
-		
-		cost = 0
-		if current_dist < self.proximity_threshold:
-			cost += (self.proximity_threshold - current_dist) * self.proximity_penalty
-		if next_dist < self.proximity_threshold:
-			cost += (self.proximity_threshold - next_dist) * self.proximity_penalty
-			
-		return cost
 
 class CompositeCost(Cost):
 	def __init__(self, costs: List[Cost]):
@@ -55,10 +28,38 @@ class Heuristic(ABC):
 	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
 		pass
 
-class EuclideanDistance(Heuristic):
-	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-		diff = np.abs(current - goal)
+class EnhancedDistance(Heuristic):
+	def __init__(self, floor_plan: FloorPlan):
+		self.floor_plan = floor_plan
+		
+	@staticmethod
+	def between_points(a: np.ndarray, b: np.ndarray) -> float:
+		"""Calculate Euclidean distance between two points"""
+		diff = np.abs(a - b)
 		return np.sqrt(np.sum(diff * diff))
+	
+	def _estimate_wall_cost(self, current: np.ndarray, goal: np.ndarray) -> float:
+		"""Estimate minimum wall crossing costs to goal"""
+		direction = goal - current
+		distance = np.linalg.norm(direction)
+		if distance == 0:
+			return 0
+			
+		# Count wall crossings along direct path
+		min_cost = 0
+		for wall in self.floor_plan.walls:
+			if line_intersection(current, goal, wall.start, wall.end):
+				# Use base cost as minimum (perpendicular crossing)
+				min_cost += WallCosts.get_base_cost(wall.wall_type)
+		
+		return min_cost
+		
+	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+		# Base distance
+		distance = self.between_points(current, goal)
+		# Add minimum wall crossing costs
+		wall_cost = self._estimate_wall_cost(current, goal)
+		return distance + wall_cost
 
 class CompositeHeuristic(Heuristic):
 	def __init__(self, heuristics: List[Heuristic]):
@@ -70,29 +71,36 @@ class CompositeHeuristic(Heuristic):
 class Pathfinder:
 	def __init__(self, floor_plan: FloorPlan):
 		self.floor_plan = floor_plan
-		
-		# Create composite cost with movement and wall costs
-		costs = [MovementCost()]
-		for wall in floor_plan.walls:
-			costs.append(wall.wall_crossing_cost)
-		self.composite_cost = CompositeCost(costs)
-		
-		# Create composite heuristic with euclidean distance
-		self.composite_h = CompositeHeuristic([EuclideanDistance()])
+		self._init_costs()
+		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
 	
-	def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
-		diff = np.abs(a - b)
-		return np.sqrt(np.sum(diff * diff))
+	def _get_nearby_walls(self, position: np.ndarray, radius: float = 5.0) -> List[Wall]:
+		"""Get walls within specified radius of position"""
+		return [wall for wall in self.floor_plan.walls 
+				if min(np.linalg.norm(position - wall.start), 
+						np.linalg.norm(position - wall.end)) <= radius]
 
+	def _init_costs(self):
+		"""Initialize cost functions with movement as primary cost"""
+		self.movement_cost = MovementCost()
+		
+	def _calculate_cost(self, current: np.ndarray, next: np.ndarray) -> float:
+		"""Calculate total cost considering only nearby walls"""
+		# Base movement cost
+		total_cost = self.movement_cost.calculate(current, next)
+		
+		# Get nearby walls and calculate their costs
+		nearby_walls = self._get_nearby_walls(current)
+		for wall in nearby_walls:
+			wall_cost = StandardWallCost(wall)
+			total_cost += wall_cost.calculate(current, next)
+		
+		return total_cost
+	
 	def find_furthest_room(self, ahu: AHU) -> Room:
-		return max(self.floor_plan._rooms, key=lambda room: self.euclidean_distance(room.center, ahu.position))
+		return max(self.floor_plan._rooms, key=lambda room: EnhancedDistance.between_points(room.center, ahu.position))
 
-	def a_star(self, start: np.ndarray, goal: np.ndarray, 
-			   heuristic: Heuristic = None, cost: Cost = None, ax=None) -> Tuple[List[np.ndarray], List[float]]:
-		if heuristic is None:
-			heuristic = EuclideanDistance()
-		if cost is None:
-			cost = MovementCost()
+	def a_star(self, start: np.ndarray, goal: np.ndarray, ax=None) -> Tuple[List[np.ndarray], List[float]]:
 			
 		start_node = Node(start)
 		end_node = Node(goal)
@@ -131,43 +139,20 @@ class Pathfinder:
 				
 				neighbor = Node(neighbor_pos, current_node)
 				
-				# Calculate g cost using provided cost function
-				g_cost = cost.calculate(current_node.position, neighbor_pos)
+				# Calculate g cost using our optimized cost calculation
+				g_cost = self._calculate_cost(current_node.position, neighbor_pos)
 				neighbor.g = current_node.g + g_cost
 				
 				# Calculate h cost using provided heuristic
-				neighbor.h = heuristic.calculate(neighbor_pos, end_node.position)
+				neighbor.h = self.composite_h.calculate(neighbor_pos, end_node.position)
 				neighbor.f = neighbor.g + neighbor.h
 				
 				open_list.put((neighbor.f, neighbor))
 				
 				if ax:
-					# Initialize colorbar if not already done
-					if not hasattr(ax, '_cost_mapper'):
-						ax._cost_mapper = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(vmin=0, vmax=1))
-						ax._colorbar = plt.colorbar(ax._cost_mapper, ax=ax, label='Path Cost')
-						# Store initial axis limits
-						ax._xlim = ax.get_xlim()
-						ax._ylim = ax.get_ylim()
-					
-					# Update the maximum cost seen so far
-					current_max_cost = max(neighbor.g for _, neighbor in list(open_list.queue) + [(0, current_node)])
-					
-					# Update normalization for colorbar
-					ax._cost_mapper.norm.vmax = current_max_cost
-					
-					# Color the attempted nodes based on cost relative to current maximum
-					normalized_cost = neighbor.g / current_max_cost if current_max_cost > 0 else 0
-					color = plt.cm.viridis(normalized_cost)
-					ax.plot(neighbor_pos[0], neighbor_pos[1], 'o', color=color, markersize=2)
-					
-					# Restore axis limits
-					ax.set_xlim(ax._xlim)
-					ax.set_ylim(ax._ylim)
-					
-					# Update colorbar
-					ax._colorbar.update_normal(ax._cost_mapper)
-					
+					if not hasattr(ax, '_visualizer'):
+						ax._visualizer = PathfindingVisualizer(ax)
+					ax._visualizer.update_node(current_node, neighbor_pos, open_list)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
 					plt.pause(0.1 if iterations % 10 == 0 else 0.001)
 			
