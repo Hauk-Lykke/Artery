@@ -5,26 +5,10 @@ class Building:
 		def __init__(self):
 			self.floor_plans = []
 
-class FloorPlan:
-	def __init__(self):
-		self._rooms = []
-		self.ahu = None
-		self.walls = []
-		self.update_walls()
 
-	def update_walls(self):
-		self.walls = []
-		for room in self._rooms:
-			self.walls.extend(room.walls)
-
-	def add_room(self, room):
-		self._rooms.append(room)
-		self.walls.extend(room.walls)
-
-	def add_rooms(self, rooms):
-		for room in rooms:
-			self.add_room(room)
-		self.update_walls()
+class AirHandlingUnit:
+	def __init__(self, position: Tuple[float, float]):
+		self.position = np.array(position)
 
 class WallType:
 	'''Enum class for wall types'''
@@ -57,6 +41,8 @@ class Wall:
 		angle = np.arccos(cos_angle) * 180 / np.pi
 		return angle
 
+
+
 class Room:
 	def __init__(self, corners: List[Tuple[float, float]]):
 		self.corners = np.array(corners)
@@ -72,6 +58,24 @@ class Room:
 		return walls
 	
 
-class AHU:
-	def __init__(self, position: Tuple[float, float]):
-		self.position = np.array(position)
+class FloorPlan:
+	def __init__(self, rooms: List[Room] = None, ahu: AirHandlingUnit = None):
+		self.walls = []
+		self._rooms = []
+		if rooms is not None:
+			self.add_rooms(rooms)
+		if ahu is not None:
+			self.ahu = ahu
+
+	def update_walls(self):
+		self.walls = []
+		for room in self._rooms:
+			self.walls.extend(room.walls)
+
+	def add_room(self, room):
+		self._rooms.append(room)
+		self.update_walls()
+
+	def add_rooms(self, rooms):
+		for room in rooms:
+			self.add_room(room)

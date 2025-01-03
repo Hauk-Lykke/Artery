@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from typing import List, Tuple
-from src.components import AHU, Room, FloorPlan, WallType
+from src.components import AirHandlingUnit, Room, FloorPlan, WallType
 
 colormap = plt.cm.viridis
 

@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.components import Wall, FloorPlan
+from src.components import Wall, FloorPlan, Room
 from src.pathfinding import (
     Pathfinder, EnhancedDistance, MovementCost, 
     CompositeCost, CompositeHeuristic

@@ -1,6 +1,6 @@
 from typing import List, Tuple, Protocol
 import numpy as np
-from src.components import Room, Wall, AHU, FloorPlan
+from src.components import Room, Wall, AirHandlingUnit, FloorPlan
 from src.core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
@@ -97,7 +97,7 @@ class Pathfinder:
 		
 		return total_cost
 	
-	def find_furthest_room(self, ahu: AHU) -> Room:
+	def find_furthest_room(self, ahu: AirHandlingUnit) -> Room:
 		return max(self.floor_plan._rooms, key=lambda room: EnhancedDistance.between_points(room.center, ahu.position))
 
 	def a_star(self, start: np.ndarray, goal: np.ndarray, ax=None) -> Tuple[List[np.ndarray], List[float]]:
