@@ -4,78 +4,78 @@ import numpy as np
 import matplotlib.pyplot as plt
 from src.components import AHU, Node, Room, Wall
 from src.pathfinding import (
-    Pathfinder, EuclideanDistance, MovementCost, 
-    WallCrossingCost, WallProximityCost, CompositeCost,
-    WallCrossingHeuristic, CompositeHeuristic
+	Pathfinder, EuclideanDistance, MovementCost, 
+	WallProximityCost, CompositeCost,
+	WallCrossingHeuristic, CompositeHeuristic
 )
 import src.routing as routing
 import pytest
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
-    import matplotlib
-    matplotlib.use('TkAgg')
-    plt.ion()
-    yield
-    plt.close('all')
+	import matplotlib
+	matplotlib.use('TkAgg')
+	plt.ion()
+	yield
+	plt.close('all')
 
 def test_four_rooms():
-    # Create four rooms in a 2x2 grid
-    rooms = [
-        Room([(0, 0), (0, 5), (5, 5), (5, 0)]),    # bottom-left
-        Room([(5, 0), (5, 5), (10, 5), (10, 0)]),  # bottom-right
-        Room([(0, 5), (0, 10), (5, 10), (5, 5)]),  # top-left
-        Room([(5, 5), (5, 10), (10, 10), (10, 5)]) # top-right
-    ]
-    
-    ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
-    pathfinder = Pathfinder(rooms)
-    
-    # Create wall crossing costs and heuristics for shared walls
-    vertical_wall = Wall((5, 0), (5, 10))  # Vertical wall between left and right rooms
-    horizontal_wall = Wall((0, 5), (10, 5))  # Horizontal wall between top and bottom rooms
-    
-    # Create composite cost with movement, wall crossings, and wall proximity
-    composite_cost = CompositeCost([
-        (MovementCost(), 1.0),
-        (WallCrossingCost(vertical_wall), 0.5),
-        (WallCrossingCost(horizontal_wall), 0.5),
-        (WallProximityCost(vertical_wall), 0.4),
-        (WallProximityCost(horizontal_wall), 0.4)
-    ])
-    
-    # Create composite heuristic with euclidean distance and wall crossings
-    composite_h = CompositeHeuristic([
-        (EuclideanDistance(), 1.0),
-        (WallCrossingHeuristic(vertical_wall), 0.5),
-        (WallCrossingHeuristic(horizontal_wall), 0.5)
-    ])
-    
-    # Test path to top-right room
-    start = ahu.position
-    goal = np.array([7.5, 7.5])  # Center of top-right room
-    
-    path, costs = pathfinder.a_star(start, goal, composite_h, composite_cost)
-    
-    # Verify path exists
-    assert len(path) > 0, "No path found"
-    assert len(costs) > 0, "No costs returned"
-    assert len(path) == len(costs), "Path and costs lengths don't match"
-    
-    # Verify path starts and ends at correct points
-    assert np.allclose(path[0], start, atol=0.5), "Path doesn't start at AHU"
-    assert np.allclose(path[-1], goal, atol=0.5), "Path doesn't reach goal"
-    
-    # Test full routing
-    routes, fig, ax = routing.route_ducts(rooms, ahu)
-    assert len(routes) > 0, "No routes created"
-    
-    # Verify each route starts at AHU and has costs
-    for route, costs in routes:
-        assert len(route) > 0, "Empty route found"
-        assert len(costs) > 0, "Empty costs found"
-        assert len(route) == len(costs), "Route and costs lengths don't match"
-        assert np.allclose(route[0], ahu.position, atol=0.5), "Route doesn't start at AHU"
-    
-    # Keep the figure open until manually closed
-    plt.show(block=True)
+	# Create four rooms in a 2x2 grid
+	rooms = [
+		Room([(0, 0), (0, 5), (5, 5), (5, 0)]),    # bottom-left
+		Room([(5, 0), (5, 5), (10, 5), (10, 0)]),  # bottom-right
+		Room([(0, 5), (0, 10), (5, 10), (5, 5)]),  # top-left
+		Room([(5, 5), (5, 10), (10, 10), (10, 5)]) # top-right
+	]
+	
+	ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
+	pathfinder = Pathfinder(rooms)
+	
+	# Create wall crossing costs and heuristics for shared walls
+	vertical_wall = Wall((5, 0), (5, 10))  # Vertical wall between left and right rooms
+	horizontal_wall = Wall((0, 5), (10, 5))  # Horizontal wall between top and bottom rooms
+	
+	# Create composite cost with movement, wall crossings, and wall proximity
+	composite_cost = CompositeCost([
+		(MovementCost(), 1.0),
+		(WallCrossingCost(vertical_wall), 0.5),
+		(WallCrossingCost(horizontal_wall), 0.5),
+		(WallProximityCost(vertical_wall), 0.4),
+		(WallProximityCost(horizontal_wall), 0.4)
+	])
+	
+	# Create composite heuristic with euclidean distance and wall crossings
+	composite_h = CompositeHeuristic([
+		(EuclideanDistance(), 1.0),
+		(WallCrossingHeuristic(vertical_wall), 0.5),
+		(WallCrossingHeuristic(horizontal_wall), 0.5)
+	])
+	
+	# Test path to top-right room
+	start = ahu.position
+	goal = np.array([7.5, 7.5])  # Center of top-right room
+	
+	path, costs = pathfinder.a_star(start, goal, composite_h, composite_cost)
+	
+	# Verify path exists
+	assert len(path) > 0, "No path found"
+	assert len(costs) > 0, "No costs returned"
+	assert len(path) == len(costs), "Path and costs lengths don't match"
+	
+	# Verify path starts and ends at correct points
+	assert np.allclose(path[0], start, atol=0.5), "Path doesn't start at AHU"
+	assert np.allclose(path[-1], goal, atol=0.5), "Path doesn't reach goal"
+	
+	# Test full routing
+	routes, fig, ax = routing.route_ducts(rooms, ahu)
+	assert len(routes) > 0, "No routes created"
+	
+	# Verify each route starts at AHU and has costs
+	for route, costs in routes:
+		assert len(route) > 0, "Empty route found"
+		assert len(costs) > 0, "Empty costs found"
+		assert len(route) == len(costs), "Route and costs lengths don't match"
+		assert np.allclose(route[0], ahu.position, atol=0.5), "Route doesn't start at AHU"
+	
+	# Keep the figure open until manually closed
+	plt.show(block=True)
