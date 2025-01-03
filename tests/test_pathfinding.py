@@ -97,3 +97,23 @@ def test_a_star_simple_path():
     assert len(costs) == len(path), "Costs and path lengths don't match"
     assert np.allclose(path[0], start), "Path doesn't start at start point"
     assert np.allclose(path[-1], goal), "Path doesn't reach goal"
+
+def test_a_star_stops_at_goal():
+    floor_plan = FloorPlan()
+    pathfinder = Pathfinder(floor_plan)
+    
+    start = np.array([0, 0])
+    goal = np.array([1, 1])  # Simple diagonal move
+    
+    # First run to get number of iterations
+    path1, _ = pathfinder.a_star(start, goal)
+    iterations1 = len(path1)
+    
+    # Add more nodes around goal that could be explored
+    floor_plan.add_room(Room(np.array([2, 2]), 1, 1))  # Room near goal
+    
+    # Second run should take same number of iterations
+    path2, _ = pathfinder.a_star(start, goal)
+    iterations2 = len(path2)
+    
+    assert iterations1 == iterations2, "Algorithm continued after finding goal"

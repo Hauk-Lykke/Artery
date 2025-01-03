@@ -114,8 +114,13 @@ class Pathfinder:
 		
 		while not open_list.empty() and iterations < max_iterations:
 			iterations += 1
-			current_node = open_list.get()[1]
+			_, current_node = open_list.get()
 			
+			# Check if already processed
+			current_pos_rounded = tuple(map(lambda x: round(x + 1e-10), current_node.position))
+			if current_pos_rounded in closed_set:
+				continue
+
 			if np.allclose(current_node.position, end_node.position, atol=0.5):
 				path = []
 				costs = []
@@ -124,12 +129,13 @@ class Pathfinder:
 					costs.append(current_node.g)
 					current_node = current_node.parent
 				print(f"Path found in {iterations} iterations")
+				if ax:
+					plt.pause(1)  # Final pause to show the complete path
 				return path[::-1], costs[::-1]
 			
-			# Add small offset before rounding to handle floating point imprecision
-			closed_pos = tuple(map(lambda x: round(x + 1e-10), current_node.position))
-			closed_set.add(closed_pos)
-			
+			# Add to closed set after goal check
+			closed_set.add(current_pos_rounded)
+
 			for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
 				neighbor_pos = current_node.position + np.array([dx, dy])
 				neighbor_pos_rounded = tuple(map(lambda x: round(x + 1e-10), neighbor_pos))
