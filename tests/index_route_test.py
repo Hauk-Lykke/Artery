@@ -1,5 +1,6 @@
 import sys
 import os
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from src.components import AHU, Room, Wall, FloorPlan, WallType
@@ -14,6 +15,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
 	import matplotlib
+	import datetime
 	matplotlib.use('TkAgg')
 	plt.ion()
 	yield
@@ -81,4 +83,6 @@ def test_four_rooms():
 		assert np.allclose(route[0], floor_plan.ahu.position, atol=0.5), "Route doesn't start at AHU"
 	
 	# Keep the figure open until manually closed
+	timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+	fig.savefig(f'four_rooms_{timestamp}.png')
 	plt.show(block=True)
