@@ -1,15 +1,11 @@
 from typing import List, Tuple, Protocol
 import numpy as np
-from src.components import Node, Room, Wall, AHU
+from src.components import Room, Wall, AHU, FloorPlan
+from src.core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 from math import atan2, pi
-
-class Cost(ABC):
-	@abstractmethod
-	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-		pass
 
 class MovementCost(Cost):
 	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
@@ -105,31 +101,27 @@ class CompositeHeuristic(Heuristic):
 		return sum(weight * h.calculate(current, goal) for h, weight in self.heuristics)
 
 class Pathfinder:
-	def __init__(self, rooms: List[Room]):
-		self.rooms = rooms
+	def __init__(self, floor_plan: FloorPlan):
+		self.floor_plan = floor_plan
 		
-		# Create wall crossing costs and heuristics
-		wall_costs = []
-		wall_heuristics = []
-		proximity_costs = []
-		for room in rooms:
-			for wall in room.walls:
-				wall_costs.append(wall.wall_crossing_cost.calculate())
-				# wall_heuristics.append((WallCrossingHeuristic(wall))
-				# proximity_costs.append((WallProximityCost(wall))
-		
-		# Create composite cost with movement, wall crossings, and wall proximity
-		self.composite_cost = CompositeCost([(MovementCost(), 1.0)] + wall_costs + proximity_costs)
+		# Create composite cost with movement and wall costs
+		costs = [MovementCost()]
+		for wall in floor_plan.walls:
+			costs.append(wall.wall_crossing_cost)
+		self.composite_cost = CompositeCost([(cost, 1.0) for cost in costs])
 		
 		# Create composite heuristic with euclidean distance and wall crossings
-		self.composite_h = CompositeHeuristic([(EuclideanDistance(), 1.0)] + wall_heuristics)
+		heuristics = [EuclideanDistance()]
+		for wall in floor_plan.walls:
+			heuristics.append(WallCrossingHeuristic(wall))
+		self.composite_h = CompositeHeuristic([(h, 1.0) for h in heuristics])
 	
 	def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
 		diff = np.abs(a - b)
 		return np.sqrt(np.sum(diff * diff))
 
 	def find_furthest_room(self, ahu: AHU) -> Room:
-		return max(self.rooms, key=lambda room: self.euclidean_distance(room.center, ahu.position))
+		return max(self.floor_plan._rooms, key=lambda room: self.euclidean_distance(room.center, ahu.position))
 
 	def a_star(self, start: np.ndarray, goal: np.ndarray, 
 			   heuristic: Heuristic = None, cost: Cost = None, ax=None) -> Tuple[List[np.ndarray], List[float]]:

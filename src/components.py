@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Tuple
-from src.pathfinding import Cost
+from src.core import Cost
 
 class Building:
 		def __init__(self):
@@ -15,7 +15,7 @@ class FloorPlan:
 
 	def update_walls(self):
 		self.walls = []
-		for room in self.rooms:
+		for room in self._rooms:
 			self.walls.extend(room.walls)
 
 	def add_room(self, room):
@@ -38,7 +38,9 @@ class Wall:
 		self.start = np.array(startpoint)
 		self.end = np.array(endpoint)
 		self._vector = self.end - self.start
+		self.wall_type = wall_type
 		self.wall_crossing_cost = WallProximityCost(self)
+		
 		
 	@property
 	def vector(self) -> np.ndarray:
@@ -77,18 +79,6 @@ class Room:
 class AHU:
 	def __init__(self, position: Tuple[float, float]):
 		self.position = np.array(position)
-
-class Node:
-	def __init__(self, position: np.ndarray, parent=None):
-		self.position = position
-		self.parent = parent
-		self.g = 0
-		self.h = 0
-		self.f = 0
-
-	def __lt__(self, other):
-		return self.f < other.f
-
 
 class WallProximityCost(Cost):
 	PROXIMITY_THRESHOLD = 1.0  # Distance at which wall proximity starts affecting cost

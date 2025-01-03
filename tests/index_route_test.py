@@ -2,7 +2,8 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from src.components import AHU, Node, Room, Wall
+from src.components import AHU, Room, Wall, FloorPlan
+from src.core import Node
 from src.pathfinding import (
 	Pathfinder, EuclideanDistance, MovementCost, 
 	WallProximityCost, CompositeCost,
@@ -20,6 +21,9 @@ def mpl_test_settings():
 	plt.close('all')
 
 def test_four_rooms():
+	# Create floor plan
+	floor_plan = FloorPlan()
+	
 	# Create four rooms in a 2x2 grid
 	rooms = [
 		Room([(0, 0), (0, 5), (5, 5), (5, 0)]),    # bottom-left
@@ -28,8 +32,9 @@ def test_four_rooms():
 		Room([(5, 5), (5, 10), (10, 10), (10, 5)]) # top-right
 	]
 	
-	ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
-	pathfinder = Pathfinder(rooms)
+	floor_plan.add_rooms(rooms)
+	floor_plan.ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
+	pathfinder = Pathfinder(floor_plan)
 	
 	# Create wall crossing costs and heuristics for shared walls
 	vertical_wall = Wall((5, 0), (5, 10))  # Vertical wall between left and right rooms
@@ -38,8 +43,6 @@ def test_four_rooms():
 	# Create composite cost with movement, wall crossings, and wall proximity
 	composite_cost = CompositeCost([
 		(MovementCost(), 1.0),
-		(WallCrossingCost(vertical_wall), 0.5),
-		(WallCrossingCost(horizontal_wall), 0.5),
 		(WallProximityCost(vertical_wall), 0.4),
 		(WallProximityCost(horizontal_wall), 0.4)
 	])
@@ -67,7 +70,7 @@ def test_four_rooms():
 	assert np.allclose(path[-1], goal, atol=0.5), "Path doesn't reach goal"
 	
 	# Test full routing
-	routes, fig, ax = routing.route_ducts(rooms, ahu)
+	routes, fig, ax = routing.route_ducts(floor_plan)
 	assert len(routes) > 0, "No routes created"
 	
 	# Verify each route starts at AHU and has costs
@@ -75,7 +78,7 @@ def test_four_rooms():
 		assert len(route) > 0, "Empty route found"
 		assert len(costs) > 0, "Empty costs found"
 		assert len(route) == len(costs), "Route and costs lengths don't match"
-		assert np.allclose(route[0], ahu.position, atol=0.5), "Route doesn't start at AHU"
+		assert np.allclose(route[0], floor_plan.ahu.position, atol=0.5), "Route doesn't start at AHU"
 	
 	# Keep the figure open until manually closed
 	plt.show(block=True)

@@ -2,21 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from typing import List, Tuple
-from src.components import AHU, Room
+from src.components import AHU, Room, FloorPlan
 
 colormap = plt.cm.viridis
 
-def visualize_layout(rooms: List[Room], ahu: AHU, ax):
+def visualize_layout(floor_plan: FloorPlan, ax):
 	# Plot rooms
-	for room in rooms:
+	for room in floor_plan._rooms:
 		corners = np.vstack((room.corners, room.corners[0]))  # Close the polygon
 		ax.plot(corners[:, 0], corners[:, 1], 'b-')
 	
 	# Plot AHU
-	ax.plot(ahu.position[0], ahu.position[1], 'rs', markersize=10)
+	ax.plot(floor_plan.ahu.position[0], floor_plan.ahu.position[1], 'rs', markersize=10)
 	
 	# Plot room centers
-	for room in rooms:
+	for room in floor_plan._rooms:
 		ax.plot(room.center[0], room.center[1], 'go', markersize=5)
 	
 	ax.set_title("Building Layout and Duct Routing")

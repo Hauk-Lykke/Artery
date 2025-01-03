@@ -87,25 +87,24 @@ def test_create_example_rooms_11():
 
 	corridor = Room([(0,10),(0,15),(25,15),(25,20),(30,20),(30,10),(0,10)])
 
-	# List of all rooms
-	rooms = [
+	# Add rooms to floor plan
+	rooms_to_add = [
 		office_b1, office_b2, office_b3, office_b4, office_b5, office_b6,
-		office_t1, office_t2, office_t3, office_t4, square_room
+		office_t1, office_t2, office_t3, office_t4, square_room, corridor
 	]
-
-	floor_plan.rooms = rooms
+	floor_plan.add_rooms(rooms_to_add)
 
 	# Verify all rooms were created successfully
-	for room in rooms:
+	for room in floor_plan._rooms:
 		assert isinstance(room, Room)
 		assert hasattr(room, 'corners')
 		assert hasattr(room, 'center')
 
 	# Verify total number of rooms
-	assert len(rooms) == 12
+	assert len(floor_plan._rooms) == 12
 	
 	ahu = AHU((2.5, 2.5))  # AHU position adjusted to be within the bottom-left room
+	floor_plan.ahu = ahu
 
-
-	routes, fig, ax = routing.route_ducts(rooms, ahu)
+	routes, fig, ax = routing.route_ducts(floor_plan)
 	# plt.close(fig)  # Clean up the figure after test
