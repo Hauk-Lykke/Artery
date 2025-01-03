@@ -4,9 +4,9 @@ from typing import List, Tuple
 from queue import PriorityQueue
 from src.components import AHU, Room, Wall, FloorPlan
 from src.pathfinding import (
-	Pathfinder, EuclideanDistance, MovementCost, 
-	WallProximityCost, CompositeCost
+	Pathfinder, EuclideanDistance, MovementCost, CompositeCost
 )
+from src.structural import StandardWallCost
 from src.visualization import visualize_layout, visualize_routing
 
 def route_ducts(floor_plan: FloorPlan):

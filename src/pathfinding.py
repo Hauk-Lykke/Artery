@@ -4,6 +4,7 @@ from src.components import Room, Wall, AHU, FloorPlan
 from src.core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
+from src.structural import StandardWallCost
 from abc import ABC, abstractmethod
 from math import atan2, pi
 
@@ -12,36 +13,6 @@ class MovementCost(Cost):
 		diff = np.abs(current - next)
 		# Use Euclidean distance for more accurate diagonal costs
 		return np.sqrt(np.sum(diff * diff))
-
-class WallProximityCost(Cost):
-	def __init__(self, wall: Wall):
-		self.wall = wall
-		self.proximity_threshold = 1.0  # Distance at which wall proximity affects cost
-		self.proximity_penalty = 1.0    # Penalty multiplier for being near walls
-		
-	def _point_to_line_distance(self, point: np.ndarray) -> float:
-		"""Calculate the shortest distance from a point to the wall segment"""
-		wall_vec = self.wall.vector
-		wall_len_sq = np.dot(wall_vec, wall_vec)
-		if wall_len_sq == 0:
-			return np.linalg.norm(point - self.wall.start)
-		
-		t = max(0, min(1, np.dot(point - self.wall.start, wall_vec) / wall_len_sq))
-		projection = self.wall.start + t * wall_vec
-		return np.linalg.norm(point - projection)
-		
-	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-		# Check proximity for both current and next positions
-		current_dist = self._point_to_line_distance(current)
-		next_dist = self._point_to_line_distance(next)
-		
-		cost = 0
-		if current_dist < self.proximity_threshold:
-			cost += (self.proximity_threshold - current_dist) * self.proximity_penalty
-		if next_dist < self.proximity_threshold:
-			cost += (self.proximity_threshold - next_dist) * self.proximity_penalty
-			
-		return cost
 
 class CompositeCost(Cost):
 	def __init__(self, costs: List[Cost]):
@@ -56,9 +27,14 @@ class Heuristic(ABC):
 		pass
 
 class EuclideanDistance(Heuristic):
-	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-		diff = np.abs(current - goal)
+	@staticmethod
+	def between_points(a: np.ndarray, b: np.ndarray) -> float:
+		"""Calculate Euclidean distance between two points"""
+		diff = np.abs(a - b)
 		return np.sqrt(np.sum(diff * diff))
+		
+	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+		return self.between_points(current, goal)
 
 class CompositeHeuristic(Heuristic):
 	def __init__(self, heuristics: List[Heuristic]):
@@ -70,29 +46,29 @@ class CompositeHeuristic(Heuristic):
 class Pathfinder:
 	def __init__(self, floor_plan: FloorPlan):
 		self.floor_plan = floor_plan
-		
-		# Create composite cost with movement and wall costs
-		costs = [MovementCost()]
-		for wall in floor_plan.walls:
-			costs.append(wall.wall_crossing_cost)
-		self.composite_cost = CompositeCost(costs)
-		
-		# Create composite heuristic with euclidean distance
+		self._init_costs()
 		self.composite_h = CompositeHeuristic([EuclideanDistance()])
 	
-	def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
-		diff = np.abs(a - b)
-		return np.sqrt(np.sum(diff * diff))
-
+	def _init_costs(self):
+		"""Initialize cost functions with movement as primary and reduced wall costs"""
+		# Start with movement cost
+		costs = [MovementCost()]
+		
+		# Add wall costs
+		for wall in self.floor_plan.walls:
+			costs.append(StandardWallCost(wall))
+		
+		self.composite_cost = CompositeCost(costs)
+	
 	def find_furthest_room(self, ahu: AHU) -> Room:
-		return max(self.floor_plan._rooms, key=lambda room: self.euclidean_distance(room.center, ahu.position))
+		return max(self.floor_plan._rooms, key=lambda room: EuclideanDistance.between_points(room.center, ahu.position))
 
 	def a_star(self, start: np.ndarray, goal: np.ndarray, 
 			   heuristic: Heuristic = None, cost: Cost = None, ax=None) -> Tuple[List[np.ndarray], List[float]]:
 		if heuristic is None:
-			heuristic = EuclideanDistance()
+			heuristic = self.composite_h
 		if cost is None:
-			cost = MovementCost()
+			cost = self.composite_cost
 			
 		start_node = Node(start)
 		end_node = Node(goal)
