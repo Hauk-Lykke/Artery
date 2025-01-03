@@ -7,126 +7,102 @@ from abc import ABC, abstractmethod
 from math import atan2, pi
 
 class Cost(ABC):
-    @abstractmethod
-    def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-        pass
+	@abstractmethod
+	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+		pass
 
 class MovementCost(Cost):
-    def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-        diff = np.abs(current - next)
-        # Use Euclidean distance for more accurate diagonal costs
-        return np.sqrt(np.sum(diff * diff))
-
-class WallCrossingCost(Cost):
-    def __init__(self, wall: Wall):
-        self.wall = wall
-        self.perpendicular_cost = 3.0
-        self.angled_cost = 6.0
-    
-    def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
-        """Check if line segments (p1,p2) and (p3,p4) intersect"""
-        def ccw(A: np.ndarray, B: np.ndarray, C: np.ndarray) -> bool:
-            val = (C[1] - A[1]) * (B[0] - A[0]) - (B[1] - A[1]) * (C[0] - A[0])
-            if abs(val) < 1e-10:  # Points are collinear
-                return False
-            return val > 0
-        return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
-    
-    def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-        if not self._line_intersection(current, next, self.wall.start, self.wall.end):
-            return 0.0
-        
-        path_vector = next - current
-        angle = self.wall.get_angle_with(path_vector)
-        angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
-        return self.perpendicular_cost if abs(90 - angle) <= 5 else self.angled_cost
+	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+		diff = np.abs(current - next)
+		# Use Euclidean distance for more accurate diagonal costs
+		return np.sqrt(np.sum(diff * diff))
 
 class WallProximityCost(Cost):
-    def __init__(self, wall: Wall):
-        self.wall = wall
-        self.proximity_threshold = 1.0  # Distance at which wall proximity affects cost
-        self.proximity_penalty = 1.0    # Penalty multiplier for being near walls
-        
-    def _point_to_line_distance(self, point: np.ndarray) -> float:
-        """Calculate the shortest distance from a point to the wall segment"""
-        wall_vec = self.wall.vector
-        wall_len_sq = np.dot(wall_vec, wall_vec)
-        if wall_len_sq == 0:
-            return np.linalg.norm(point - self.wall.start)
-        
-        t = max(0, min(1, np.dot(point - self.wall.start, wall_vec) / wall_len_sq))
-        projection = self.wall.start + t * wall_vec
-        return np.linalg.norm(point - projection)
-        
-    def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-        # Check proximity for both current and next positions
-        current_dist = self._point_to_line_distance(current)
-        next_dist = self._point_to_line_distance(next)
-        
-        cost = 0
-        if current_dist < self.proximity_threshold:
-            cost += (self.proximity_threshold - current_dist) * self.proximity_penalty
-        if next_dist < self.proximity_threshold:
-            cost += (self.proximity_threshold - next_dist) * self.proximity_penalty
-            
-        return cost
+	def __init__(self, wall: Wall):
+		self.wall = wall
+		self.proximity_threshold = 1.0  # Distance at which wall proximity affects cost
+		self.proximity_penalty = 1.0    # Penalty multiplier for being near walls
+		
+	def _point_to_line_distance(self, point: np.ndarray) -> float:
+		"""Calculate the shortest distance from a point to the wall segment"""
+		wall_vec = self.wall.vector
+		wall_len_sq = np.dot(wall_vec, wall_vec)
+		if wall_len_sq == 0:
+			return np.linalg.norm(point - self.wall.start)
+		
+		t = max(0, min(1, np.dot(point - self.wall.start, wall_vec) / wall_len_sq))
+		projection = self.wall.start + t * wall_vec
+		return np.linalg.norm(point - projection)
+		
+	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+		# Check proximity for both current and next positions
+		current_dist = self._point_to_line_distance(current)
+		next_dist = self._point_to_line_distance(next)
+		
+		cost = 0
+		if current_dist < self.proximity_threshold:
+			cost += (self.proximity_threshold - current_dist) * self.proximity_penalty
+		if next_dist < self.proximity_threshold:
+			cost += (self.proximity_threshold - next_dist) * self.proximity_penalty
+			
+		return cost
 
 class CompositeCost(Cost):
-    def __init__(self, costs: List[Tuple[Cost, float]]):
-        self.costs = costs  # List of (cost, weight) tuples
-    
-    def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-        return sum(weight * cost.calculate(current, next) for cost, weight in self.costs)
+	def __init__(self, costs: List[Tuple[Cost, float]]):
+		self.costs = costs  # List of (cost, weight) tuples
+	
+	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+		return sum(weight * cost.calculate(current, next) for cost, weight in self.costs)
 
 class Heuristic(ABC):
-    @abstractmethod
-    def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-        pass
+	@abstractmethod
+	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+		pass
 
 class EuclideanDistance(Heuristic):
-    def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-        diff = np.abs(current - goal)
-        return np.sqrt(np.sum(diff * diff))
+	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+		diff = np.abs(current - goal)
+		return np.sqrt(np.sum(diff * diff))
 
 class WallCrossingHeuristic(Heuristic):
-    def __init__(self, wall: Wall):
-        self.wall = wall
-        self.perpendicular_cost = 3.0
-        self.angled_cost = 6.0
-    
-    def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
-        """Check if line segments (p1,p2) and (p3,p4) intersect"""
-        def ccw(A: np.ndarray, B: np.ndarray, C: np.ndarray) -> bool:
-            # Handle collinear points
-            val = (C[1] - A[1]) * (B[0] - A[0]) - (B[1] - A[1]) * (C[0] - A[0])
-            if abs(val) < 1e-10:  # Points are collinear
-                return False
-            return val > 0
+	def __init__(self, wall: Wall):
+		self.wall = wall
+		self.perpendicular_cost = 3.0
+		self.angled_cost = 6.0
+	
+	def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
+		"""Check if line segments (p1,p2) and (p3,p4) intersect"""
+		def ccw(A: np.ndarray, B: np.ndarray, C: np.ndarray) -> bool:
+			# Handle collinear points
+			val = (C[1] - A[1]) * (B[0] - A[0]) - (B[1] - A[1]) * (C[0] - A[0])
+			if abs(val) < 1e-10:  # Points are collinear
+				return False
+			return val > 0
 
-        # Check if line segments intersect
-        return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
-    
-    def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-        path_vector = goal - current
-        
-        if not self._line_intersection(current, goal, self.wall.start, self.wall.end):
-            return 0.0
-            
-        # Calculate angle between path vector and wall
-        angle = self.wall.get_angle_with(path_vector)
-        
-        # Normalize angle to be between 0 and 90 degrees
-        angle = min(angle, 180 - angle)
-        
-        # Return cost based on crossing angle
-        return self.perpendicular_cost if abs(90 - angle) <= 5 else self.angled_cost
+		# Check if line segments intersect
+		return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
+	
+	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+		path_vector = goal - current
+		
+		if not self._line_intersection(current, goal, self.wall.start, self.wall.end):
+			return 0.0
+			
+		# Calculate angle between path vector and wall
+		angle = self.wall.get_angle_with(path_vector)
+		
+		# Normalize angle to be between 0 and 90 degrees
+		angle = min(angle, 180 - angle)
+		
+		# Return cost based on crossing angle
+		return self.perpendicular_cost if abs(90 - angle) <= 5 else self.angled_cost
 
 class CompositeHeuristic(Heuristic):
-    def __init__(self, heuristics: List[Tuple[Heuristic, float]]):
-        self.heuristics = heuristics  # List of (heuristic, weight) tuples
-        
-    def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-        return sum(weight * h.calculate(current, goal) for h, weight in self.heuristics)
+	def __init__(self, heuristics: List[Tuple[Heuristic, float]]):
+		self.heuristics = heuristics  # List of (heuristic, weight) tuples
+		
+	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+		return sum(weight * h.calculate(current, goal) for h, weight in self.heuristics)
 
 class Pathfinder:
 	def __init__(self, rooms: List[Room]):
