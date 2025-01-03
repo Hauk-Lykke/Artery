@@ -40,7 +40,7 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 		Line2D([0], [0], color='none', marker='o', markerfacecolor='g', 
 			   label='Room Center', markersize=5)
 	]
-	ax.legend(handles=legend_elements, loc='upper right')
+	ax.legend(handles=legend_elements, loc='lower right')
 	
 	ax.set_title("Building Layout and Duct Routing")
 	ax.axis('equal')
@@ -69,7 +69,7 @@ class PathfindingVisualizer:
         
         # Color the attempted nodes based on cost relative to current maximum
         normalized_cost = current_node.g / current_max_cost if current_max_cost > 0 else 0
-        color = plt.cm.viridis(normalized_cost)
+        color = colormap(normalized_cost)
         self.ax.plot(neighbor_pos[0], neighbor_pos[1], 'o', color=color, markersize=2)
         
         # Restore axis limits

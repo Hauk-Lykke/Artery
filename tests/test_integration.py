@@ -6,96 +6,133 @@ import src.routing as routing
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
-    import matplotlib
-    matplotlib.use('TkAgg')
-    plt.ion()
-    yield
-    plt.close('all')
+	import matplotlib
+	matplotlib.use('TkAgg')
+	plt.ion()
+	yield
+	plt.close('all')
 
 def test_four_rooms():
-    """Test the complete system with a simple 2x2 room layout"""
-    floor_plan = FloorPlan()
-    
-    # Create four rooms in a 2x2 grid
-    rooms = []
-    
-    # Bottom-left room
-    room = Room([(0, 0), (5, 0), (5, 5), (0, 5)])
-    room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-    room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
-    rooms.append(room)
-    
-    # Bottom-right room
-    room = Room([(5, 0), (10, 0), (10, 5), (5, 5)])
-    room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-    room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
-    rooms.append(room)
-    
-    # Top-left room
-    room = Room([(0, 5), (5, 5), (5, 10), (0, 10)])
-    room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
-    room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
-    rooms.append(room)
-    
-    # Top-right room
-    room = Room([(5, 5), (10, 5), (10, 10), (5, 10)])
-    room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
-    room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
-    rooms.append(room)
-    
-    floor_plan.add_rooms(rooms)
-    floor_plan.ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
-    
-    # Test full routing
-    routes, fig, ax = routing.route_ducts(floor_plan)
-    
-    # Verify routes
-    assert len(routes) > 0, "No routes created"
-    for route, costs in routes:
-        assert len(route) > 0, "Empty route found"
-        assert len(costs) > 0, "Empty costs found"
-        assert len(route) == len(costs), "Route and costs lengths don't match"
-        assert np.allclose(route[0], floor_plan.ahu.position, atol=0.5), "Route doesn't start at AHU"
+	"""Test the complete system with a simple 2x2 room layout.
+	
+	This test creates a 2x2 grid of rooms, sets up outer walls, and verifies
+	that the routing system can create valid duct routes from the AHU to each room.
+	"""
+	floor_plan = FloorPlan()
+
+	# Create four rooms in a 2x2 grid
+	rooms = []
+	
+	# Bottom-left room
+	room = Room([(0, 0), (5, 0), (5, 5), (0, 5)])
+	room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	rooms.append(room)
+	
+	# Bottom-right room
+	room = Room([(5, 0), (10, 0), (10, 5), (5, 5)])
+	room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+	rooms.append(room)
+	
+	# Top-left room
+	room = Room([(0, 5), (5, 5), (5, 10), (0, 10)])
+	room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	rooms.append(room)
+	
+	# Top-right room
+	room = Room([(5, 5), (10, 5), (10, 10), (5, 10)])
+	room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+	room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	rooms.append(room)
+	
+	floor_plan.add_rooms(rooms)
+	floor_plan.ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
+	
+	# Test full routing
+	routes, fig, ax = routing.route_ducts(floor_plan)
+	
+	# Verify routes
+	for route, costs in routes:
+		assert len(route) > 0, "Empty route found"
+		assert len(costs) > 0, "Empty costs found"
+		assert len(route) == len(costs), "Route and costs lengths don't match"
+		assert np.allclose(route[0], floor_plan.ahu.position, atol=0.5), "Route doesn't start at AHU"
 
 def test_complex_layout():
-    """Test the system with a more complex 11-room layout"""
-    floor_plan = FloorPlan()
-    
-    # Bottom row offices (left to right)
-    office_b1 = Room([(0, 0), (5, 0), (5, 10), (0, 10)])
-    office_b1.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-    office_b1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
-    
-    office_b2 = Room([(5, 0), (10, 0), (10, 10), (5, 10)])
-    office_b2.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-    
-    office_b3 = Room([(10, 0), (15, 0), (15, 10), (10, 10)])
-    office_b3.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-    
-    # Top row offices
-    office_t1 = Room([(0, 15), (10, 15), (10, 25), (0, 25)])
-    office_t1.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
-    office_t1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
-    
-    office_t2 = Room([(10, 15), (15, 15), (15, 25), (10, 25)])
-    office_t2.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
-    
-    # Corridor
-    corridor = Room([(0,10), (0,15), (15,15), (15,10), (0,10)])
-    corridor.walls[0].wall_type = WallType.OUTER_WALL  # Left wall
-    
-    # Add rooms to floor plan
-    rooms = [office_b1, office_b2, office_b3, office_t1, office_t2, corridor]
-    floor_plan.add_rooms(rooms)
-    floor_plan.ahu = AHU((2.5, 2.5))
-    
-    # Test routing
-    routes, fig, ax = routing.route_ducts(floor_plan)
-    
-    # Verify routes
-    assert len(routes) > 0, "No routes created"
-    for route, costs in routes:
-        assert len(route) > 0, "Empty route found"
-        assert len(costs) > 0, "Empty costs found"
-        assert len(route) == len(costs), "Route and costs lengths don't match"
-        assert np.allclose(route[0], floor_plan.ahu.position, atol=0.5), "Route doesn't start at AHU"
+	"""Test the system with a more complex 11-room layout"""
+	floor_plan = FloorPlan()
+	# Bottom row offices (left to right)
+	office_b1 = Room([(0, 0), (5, 0), (5, 10), (0, 10)])
+	office_b1.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	
+	office_b2 = Room([(5, 0), (10, 0), (10, 10), (5, 10)])
+	office_b2.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
+	office_b3 = Room([(10, 0), (15, 0), (15, 10), (10, 10)])
+	office_b3.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
+	office_b4 = Room([(15, 0), (20, 0), (20, 10), (15, 10)])
+	office_b4.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
+	office_b5 = Room([(20, 0), (25, 0), (25, 10), (20, 10)])
+	office_b5.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
+	office_b6 = Room([(25, 0), (30, 0), (30, 10), (25, 10)])
+	office_b6.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b6.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+
+	# Top row offices (left to right)
+	office_t1 = Room([(0, 15), (10, 15), (10, 25), (0, 25)])
+	office_t1.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	office_t1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	
+	office_t2 = Room([(10, 15), (15, 15), (15, 25), (10, 25)])
+	office_t2.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	
+	office_t3 = Room([(15, 15), (20, 15), (20, 25), (15, 25)])
+	office_t3.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	
+	office_t4 = Room([(20, 15), (25, 15), (25, 25), (20, 25)])
+	office_t4.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+
+	# Small square room (top right)
+	square_room = Room([(25, 20), (30, 20), (30, 25), (25, 25)])
+	square_room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+	square_room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+
+	corridor = Room([(0,10),(0,15),(25,15),(25,20),(30,20),(30,10),(0,10)])
+	corridor.walls[0].wall_type = WallType.OUTER_WALL  # Left wall
+	corridor.walls[4].wall_type = WallType.OUTER_WALL  # Right wall
+
+	# Add rooms to floor plan
+	rooms_to_add = [
+		office_b1, office_b2, office_b3, office_b4, office_b5, office_b6,
+		office_t1, office_t2, office_t3, office_t4, square_room, corridor
+	]
+	floor_plan.add_rooms(rooms_to_add)
+
+	# Verify all rooms were created successfully
+	for room in floor_plan._rooms:
+		assert isinstance(room, Room)
+		assert hasattr(room, 'corners')
+		assert hasattr(room, 'center')
+
+	# Verify total number of rooms
+	assert len(floor_plan._rooms) == 12
+	
+	ahu = AHU((2.5, 2.5))  # AHU position adjusted to be within the bottom-left room
+	floor_plan.ahu = ahu
+	
+	# Test routing
+	routes, fig, ax = routing.route_ducts(floor_plan)
+	
+	# Verify routes
+	assert len(routes) > 0, "No routes created"
+	for route, costs in routes:
+		assert len(route) > 0, "Empty route found"
+		assert len(costs) > 0, "Empty costs found"
+		assert len(route) == len(costs), "Route and costs lengths don't match"
+		assert np.allclose(route[0], floor_plan.ahu.position, atol=0.5), "Route doesn't start at AHU"
