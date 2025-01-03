@@ -98,6 +98,10 @@ class Pathfinder:
 		return total_cost
 	
 	def find_furthest_room(self, ahu: AirHandlingUnit) -> Room:
+		if ahu is None:
+			raise ValueError("AHU must be set in floor plan before finding furthest room")
+		if not self.floor_plan._rooms:
+			raise ValueError("Floor plan must have rooms before finding furthest room")
 		return max(self.floor_plan._rooms, key=lambda room: EnhancedDistance.between_points(room.center, ahu.position))
 
 	def a_star(self, start: np.ndarray, goal: np.ndarray, ax=None) -> Tuple[List[np.ndarray], List[float]]:

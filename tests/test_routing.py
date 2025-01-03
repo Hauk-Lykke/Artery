@@ -29,6 +29,17 @@ def test_route_ducts_basic():
     assert all(isinstance(cost, (int, float)) for cost in costs)
     assert len(costs) > 0  # Should have costs for each step
 
+def test_route_ducts_missing_ahu():
+    # Create floor plan without AHU
+    rooms = [
+        Room(np.array([[0, 0], [2, 0], [2, 2], [0, 2]]))
+    ]
+    floor_plan = FloorPlan(rooms=rooms)
+    
+    # Test that routing fails with appropriate error
+    with pytest.raises(ValueError, match="AHU must be set in floor plan before routing ducts"):
+        route_ducts(floor_plan)
+
 def test_route_ducts_visualization():
     # Create test floor plan
     rooms = [

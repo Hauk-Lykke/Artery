@@ -6,7 +6,10 @@ from src.components import FloorPlan
 from src.pathfinding import Pathfinder
 from src.visualization import visualize_layout, visualize_routing
 
-def route_ducts(floor_plan: FloorPlan):
+def route_ducts(floor_plan: FloorPlan, test_name: str = None):
+	if floor_plan.ahu is None:
+		raise ValueError("AHU must be set in floor plan before routing ducts")
+	
 	pathfinder = Pathfinder(floor_plan)
 	furthest_room = pathfinder.find_furthest_room(floor_plan.ahu)
 	
