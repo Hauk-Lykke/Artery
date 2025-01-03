@@ -29,6 +29,19 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 	for room in floor_plan._rooms:
 		ax.plot(room.center[0], room.center[1], 'go', markersize=5)
 	
+	# Add wall type legend
+	from matplotlib.lines import Line2D
+	legend_elements = [
+		Line2D([0], [0], color='k', label='Outer Wall', linewidth=2),
+		Line2D([0], [0], color='r', label='Concrete Wall', linewidth=2),
+		Line2D([0], [0], color='b', label='Regular Wall', linewidth=2),
+		Line2D([0], [0], color='none', marker='s', markerfacecolor='r', 
+			   label='AHU', markersize=10),
+		Line2D([0], [0], color='none', marker='o', markerfacecolor='g', 
+			   label='Room Center', markersize=5)
+	]
+	ax.legend(handles=legend_elements, loc='upper right')
+	
 	ax.set_title("Building Layout and Duct Routing")
 	ax.axis('equal')
 	ax.grid(True)
