@@ -154,7 +154,8 @@ class Pathfinder:
 						ax._visualizer = PathfindingVisualizer(ax)
 					ax._visualizer.update_node(current_node, neighbor_pos, open_list)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
-					plt.pause(0.1 if iterations % 10 == 0 else 0.001)
+					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
+					# plt.pause(0.001 if iterations % 10 == 0 else 0.000)
 			
 			if iterations % 100 == 0:
 				print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")
