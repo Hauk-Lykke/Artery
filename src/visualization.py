@@ -40,11 +40,44 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 		Line2D([0], [0], color='none', marker='o', markerfacecolor='g', 
 			   label='Room Center', markersize=5)
 	]
-	ax.legend(handles=legend_elements, loc='upper right')
+	ax.legend(handles=legend_elements, loc='lower right')
 	
 	ax.set_title("Building Layout and Duct Routing")
 	ax.axis('equal')
 	ax.grid(True)
+
+class PathfindingVisualizer:
+    def __init__(self, ax):
+        self.ax = ax
+        self._setup_visualization()
+    
+    def _setup_visualization(self):
+        """Initialize visualization components"""
+        self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(vmin=0, vmax=1))
+        self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')
+        # Store initial axis limits
+        self.ax._xlim = self.ax.get_xlim()
+        self.ax._ylim = self.ax.get_ylim()
+    
+    def update_node(self, current_node, neighbor_pos, open_list):
+        """Visualize a single node exploration step"""
+        # Update the maximum cost seen so far
+        current_max_cost = max(neighbor.g for _, neighbor in list(open_list.queue) + [(0, current_node)])
+        
+        # Update normalization for colorbar
+        self.ax._cost_mapper.norm.vmax = current_max_cost
+        
+        # Color the attempted nodes based on cost relative to current maximum
+        normalized_cost = current_node.g / current_max_cost if current_max_cost > 0 else 0
+        color = colormap(normalized_cost)
+        self.ax.plot(neighbor_pos[0], neighbor_pos[1], 'o', color=color, markersize=2)
+        
+        # Restore axis limits
+        self.ax.set_xlim(self.ax._xlim)
+        self.ax.set_ylim(self.ax._ylim)
+        
+        # Update colorbar
+        self.ax._colorbar.update_normal(self.ax._cost_mapper)
 
 def visualize_routing(routes: List[Tuple[List[np.ndarray], List[float]]], ax):
 	# Find global maximum cost for consistent color mapping

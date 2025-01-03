@@ -10,5 +10,4 @@
     "python.analysis.extraPaths": [
         "${workspaceFolder}/src"
 	],
-	"CodeGPT.apiKey": "CodeGPT Plus Beta"
 }
