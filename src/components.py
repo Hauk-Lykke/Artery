@@ -90,8 +90,8 @@ class WallProximityCost(Cost):
 		elif wall.wall_type == WallType.CONCRETE:
 			self.perpendicular_cost = 3.0
 		else:
-			self.perpendicular_cost = 5.0
-		self.angled_cost = 3*self.perpendicular_cost
+			self.perpendicular_cost = 8.0
+		self.angled_cost = 2*self.perpendicular_cost
 	
 	def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
 		"""Check if line segments (p1,p2) and (p3,p4) intersect."""
@@ -119,7 +119,7 @@ class WallProximityCost(Cost):
 			path_vector = next - current
 			angle = self.wall.get_angle_with(path_vector)
 			angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
-			return self.perpendicular_cost if abs(90 - angle) <= 5 else self.angled_cost
+			return self.perpendicular_cost if abs(90 - angle) <= 3 else self.angled_cost
 		
 		# If not crossing, check proximity
 		current_dist = self._point_to_line_distance(current)
@@ -130,4 +130,4 @@ class WallProximityCost(Cost):
 			return 0.0
 		
 		# Linear interpolation between 0 and angled_cost based on distance
-		return self.angled_cost * (1 - min_dist / self.PROXIMITY_THRESHOLD)
+		return self.perpendicular_cost * (1 - min_dist / self.PROXIMITY_THRESHOLD)

@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-from src.components import AHU, Building, FloorPlan, Room, Wall
-from src.pathfinding import WallCrossingHeuristic, EuclideanDistance, CompositeHeuristic
+from src.components import AHU, Building, FloorPlan, Room, Wall, WallType
+from src.pathfinding import EuclideanDistance, CompositeHeuristic
 import src.routing as routing
 
 def test_wall_creation():
@@ -31,61 +31,63 @@ def test_room_walls():
 		assert isinstance(wall, Wall)
 		assert wall.length == 10.0
 
-def test_wall_crossing_heuristic():
-	# Create a simple room
-	room = Room([(0, 0), (10, 0), (10, 10), (0, 10)])
-	# We'll test with the left wall of the room (from (0,0) to (0,10))
-	heuristic = WallCrossingHeuristic(room.walls[3])  # Left wall
-	
-	# Test perpendicular crossing
-	cost = heuristic.calculate(np.array([-1, 5]), np.array([11, 5]))
-	assert cost == heuristic.perpendicular_cost  # Should cross one wall perpendicularly
-	
-	# Test angled crossing
-	cost = heuristic.calculate(np.array([-1, -1]), np.array([11, 11]))
-	assert cost == heuristic.angled_cost  # Should cross one wall at ~45 degrees
-
-def test_composite_heuristic():
-	room = Room([(0, 0), (10, 0), (10, 10), (0, 10)])
-	euclidean = EuclideanDistance()
-	wall_crossing = WallCrossingHeuristic(room.walls[3])  # Left wall
-	
-	composite = CompositeHeuristic([
-		(euclidean, 1.0),
-		(wall_crossing, 1.0)
-	])
-	
-	# Test combined cost
-	start = np.array([-1, 5])
-	end = np.array([11, 5])
-	
-	expected_cost = (
-		euclidean.calculate(start, end) +  # Euclidean distance
-		wall_crossing.calculate(start, end)  # Wall crossing cost
-	)
-	
-	assert np.allclose(composite.calculate(start, end), expected_cost)
+def test_euclidean_heuristic():
+    euclidean = EuclideanDistance()
+    
+    # Test distance calculation
+    start = np.array([-1, 5])
+    end = np.array([11, 5])
+    
+    # Expected distance should be 12 (horizontal distance from -1 to 11)
+    expected_distance = 12.0
+    
+    assert np.allclose(euclidean.calculate(start, end), expected_distance)
 
 def test_create_example_rooms_11():
 	floor_plan = FloorPlan()
 	# Bottom row offices (left to right)
 	office_b1 = Room([(0, 0), (5, 0), (5, 10), (0, 10)])
+	office_b1.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	
 	office_b2 = Room([(5, 0), (10, 0), (10, 10), (5, 10)])
+	office_b2.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
 	office_b3 = Room([(10, 0), (15, 0), (15, 10), (10, 10)])
+	office_b3.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
 	office_b4 = Room([(15, 0), (20, 0), (20, 10), (15, 10)])
+	office_b4.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
 	office_b5 = Room([(20, 0), (25, 0), (25, 10), (20, 10)])
+	office_b5.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	
 	office_b6 = Room([(25, 0), (30, 0), (30, 10), (25, 10)])
+	office_b6.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b6.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
 
 	# Top row offices (left to right)
 	office_t1 = Room([(0, 15), (10, 15), (10, 25), (0, 25)])
+	office_t1.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	office_t1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	
 	office_t2 = Room([(10, 15), (15, 15), (15, 25), (10, 25)])
+	office_t2.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	
 	office_t3 = Room([(15, 15), (20, 15), (20, 25), (15, 25)])
+	office_t3.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	
 	office_t4 = Room([(20, 15), (25, 15), (25, 25), (20, 25)])
+	office_t4.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
 
 	# Small square room (top right)
 	square_room = Room([(25, 20), (30, 20), (30, 25), (25, 25)])
+	square_room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+	square_room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
 
 	corridor = Room([(0,10),(0,15),(25,15),(25,20),(30,20),(30,10),(0,10)])
+	corridor.walls[0].wall_type = WallType.OUTER_WALL  # Left wall
+	corridor.walls[4].wall_type = WallType.OUTER_WALL  # Right wall
 
 	# Add rooms to floor plan
 	rooms_to_add = [

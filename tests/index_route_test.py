@@ -2,12 +2,11 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from src.components import AHU, Room, Wall, FloorPlan
+from src.components import AHU, Room, Wall, FloorPlan, WallType
 from src.core import Node
 from src.pathfinding import (
 	Pathfinder, EuclideanDistance, MovementCost, 
-	WallProximityCost, CompositeCost,
-	WallCrossingHeuristic, CompositeHeuristic
+	WallProximityCost, CompositeCost, CompositeHeuristic
 )
 import src.routing as routing
 import pytest
@@ -25,40 +24,41 @@ def test_four_rooms():
 	floor_plan = FloorPlan()
 	
 	# Create four rooms in a 2x2 grid
-	rooms = [
-		Room([(0, 0), (0, 5), (5, 5), (5, 0)]),    # bottom-left
-		Room([(5, 0), (5, 5), (10, 5), (10, 0)]),  # bottom-right
-		Room([(0, 5), (0, 10), (5, 10), (5, 5)]),  # top-left
-		Room([(5, 5), (5, 10), (10, 10), (10, 5)]) # top-right
-	]
+	rooms = []
+	
+	# Bottom-left room
+	room = Room([(0, 0), (5, 0), (5, 5), (0, 5)])
+	room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	rooms.append(room)
+	
+	# Bottom-right room
+	room = Room([(5, 0), (10, 0), (10, 5), (5, 5)])
+	room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+	rooms.append(room)
+	
+	# Top-left room
+	room = Room([(0, 5), (5, 5), (5, 10), (0, 10)])
+	room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	rooms.append(room)
+	
+	# Top-right room
+	room = Room([(5, 5), (10, 5), (10, 10), (5, 10)])
+	room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+	room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	rooms.append(room)
 	
 	floor_plan.add_rooms(rooms)
 	floor_plan.ahu = AHU((2.5, 2.5))  # AHU in bottom-left room
 	pathfinder = Pathfinder(floor_plan)
 	
-	# Create wall crossing costs and heuristics for shared walls
-	vertical_wall = Wall((5, 0), (5, 10))  # Vertical wall between left and right rooms
-	horizontal_wall = Wall((0, 5), (10, 5))  # Horizontal wall between top and bottom rooms
-	
-	# Create composite cost with movement, wall crossings, and wall proximity
-	composite_cost = CompositeCost([
-		(MovementCost(), 1.0),
-		(WallProximityCost(vertical_wall), 0.4),
-		(WallProximityCost(horizontal_wall), 0.4)
-	])
-	
-	# Create composite heuristic with euclidean distance and wall crossings
-	composite_h = CompositeHeuristic([
-		(EuclideanDistance(), 1.0),
-		(WallCrossingHeuristic(vertical_wall), 0.5),
-		(WallCrossingHeuristic(horizontal_wall), 0.5)
-	])
-	
 	# Test path to top-right room
-	start = ahu.position
+	start = floor_plan.ahu.position
 	goal = np.array([7.5, 7.5])  # Center of top-right room
 	
-	path, costs = pathfinder.a_star(start, goal, composite_h, composite_cost)
+	path, costs = pathfinder.a_star(start, goal)
 	
 	# Verify path exists
 	assert len(path) > 0, "No path found"

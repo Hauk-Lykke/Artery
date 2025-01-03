@@ -44,11 +44,11 @@ class WallProximityCost(Cost):
 		return cost
 
 class CompositeCost(Cost):
-	def __init__(self, costs: List[Tuple[Cost, float]]):
-		self.costs = costs  # List of (cost, weight) tuples
+	def __init__(self, costs: List[Cost]):
+		self.costs = costs  # List of costs
 	
 	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-		return sum(weight * cost.calculate(current, next) for cost, weight in self.costs)
+		return sum(cost.calculate(current, next) for cost in self.costs)
 
 class Heuristic(ABC):
 	@abstractmethod
@@ -60,45 +60,12 @@ class EuclideanDistance(Heuristic):
 		diff = np.abs(current - goal)
 		return np.sqrt(np.sum(diff * diff))
 
-class WallCrossingHeuristic(Heuristic):
-	def __init__(self, wall: Wall):
-		self.wall = wall
-		self.perpendicular_cost = 3.0
-		self.angled_cost = 6.0
-	
-	def _line_intersection(self, p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray) -> bool:
-		"""Check if line segments (p1,p2) and (p3,p4) intersect"""
-		def ccw(A: np.ndarray, B: np.ndarray, C: np.ndarray) -> bool:
-			# Handle collinear points
-			val = (C[1] - A[1]) * (B[0] - A[0]) - (B[1] - A[1]) * (C[0] - A[0])
-			if abs(val) < 1e-10:  # Points are collinear
-				return False
-			return val > 0
-
-		# Check if line segments intersect
-		return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
-	
-	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-		path_vector = goal - current
-		
-		if not self._line_intersection(current, goal, self.wall.start, self.wall.end):
-			return 0.0
-			
-		# Calculate angle between path vector and wall
-		angle = self.wall.get_angle_with(path_vector)
-		
-		# Normalize angle to be between 0 and 90 degrees
-		angle = min(angle, 180 - angle)
-		
-		# Return cost based on crossing angle
-		return self.perpendicular_cost if abs(90 - angle) <= 5 else self.angled_cost
-
 class CompositeHeuristic(Heuristic):
-	def __init__(self, heuristics: List[Tuple[Heuristic, float]]):
-		self.heuristics = heuristics  # List of (heuristic, weight) tuples
+	def __init__(self, heuristics: List[Heuristic]):
+		self.heuristics = heuristics  # List of heuristics
 		
 	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
-		return sum(weight * h.calculate(current, goal) for h, weight in self.heuristics)
+		return sum(h.calculate(current, goal) for h in self.heuristics)
 
 class Pathfinder:
 	def __init__(self, floor_plan: FloorPlan):
@@ -108,13 +75,10 @@ class Pathfinder:
 		costs = [MovementCost()]
 		for wall in floor_plan.walls:
 			costs.append(wall.wall_crossing_cost)
-		self.composite_cost = CompositeCost([(cost, 1.0) for cost in costs])
+		self.composite_cost = CompositeCost(costs)
 		
-		# Create composite heuristic with euclidean distance and wall crossings
-		heuristics = [EuclideanDistance()]
-		for wall in floor_plan.walls:
-			heuristics.append(WallCrossingHeuristic(wall))
-		self.composite_h = CompositeHeuristic([(h, 1.0) for h in heuristics])
+		# Create composite heuristic with euclidean distance
+		self.composite_h = CompositeHeuristic([EuclideanDistance()])
 	
 	def euclidean_distance(self, a: np.ndarray, b: np.ndarray) -> float:
 		diff = np.abs(a - b)
