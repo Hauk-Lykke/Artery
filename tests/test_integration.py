@@ -12,8 +12,51 @@ def mpl_test_settings():
 	yield
 	plt.close('all')
 
+class TestFourRooms:
+	@pytest.fixture
+	def four_room_floor_plan(self):
+		"""Create a 2x2 grid of rooms with outer walls and an AHU."""
+		floor_plan = FloorPlan()
+		rooms = []
+		
+		# Bottom-left room
+		room = Room([(0, 0), (5, 0), (5, 5), (0, 5)])
+		room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+		room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+		rooms.append(room)
+		
+		# Bottom-right room
+		room = Room([(5, 0), (10, 0), (10, 5), (5, 5)])
+		room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+		room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+		rooms.append(room)
+		
+		# Top-left room
+		room = Room([(0, 5), (5, 5), (5, 10), (0, 10)])
+		room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+		room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+		rooms.append(room)
+		
+		# Top-right room
+		room = Room([(5, 5), (10, 5), (10, 10), (5, 10)])
+		room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+		room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+		rooms.append(room)
+		
 		floor_plan.add_rooms(rooms)
 		floor_plan.ahu = AirHandlingUnit((2.5, 2.5))  # AHU in bottom-left room
+		return floor_plan
+
+	def test_duct_routing(self, four_room_floor_plan):
+		"""Test that valid duct routes can be created from the AHU to each room."""
+		routes, fig, ax = routing.route_ducts(four_room_floor_plan)
+		
+		# Verify routes
+		for route, costs in routes:
+			assert len(route) > 0, "Empty route found"
+			assert len(costs) > 0, "Empty costs found"
+			assert len(route) == len(costs), "Route and costs lengths don't match"
+			assert np.allclose(route[0], four_room_floor_plan.ahu.position, atol=0.5), "Route doesn't start at AHU"
 
 def test_complex_layout():
 	"""Test the system with a more complex 11-room layout"""
@@ -78,7 +121,7 @@ def test_complex_layout():
 	# Verify total number of rooms
 	assert len(floor_plan._rooms) == 12
 	
-	ahu = AHU((2.5, 2.5))  # AHU position adjusted to be within the bottom-left room
+	ahu = AirHandlingUnit((2.5, 2.5))  # AHU position adjusted to be within the bottom-left room
 	floor_plan.ahu = ahu
 	
 	# Test routing

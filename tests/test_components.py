@@ -44,3 +44,20 @@ def test_floor_plan_room_addition():
     # Test wall types are preserved
     room1.walls[0].wall_type = WallType.OUTER_WALL
     assert floor_plan._rooms[0].walls[0].wall_type == WallType.OUTER_WALL
+    
+def test_floor_plan_walls():
+	# Test wall list updates correctly
+	floor_plan = FloorPlan()
+	room1 = Room([(0, 0), (5, 0), (5, 5), (0, 5)])
+	room2 = Room([(5, 0), (10, 0), (10, 5), (5, 5)])
+	
+	floor_plan.add_room(room1)
+	assert len(floor_plan.walls) == 4
+	
+	floor_plan.add_room(room2) 
+	assert len(floor_plan.walls) == 8
+	
+	# Verify walls list contains actual Wall objects
+	for wall in floor_plan.walls:
+		assert isinstance(wall, Wall)
+
