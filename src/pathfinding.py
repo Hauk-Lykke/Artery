@@ -104,7 +104,7 @@ class Pathfinder:
 			raise ValueError("Floor plan must have rooms before finding furthest room")
 		return max(self.floor_plan._rooms, key=lambda room: EnhancedDistance.between_points(room.center, ahu.position))
 
-	def a_star(self, start: np.ndarray, goal: np.ndarray, ax=None) -> Tuple[List[np.ndarray], List[float]]:
+	def a_star(self, start: np.ndarray, goal: np.ndarray, ax=None, test_name: str = None) -> Tuple[List[np.ndarray], List[float]]:
 			
 		start_node = Node(start)
 		end_node = Node(goal)
@@ -128,12 +128,15 @@ class Pathfinder:
 			if np.allclose(current_node.position, end_node.position, atol=0.5):
 				path = []
 				costs = []
-				while current_node:
-					path.append(current_node.position)
-					costs.append(current_node.g)
-					current_node = current_node.parent
+				node = current_node  # Use a separate variable to build path
+				while node:
+					path.append(node.position)
+					costs.append(node.g)
+					node = node.parent
 				print(f"Path found in {iterations} iterations")
-				if ax:
+				if ax and hasattr(ax, '_visualizer'):
+					# Update visualization one last time
+					ax._visualizer.update_node(current_node, current_node.position, open_list, test_name)
 					plt.pause(1)  # Final pause to show the complete path
 				return path[::-1], costs[::-1]
 			
@@ -162,10 +165,9 @@ class Pathfinder:
 				if ax:
 					if not hasattr(ax, '_visualizer'):
 						ax._visualizer = PathfindingVisualizer(ax)
-					ax._visualizer.update_node(current_node, neighbor_pos, open_list)
+					ax._visualizer.update_node(current_node, neighbor_pos, open_list, test_name)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
 					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
-					# plt.pause(0.001 if iterations % 10 == 0 else 0.000)
 			
 			if iterations % 100 == 0:
 				print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")

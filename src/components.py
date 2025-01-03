@@ -62,6 +62,7 @@ class FloorPlan:
 	def __init__(self, rooms: List[Room] = None, ahu: AirHandlingUnit = None):
 		self.walls = []
 		self._rooms = []
+		self.ahu = None  # Initialize as None by default
 		if rooms is not None:
 			self.add_rooms(rooms)
 		if ahu is not None:

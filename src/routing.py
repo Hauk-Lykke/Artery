@@ -20,8 +20,8 @@ def route_ducts(floor_plan: FloorPlan, test_name: str = None):
 	visualize_layout(floor_plan, ax)
 	
 	# Create route to the furthest room using optimized A* pathfinding
-	index_route, costs = pathfinder.a_star(floor_plan.ahu.position, furthest_room.center, ax=ax)
-	visualize_routing([(index_route, costs)], ax)
+	index_route, costs = pathfinder.a_star(floor_plan.ahu.position, furthest_room.center, ax=ax, test_name=test_name)
+	visualize_routing([(index_route, costs)], ax, test_name=test_name)
 	
 	plt.draw()
 	plt.show(block=True)  # This will keep the window open even if the test fails

@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from typing import List, Tuple
+import datetime
+import os
 from src.components import AirHandlingUnit, Room, FloorPlan, WallType
 
 colormap = plt.cm.viridis
@@ -50,6 +52,8 @@ class PathfindingVisualizer:
     def __init__(self, ax):
         self.ax = ax
         self._setup_visualization()
+        self._start_time = datetime.datetime.now()
+        self._iterations = 0
     
     def _setup_visualization(self):
         """Initialize visualization components"""
@@ -59,8 +63,30 @@ class PathfindingVisualizer:
         self.ax._xlim = self.ax.get_xlim()
         self.ax._ylim = self.ax.get_ylim()
     
-    def update_node(self, current_node, neighbor_pos, open_list):
+    def _update_title(self):
+        """Update the plot title with current iterations and elapsed time"""
+        elapsed = (datetime.datetime.now() - self._start_time).total_seconds()
+        self.ax.set_title(f'A* Pathfinding - Iterations: {self._iterations}, Time: {elapsed:.2f}s')
+
+    def save_figure(self, test_name: str):
+        """Save the current figure with test name, date, and counter"""
+        date_str = datetime.datetime.now().strftime("%Y%m%d")
+        base_filename = f"results/{test_name}_{date_str}"
+        
+        # Find next available counter
+        counter = 0
+        while os.path.exists(f"{base_filename}_{counter}.png"):
+            counter += 1
+            
+        filename = f"{base_filename}_{counter}.png"
+        self.ax.figure.savefig(filename)
+        print(f"Saved figure to {filename}")
+        
+    def update_node(self, current_node, neighbor_pos, open_list, test_name: str = None):
         """Visualize a single node exploration step"""
+        self._iterations += 1
+        self._update_title()
+        
         # Update the maximum cost seen so far
         current_max_cost = max(neighbor.g for _, neighbor in list(open_list.queue) + [(0, current_node)])
         
@@ -78,8 +104,12 @@ class PathfindingVisualizer:
         
         # Update colorbar
         self.ax._colorbar.update_normal(self.ax._cost_mapper)
+        
+        # If open list is empty, algorithm has completed
+        if not open_list.queue and test_name:
+            self.save_figure(test_name)
 
-def visualize_routing(routes: List[Tuple[List[np.ndarray], List[float]]], ax):
+def visualize_routing(routes: List[Tuple[List[np.ndarray], List[float]]], ax, test_name: str = None):
 	# Find global maximum cost for consistent color mapping
 	global_max_cost = max(max(costs) for _, costs in routes)
 	
@@ -106,3 +136,7 @@ def visualize_routing(routes: List[Tuple[List[np.ndarray], List[float]]], ax):
 	else:
 		ax._cost_mapper = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
 		ax._colorbar = plt.colorbar(ax._cost_mapper, ax=ax, label='Path Cost')
+	
+	# Save figure if test_name is provided
+	if test_name and hasattr(ax, '_visualizer'):
+		ax._visualizer.save_figure(test_name)

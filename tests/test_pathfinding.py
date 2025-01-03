@@ -1,11 +1,17 @@
 import pytest
 import numpy as np
+import matplotlib.pyplot as plt
 from src.components import Wall, FloorPlan, Room
 from src.pathfinding import (
     Pathfinder, EnhancedDistance, MovementCost, 
     CompositeCost, CompositeHeuristic
 )
 from src.structural import StandardWallCost
+from src.visualization import PathfindingVisualizer
+
+@pytest.fixture(autouse=True)
+def mpl_test_settings():
+    plt.ion()  # Interactive mode
 
 def test_enhanced_distance():
     floor_plan = FloorPlan()
@@ -98,6 +104,20 @@ def test_a_star_simple_path():
     assert np.allclose(path[0], start), "Path doesn't start at start point"
     assert np.allclose(path[-1], goal), "Path doesn't reach goal"
 
+def test_visualization_updates():
+    floor_plan = FloorPlan()
+    pathfinder = Pathfinder(floor_plan)
+    
+    start = np.array([0, 0])
+    goal = np.array([2, 2])
+    
+    fig, ax = plt.subplots()
+    path, costs = pathfinder.a_star(start, goal, ax, "test_visualization_updates")
+    
+    assert hasattr(ax, '_visualizer'), "Visualizer not created"
+    assert isinstance(ax._visualizer, PathfindingVisualizer), "Wrong visualizer type"
+    assert ax._visualizer._iterations > 0, "Iterations not tracked"
+
 def test_a_star_stops_at_goal():
     floor_plan = FloorPlan()
     pathfinder = Pathfinder(floor_plan)
@@ -106,14 +126,16 @@ def test_a_star_stops_at_goal():
     goal = np.array([1, 1])  # Simple diagonal move
     
     # First run to get number of iterations
-    path1, _ = pathfinder.a_star(start, goal)
+    path1, _ = pathfinder.a_star(start, goal, test_name="test_a_star_stops_at_goal_1")
     iterations1 = len(path1)
     
     # Add more nodes around goal that could be explored
     floor_plan.add_room(Room(np.array([2, 2]), 1, 1))  # Room near goal
     
     # Second run should take same number of iterations
-    path2, _ = pathfinder.a_star(start, goal)
+    path2, _ = pathfinder.a_star(start, goal, test_name="test_a_star_stops_at_goal_2")
     iterations2 = len(path2)
     
     assert iterations1 == iterations2, "Algorithm continued after finding goal"
+    assert np.allclose(path1[-1], goal), "Path doesn't reach goal"
+    assert np.allclose(path2[-1], goal), "Path doesn't reach goal"

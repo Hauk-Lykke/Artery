@@ -49,7 +49,7 @@ class TestFourRooms:
 
 	def test_duct_routing(self, four_room_floor_plan):
 		"""Test that valid duct routes can be created from the AHU to each room."""
-		routes, fig, ax = routing.route_ducts(four_room_floor_plan)
+		routes, fig, ax = routing.route_ducts(four_room_floor_plan, "test_four_rooms")
 		
 		# Verify routes
 		for route, costs in routes:
@@ -127,7 +127,7 @@ class TestComplexLayout:
 
 	def test_duct_routing(self, complex_floor_plan):
 		"""Test that valid duct routes can be created from the AHU to each room."""
-		routes, fig, ax = routing.route_ducts(complex_floor_plan)
+		routes, fig, ax = routing.route_ducts(complex_floor_plan, "test_complex_rooms")
 		
 		assert len(routes) > 0, "No routes created"
 		for route, costs in routes:
