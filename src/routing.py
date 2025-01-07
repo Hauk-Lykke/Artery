@@ -1,0 +1,28 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from typing import List, Tuple
+from queue import PriorityQueue
+from src.components import FloorPlan
+from src.pathfinding import Pathfinder
+from src.visualization import visualize_layout, visualize_routing
+
+def route_ducts(floor_plan: FloorPlan, test_name: str = None):
+	if floor_plan.ahu is None:
+		raise ValueError("AHU must be set in floor plan before routing ducts")
+	
+	pathfinder = Pathfinder(floor_plan)
+	furthest_room = pathfinder.find_furthest_room(floor_plan.ahu)
+	
+	print(f"AHU position: {floor_plan.ahu.position}")
+	print(f"Furthest room center: {furthest_room.center}")
+	
+	fig, ax = plt.subplots(figsize=(12, 8))
+	visualize_layout(floor_plan, ax)
+	
+	# Create route to the furthest room using optimized A* pathfinding
+	index_route, costs = pathfinder.a_star(floor_plan.ahu.position, furthest_room.center, ax=ax, test_name=test_name)
+	visualize_routing([(index_route, costs)], ax, test_name=test_name)
+	
+	plt.draw()
+	plt.show(block=True)  # This will keep the window open even if the test fails
+	return [(index_route, costs)], fig, ax
