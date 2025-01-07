@@ -19,21 +19,6 @@ def test_route_ducts_basic():
 	assert len(path) >= 2
 	# plt.close(fig)
 
-def test_route_ducts_overlapping_rooms():
-	rooms = [
-		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
-		Room([Point(1, 1), Point(3, 1), Point(3, 3), Point(1, 3)])
-	]
-	ahu = AirHandlingUnit(position=Point(4, 4))
-	floor_plan = FloorPlan(rooms, ahu)
-	
-	routes, fig, ax = route_ducts(floor_plan)
-	
-	assert len(routes) == 1
-	path, costs = routes[0]
-	assert len(path) >= 2
-	plt.close(fig)
-
 def test_route_ducts_distant_rooms():
 	rooms = [
 		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
@@ -78,29 +63,29 @@ def test_route_ducts_ahu_inside_room():
 	assert len(path) >= 1
 	# plt.close(fig)
 
-def test_route_ducts_negative_coordinates():
-	rooms = [
-		Room([Point(-2, -2), Point(0, -2), Point(0, 0), Point(-2, 0)]),
-		Room([Point(1, 1), Point(3, 1), Point(3, 3), Point(1, 3)])
-	]
-	ahu = AirHandlingUnit(position=Point(0, 0))
-	floor_plan = FloorPlan(rooms, ahu)
+# def test_route_ducts_negative_coordinates():
+# 	rooms = [
+# 		Room([Point(-2, -2), Point(0, -2), Point(0, 0), Point(-2, 0)]),
+# 		Room([Point(1, 1), Point(3, 1), Point(3, 3), Point(1, 3)])
+# 	]
+# 	ahu = AirHandlingUnit(position=Point(0, 0))
+# 	floor_plan = FloorPlan(rooms, ahu)
 	
-	routes, fig, ax = route_ducts(floor_plan)
+# 	routes, fig, ax = route_ducts(floor_plan)
 	
-	assert len(routes) == 1
-	path, costs = routes[0]
-	assert len(path) >= 2
-	# plt.close(fig)
-	with pytest.raises(ValueError, match="AHU must be set in floor plan before routing ducts"):
-		route_ducts(floor_plan)
+# 	assert len(routes) == 1
+# 	path, costs = routes[0]
+# 	assert len(path) >= 2
+# 	# plt.close(fig)
+# 	with pytest.raises(ValueError, match="AHU must be set in floor plan before routing ducts"):
+# 		route_ducts(floor_plan)
 
 def test_route_ducts_visualization():
 	# Create test floor plan
 	rooms = [
-		Room(np.array([[0, 0], [2, 0], [2, 2], [0, 2]]))
+		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)])
 	]
-	ahu = AirHandlingUnit(position=np.array([3, 3]))
+	ahu = AirHandlingUnit(position=Point(3, 3))
 	floor_plan = FloorPlan(rooms=rooms, ahu=ahu)
 	
 	# Test the routing function

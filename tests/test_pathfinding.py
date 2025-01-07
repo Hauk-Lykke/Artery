@@ -130,12 +130,12 @@ def test_a_star_stops_at_goal():
 	iterations1 = len(path1)
 	
 	# Add more nodes around goal that could be explored
-	floor_plan.add_room(Room(Point(2, 2),Point(1, 1)))  # Room near goal
+	floor_plan.add_room(Room([Point(2, 2),Point(1, 1)]))  # Room near goal
 	
 	# Second run should take same number of iterations
 	path2, _ = pathfinder.a_star(start, goal, test_name="test_a_star_stops_at_goal_2")
 	iterations2 = len(path2)
 	
 	assert iterations1 == iterations2, "Algorithm continued after finding goal"
-	assert np.allclose(path1[-1], goal), "Path doesn't reach goal"
-	assert np.allclose(path2[-1], goal), "Path doesn't reach goal"
+	assert np.allclose(path1[-1].to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
+	assert np.allclose(path2[-1].to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
