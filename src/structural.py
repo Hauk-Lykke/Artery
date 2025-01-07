@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-import numpy as np
 from src.core import Cost
 from src.components import Wall, WallType
-from src.geometry import line_intersection, point_to_line_distance
+from src.geometry import line_intersection, point_to_line_distance, Point
 
 class WallCrossingCost(Cost):
     """Base class for wall crossing costs"""
@@ -37,10 +36,10 @@ class StandardWallCost(WallCrossingCost):
         self.perpendicular_cost = WallCosts.get_base_cost(wall.wall_type)
         self.angled_cost = WallCosts.get_angled_cost(wall.wall_type)
     
-    def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+    def calculate(self, current: Point, next: Point) -> float:
         # Check if path crosses wall
         if line_intersection(current, next, self.wall.start, self.wall.end):
-            path_vector = next - current
+            path_vector = Point(next.x - current.x, next.y - current.y)
             angle = self.wall.get_angle_with(path_vector)
             angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
             return self.perpendicular_cost if abs(90 - angle) <= 3 else self.angled_cost

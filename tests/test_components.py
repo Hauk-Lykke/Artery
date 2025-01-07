@@ -1,23 +1,29 @@
 import pytest
 import numpy as np
 from src.components import Wall, Room, FloorPlan, WallType
+from src.geometry import Point
 
 def test_wall_creation():
     # Test wall properties
-    wall = Wall((0, 0), (3, 4))
-    assert np.allclose(wall.start, np.array([0, 0]))
-    assert np.allclose(wall.end, np.array([3, 4]))
-    assert np.allclose(wall.vector, np.array([3, 4]))
-    assert np.allclose(wall.length, 5.0)  # 3-4-5 triangle
+    wall = Wall(Point(0, 0), Point(3, 4))
+    assert np.allclose(wall.start.to_numpy(), np.array([0, 0]))
+    assert np.allclose(wall.end.to_numpy(), np.array([3, 4]))
+    assert np.allclose(wall.vector.to_numpy(), np.array([3, 4]))
+    assert abs(wall.length - 5.0) < 1e-10  # 3-4-5 triangle
     
     # Test angle calculation
-    other_vector = np.array([4, -3])  # perpendicular to wall vector
-    angle = wall.get_angle_with(other_vector)
-    assert 85 <= angle <= 95  # Should be 90 degrees ± numerical precision
+    other_point = Point(4, -3)  # perpendicular to wall vector
+    angle = wall.get_angle_with(other_point)
+    assert 89 <= angle <= 91  # Should be 90 degrees ± numerical precision
 
 def test_room_walls():
     # Create a simple square room
-    room = Room([(0, 0), (10, 0), (10, 10), (0, 10)])
+    room = Room([
+        Point(0, 0),
+        Point(10, 0),
+        Point(10, 10),
+        Point(0, 10)
+    ])  # Changed tuples to Points
     
     # Verify walls were created
     assert hasattr(room, 'walls')
@@ -30,13 +36,13 @@ def test_room_walls():
 
 def test_room_center():
     # Test room center calculation
-    room = Room([(0, 0), (10, 0), (10, 10), (0, 10)])
-    assert np.allclose(room.center, np.array([5, 5]))
+    room = Room([Point(0, 0), Point(10, 0), Point(10, 10), Point(0, 10)])
+    assert np.allclose(room.center.to_numpy(), np.array([5, 5]))
 
 def test_floor_plan_room_addition():
     floor_plan = FloorPlan()
-    room1 = Room([(0, 0), (5, 0), (5, 5), (0, 5)])
-    room2 = Room([(5, 0), (10, 0), (10, 5), (5, 5)])
+    room1 = Room([Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)])
+    room2 = Room([Point(5, 0), Point(10, 0), Point(10, 5), Point(5, 5)])
     
     floor_plan.add_rooms([room1, room2])
     assert len(floor_plan._rooms) == 2
@@ -45,19 +51,30 @@ def test_floor_plan_room_addition():
     room1.walls[0].wall_type = WallType.OUTER_WALL
     assert floor_plan._rooms[0].walls[0].wall_type == WallType.OUTER_WALL
     
-def test_floor_plan_walls():
-	# Test wall list updates correctly
-	floor_plan = FloorPlan()
-	room1 = Room([(0, 0), (5, 0), (5, 5), (0, 5)])
-	room2 = Room([(5, 0), (10, 0), (10, 5), (5, 5)])
-	
-	floor_plan.add_room(room1)
-	assert len(floor_plan.walls) == 4
-	
-	floor_plan.add_room(room2) 
-	assert len(floor_plan.walls) == 8
-	
-	# Verify walls list contains actual Wall objects
-	for wall in floor_plan.walls:
-		assert isinstance(wall, Wall)
+def test_wall_reversal():
+        # Original wall
+        original_wall = Wall(Point(0, 0), Point(3, 4))
+        
+        # Create reversed wall
+        reversed_wall = Wall(original_wall.end, original_wall.start)
+        
+        # Test wall vectors are opposite
+        assert np.allclose(original_wall.vector.to_numpy(), -reversed_wall.vector.to_numpy())
+        assert original_wall.length == reversed_wall.length
 
+def test_floor_plan_walls():
+    # Test wall list updates correctly
+    floor_plan = FloorPlan()
+    room1 = Room([Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)])
+    room2 = Room([Point(5, 0), Point(10, 0), Point(10, 5), Point(5, 5)])
+    
+    floor_plan.add_room(room1)
+    assert len(floor_plan.walls) == 4
+    
+    floor_plan.add_room(room2)
+    assert len(floor_plan._rooms) == 2 
+    assert len(floor_plan.walls) == 6  # Shared wall between rooms should be counted once
+    
+    # Verify walls list contains actual Wall objects
+    for wall in floor_plan.walls:
+        assert isinstance(wall, Wall)

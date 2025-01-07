@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-import numpy as np
+from src.geometry import Point
 
 class Node:
-	def __init__(self, position: np.ndarray, parent=None):
+	def __init__(self, position: Point, parent=None):
 		self.position = position
 		self.parent = parent
 		self.g = 0
@@ -14,5 +14,5 @@ class Node:
 
 class Cost(ABC):
 	@abstractmethod
-	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+	def calculate(self, current: Point, next: Point) -> float:
 		pass

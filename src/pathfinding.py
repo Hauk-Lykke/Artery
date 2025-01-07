@@ -6,26 +6,27 @@ from queue import PriorityQueue
 import matplotlib.pyplot as plt
 from src.visualization import PathfindingVisualizer
 from src.structural import StandardWallCost, WallCosts
-from src.geometry import line_intersection
+from src.geometry import line_intersection, Point
 from abc import ABC, abstractmethod
-from math import atan2, pi
+from math import atan2, pi, sqrt
 
 class MovementCost(Cost):
-	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
-		diff = np.abs(current - next)
+	def calculate(self, current: Point, next: Point) -> float:
+		dx = abs(next.x - current.x)
+		dy = abs(next.y - current.y)
 		# Use Euclidean distance for more accurate diagonal costs
-		return np.sqrt(np.sum(diff * diff))
+		return sqrt(dx * dx + dy * dy)
 
 class CompositeCost(Cost):
 	def __init__(self, costs: List[Cost]):
 		self.costs = costs  # List of costs
 	
-	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+	def calculate(self, current: Point, next: Point) -> float:
 		return sum(cost.calculate(current, next) for cost in self.costs)
 
 class Heuristic(ABC):
 	@abstractmethod
-	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+	def calculate(self, current: Point, goal: Point) -> float:
 		pass
 
 class EnhancedDistance(Heuristic):
@@ -33,15 +34,15 @@ class EnhancedDistance(Heuristic):
 		self.floor_plan = floor_plan
 		
 	@staticmethod
-	def between_points(a: np.ndarray, b: np.ndarray) -> float:
+	def between_points(a: Point, b: Point) -> float:
 		"""Calculate Euclidean distance between two points"""
-		diff = np.abs(a - b)
-		return np.sqrt(np.sum(diff * diff))
+		dx = abs(b.x - a.x)
+		dy = abs(b.y - a.y)
+		return sqrt(dx * dx + dy * dy)
 	
-	def _estimate_wall_cost(self, current: np.ndarray, goal: np.ndarray) -> float:
+	def _estimate_wall_cost(self, current: Point, goal: Point) -> float:
 		"""Estimate minimum wall crossing costs to goal"""
-		direction = goal - current
-		distance = np.linalg.norm(direction)
+		distance = self.between_points(current, goal)
 		if distance == 0:
 			return 0
 			
@@ -54,7 +55,7 @@ class EnhancedDistance(Heuristic):
 		
 		return min_cost
 		
-	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+	def calculate(self, current: Point, goal: Point) -> float:
 		# Base distance
 		distance = self.between_points(current, goal)
 		# Add minimum wall crossing costs
@@ -65,7 +66,7 @@ class CompositeHeuristic(Heuristic):
 	def __init__(self, heuristics: List[Heuristic]):
 		self.heuristics = heuristics  # List of heuristics
 		
-	def calculate(self, current: np.ndarray, goal: np.ndarray) -> float:
+	def calculate(self, current: Point, goal: Point) -> float:
 		return sum(h.calculate(current, goal) for h in self.heuristics)
 
 class Pathfinder:
@@ -74,17 +75,17 @@ class Pathfinder:
 		self._init_costs()
 		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
 	
-	def _get_nearby_walls(self, position: np.ndarray, radius: float = 5.0) -> List[Wall]:
+	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
 		return [wall for wall in self.floor_plan.walls 
-				if min(np.linalg.norm(position - wall.start), 
-						np.linalg.norm(position - wall.end)) <= radius]
+				if min(self.between_points(position, Point.from_numpy(wall.start)), 
+						self.between_points(position, Point.from_numpy(wall.end))) <= radius]
 
 	def _init_costs(self):
 		"""Initialize cost functions with movement as primary cost"""
 		self.movement_cost = MovementCost()
 		
-	def _calculate_cost(self, current: np.ndarray, next: np.ndarray) -> float:
+	def _calculate_cost(self, current: Point, next: Point) -> float:
 		"""Calculate total cost considering only nearby walls"""
 		# Base movement cost
 		total_cost = self.movement_cost.calculate(current, next)
@@ -96,15 +97,23 @@ class Pathfinder:
 			total_cost += wall_cost.calculate(current, next)
 		
 		return total_cost
+		
+	@staticmethod
+	def between_points(a: Point, b: Point) -> float:
+		"""Calculate Euclidean distance between two points"""
+		dx = abs(b.x - a.x)
+		dy = abs(b.y - a.y)
+		return sqrt(dx * dx + dy * dy)
 	
 	def find_furthest_room(self, ahu: AirHandlingUnit) -> Room:
 		if ahu is None:
 			raise ValueError("AHU must be set in floor plan before finding furthest room")
 		if not self.floor_plan._rooms:
 			raise ValueError("Floor plan must have rooms before finding furthest room")
-		return max(self.floor_plan._rooms, key=lambda room: EnhancedDistance.between_points(room.center, ahu.position))
+		return max(self.floor_plan._rooms, key=lambda room: self.between_points(
+			Point.from_numpy(room.center), Point.from_numpy(ahu.position)))
 
-	def a_star(self, start: np.ndarray, goal: np.ndarray, ax=None, test_name: str = None) -> Tuple[List[np.ndarray], List[float]]:
+	def a_star(self, start: Point, goal: Point, ax=None, test_name: str = None) -> Tuple[List[Point], List[float]]:
 			
 		start_node = Node(start)
 		end_node = Node(goal)
@@ -121,11 +130,11 @@ class Pathfinder:
 			_, current_node = open_list.get()
 			
 			# Check if already processed
-			current_pos_rounded = tuple(map(lambda x: round(x + 1e-10), current_node.position))
+			current_pos_rounded = (round(current_node.position.x + 1e-10), round(current_node.position.y + 1e-10))
 			if current_pos_rounded in closed_set:
 				continue
 
-			if np.allclose(current_node.position, end_node.position, atol=0.5):
+			if self.between_points(current_node.position, end_node.position) < 0.5:
 				path = []
 				costs = []
 				node = current_node  # Use a separate variable to build path
@@ -144,8 +153,8 @@ class Pathfinder:
 			closed_set.add(current_pos_rounded)
 
 			for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
-				neighbor_pos = current_node.position + np.array([dx, dy])
-				neighbor_pos_rounded = tuple(map(lambda x: round(x + 1e-10), neighbor_pos))
+				neighbor_pos = Point(current_node.position.x + dx, current_node.position.y + dy)
+				neighbor_pos_rounded = (round(neighbor_pos.x + 1e-10), round(neighbor_pos.y + 1e-10))
 				
 				if neighbor_pos_rounded in closed_set:
 					continue
@@ -175,5 +184,5 @@ class Pathfinder:
 		print(f"No path found from {start} to {goal} after {iterations} iterations")
 		return [], []
 
-	def create_direct_route(self, start: np.ndarray, end: np.ndarray) -> List[np.ndarray]:
+	def create_direct_route(self, start: Point, end: Point) -> List[Point]:
 		return [start, end]
