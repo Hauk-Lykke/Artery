@@ -89,18 +89,20 @@ class FloorPlan:
 		if ahu is not None:
 			self.ahu = ahu
 
+	def add_room(self, room):
+		self._rooms.append(room)
+		self.update_walls()
+
 	def update_walls(self):
 		unique_walls = set()
 		for room in self._rooms:
 			for wall in room.walls:
-				test_wall = wall
-				if wall not in unique_walls and wall.reverse() not in unique_walls:
+				reverse_wall = wall.reverse()
+				if wall not in unique_walls and reverse_wall not in unique_walls:
 					unique_walls.add(wall)
 		self.walls = list(unique_walls)
 
-	def add_room(self, room):
-		self._rooms.append(room)
-		self.update_walls()
+	
 
 	def add_rooms(self, rooms):
 		for room in rooms:
