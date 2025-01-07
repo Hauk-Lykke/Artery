@@ -29,13 +29,13 @@ class Point:
         yield self.z
     
     def to_numpy(self) -> np.ndarray:
-        return np.array([self.x, self.y])  # Return 2D array to match existing code
+        return np.array([self.x, self.y, self.z])  # Return 2D array to match existing code
     
     @staticmethod
     def from_numpy(arr: np.ndarray) -> 'Point':
-        if len(arr) >= 2:
-            return Point(arr[0], arr[1])
-        raise ValueError("Array must have at least 2 dimensions")
+        if len(arr) == 3:
+            return Point(arr[0], arr[1],arr[2])
+        raise ValueError("Array must have 3 dimensions")
 
 def line_intersection(p1: Point, p2: Point, p3: Point, p4: Point) -> bool:
     """Check if line segments (p1,p2) and (p3,p4) intersect."""

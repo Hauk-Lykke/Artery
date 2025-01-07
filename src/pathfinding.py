@@ -78,8 +78,8 @@ class Pathfinder:
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
 		return [wall for wall in self.floor_plan.walls 
-				if min(self.between_points(position, Point.from_numpy(wall.start)), 
-						self.between_points(position, Point.from_numpy(wall.end))) <= radius]
+				if min(self.between_points(position, wall.start), 
+						self.between_points(position, wall.end)) <= radius]
 
 	def _init_costs(self):
 		"""Initialize cost functions with movement as primary cost"""
@@ -110,8 +110,9 @@ class Pathfinder:
 			raise ValueError("AHU must be set in floor plan before finding furthest room")
 		if not self.floor_plan._rooms:
 			raise ValueError("Floor plan must have rooms before finding furthest room")
+		ahu_pos = ahu.position
 		return max(self.floor_plan._rooms, key=lambda room: self.between_points(
-			Point.from_numpy(room.center), Point.from_numpy(ahu.position)))
+			room.center, ahu_pos))
 
 	def a_star(self, start: Point, goal: Point, ax=None, test_name: str = None) -> Tuple[List[Point], List[float]]:
 			
@@ -154,7 +155,7 @@ class Pathfinder:
 
 			for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
 				neighbor_pos = Point(current_node.position.x + dx, current_node.position.y + dy)
-				neighbor_pos_rounded = (round(neighbor_pos.x + 1e-10), round(neighbor_pos.y + 1e-10))
+				neighbor_pos_rounded = Point(round(neighbor_pos.x + 1e-10), round(neighbor_pos.y + 1e-10))
 				
 				if neighbor_pos_rounded in closed_set:
 					continue
