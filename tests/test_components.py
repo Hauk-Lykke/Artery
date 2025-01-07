@@ -73,7 +73,7 @@ def test_floor_plan_walls():
     
     floor_plan.add_room(room2)
     assert len(floor_plan._rooms) == 2 
-    assert len(floor_plan.walls) == 6  # Shared wall between rooms should be counted once
+    assert len(floor_plan.walls) == 7  # Shared wall between rooms should be counted once
     
     # Verify walls list contains actual Wall objects
     for wall in floor_plan.walls:
