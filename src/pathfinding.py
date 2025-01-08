@@ -5,7 +5,7 @@ from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
 from structural import StandardWallCost, WallCosts
-from geometry import line_intersection, Point
+from geometry import Line, Point
 from abc import ABC, abstractmethod
 from math import sqrt
 
@@ -41,7 +41,7 @@ class EnhancedDistance(Heuristic):
 		# Count wall crossings along direct path
 		min_cost = 0
 		for wall in self.floor_plan.walls:
-			if line_intersection(current, goal, wall.start, wall.end):
+			if Line(wall.start, wall.end).intersects(Line(current, goal)):
 				# Use base cost as minimum (perpendicular crossing)
 				min_cost += WallCosts.get_base_cost(wall.wall_type)
 		
