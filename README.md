@@ -10,6 +10,29 @@ The experts that make structures or hvac systems use their intuition to draft po
 >[!TLDR] Problem formulation
 >We seek optimization of a building considering multiple disciplines together.
 
+## How to install
+
+### Prerequisites
+- Python 3.13 or higher
+- UV package manager ([installation guide](https://github.com/astral-sh/uv))
+
+## Clone the repository and install locally:
+
+```bash
+git clone http://git.cowiportal.com/haly/Artery.git
+cd Artery
+uv venv
+.venv\Scripts\activate
+uv pip install -e .
+
+```
+
+Requirements:
+- Python 3.8+
+- NumPy
+- SciPy
+- NetworkX
+
 ### Simplification of the problem
 The problem can be solved for any building with any geometry. For us to be able to train and test a NN with data we need to limit the complecity  so that we can create syntehic data for training. Sampling real 3D models is beoyond the scope of our project. 
 
@@ -46,8 +69,19 @@ $$
 \sum \frac{V_{Ed,i}}{V_{Rd,i}}
 $$
 
-
+## Project Structure
+Artery/
+├── src/                    # Source code
+│   ├── core/              # Core data structures and utilities
+│   ├── MEP/               # Mechanical, Electrical, Plumbing related code
+│   ├── structural/        # Structural analysis and calculations
+│   ├── visualization.py   # Visualization utilities
+│   └── routing.py         # Duct routing algorithms
+├── tests/                 # Test files
+│   ├── test_integration.py
+│   └── test_pathfinding.py
+├── results_vent/          # Generated visualization outputs
+└── docs/                  # Documentation
 
 # Example:
 ![Example run](results_vent/test_four_rooms_20250103_1.png)
-
