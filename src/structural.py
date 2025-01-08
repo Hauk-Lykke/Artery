@@ -14,7 +14,7 @@ class WallType:
 
 class Wall(Line):
 	def __init__(self, start: Point, end: Point, wall_type: WallType = WallType.DRYWALL):
-		super(start,end)
+		super().__init__(start,end)
 		self.wall_type = wall_type
 	
 	@property
