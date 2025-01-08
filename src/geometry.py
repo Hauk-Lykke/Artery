@@ -14,14 +14,17 @@ class Vector:
 	
 	def to_point(self) -> Point:
 		return Point(self.x, self.y)
+	
+	def __add__(self, vector):
+		self.x = 
 
 class Line:
 	def __init__(self, start: Point, end: Point):
 		self.start = start
 		self.end = end
-		self._shapely = LineString([(start.x, start.y), (end.x, end.y)])
+		self._shapely = LineString([(start.x, start.y), (end.x, end.y)]) # Todo: Implement 3D
 		self.length = self._shapely.length
-		self._vector = Vector(end.x - start.x, end.y - start.y)
+		self._vector = Vector(end-start)
 
 	def intersects(self, other: 'Line') -> bool:
 		return self._shapely.intersects(other._shapely)
