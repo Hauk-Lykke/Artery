@@ -34,19 +34,12 @@ class EnhancedDistance(Heuristic):
 	def __init__(self, floor_plan: FloorPlan):
 		self.floor_plan = floor_plan
 		
-	@staticmethod
-	def between_points(a: Point, b: Point) -> float:
-		"""Calculate Euclidean distance between two points"""
-		dx = abs(b.x - a.x)
-		dy = abs(b.y - a.y)
-		return sqrt(dx * dx + dy * dy)
-	
 	def _estimate_wall_cost(self, current: Point, goal: Point) -> float:
 		"""Estimate minimum wall crossing costs to goal"""
-		distance = self.between_points(current, goal)
+		distance = len(goal-current)
 		if distance == 0:
 			return 0
-			
+		
 		# Count wall crossings along direct path
 		min_cost = 0
 		for wall in self.floor_plan.walls:
@@ -55,10 +48,10 @@ class EnhancedDistance(Heuristic):
 				min_cost += WallCosts.get_base_cost(wall.wall_type)
 		
 		return min_cost
-		
+			
 	def calculate(self, current: Point, goal: Point) -> float:
 		# Base distance
-		distance = self.between_points(current, goal)
+		distance = self.len(goal-current)
 		# Add minimum wall crossing costs
 		wall_cost = self._estimate_wall_cost(current, goal)
 		return distance + wall_cost
