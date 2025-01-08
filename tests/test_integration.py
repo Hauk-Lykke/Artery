@@ -1,8 +1,9 @@
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-from src.components import AirHandlingUnit, Room, FloorPlan, WallType
-import src.routing as routing
+from structural import Room, FloorPlan, WallType
+from MEP import AirHandlingUnit
+import routing as routing
 from core import Point
 
 @pytest.fixture(autouse=True)

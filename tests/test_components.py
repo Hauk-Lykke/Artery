@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from src.components import Wall, Room, FloorPlan, WallType
-from src.geometry import Point
+from structural import WallType, Wall, Room, FloorPlan
+from geometry import Point
 
 def test_wall_creation():
     # Test wall properties
