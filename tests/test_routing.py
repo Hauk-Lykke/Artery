@@ -1,8 +1,12 @@
+from core import Node
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-from src.components import Room, AirHandlingUnit, FloorPlan, Point
-from src.routing import route_ducts
+from geometry import Point
+from structural import Room, FloorPlan
+from MEP import AirHandlingUnit
+from routing import Branch2D
+from visualization import visualize_branch, visualize_layout
 
 def test_route_ducts_basic():
 	rooms = [
@@ -12,11 +16,13 @@ def test_route_ducts_basic():
 	ahu = AirHandlingUnit(position=Point(3, 3))
 	floor_plan = FloorPlan(rooms, ahu)
 	
-	routes, fig, ax = route_ducts(floor_plan)
-	
-	assert len(routes) == 1
-	path, costs = routes[0]
-	assert len(path) >= 2
+	# routes, fig, ax = route_ducts(floor_plan)
+	start = Node(ahu.position)
+	branch = Branch2D(floor_plan,start,True)	
+	branch.generate()
+	visualize_branch(branch,)
+	assert len(branch) >= 2
+
 	# plt.close(fig)
 
 def test_route_ducts_distant_rooms():

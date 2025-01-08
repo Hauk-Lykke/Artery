@@ -7,6 +7,7 @@ from queue import PriorityQueue
 import matplotlib.pyplot as plt
 from visualization import PathfindingVisualizer
 from structural import StandardWallCost, WallCosts
+from routing import Branch
 from geometry import line_intersection, Point
 from abc import ABC, abstractmethod
 from math import atan2, pi, sqrt
@@ -68,6 +69,8 @@ class Pathfinder:
 		self.floor_plan = floor_plan
 		self._init_costs()
 		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
+		self.open_list = None
+		self.nodes = None
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
@@ -91,13 +94,6 @@ class Pathfinder:
 			total_cost += wall_cost.calculate(current, next)
 		
 		return total_cost
-		
-	@staticmethod
-	def between_points(a: Point, b: Point) -> float:
-		"""Calculate Euclidean distance between two points"""
-		dx = abs(b.x - a.x)
-		dy = abs(b.y - a.y)
-		return sqrt(dx * dx + dy * dy)
 	
 	def find_furthest_room(self, ahu: AirHandlingUnit) -> Room:
 		if ahu is None:
@@ -108,21 +104,21 @@ class Pathfinder:
 		return max(self.floor_plan._rooms, key=lambda room: self.between_points(
 			room.center, ahu_pos))
 
-	def a_star(self, start: Point, goal: Point, ax=None, test_name: str = None) -> Tuple[List[Point], List[float]]:
+	def a_star(self, start: Point, goal: Point, ax=None):
 			
 		start_node = Node(start)
 		end_node = Node(goal)
 		
-		open_list = PriorityQueue()
-		open_list.put((0, start_node))
+		self.open_list = PriorityQueue()
+		self.open_list.put((0, start_node))
 		closed_set = set()
 		
 		iterations = 0
 		max_iterations = 1000
 		
-		while not open_list.empty() and iterations < max_iterations:
+		while not self.open_list.empty() and iterations < max_iterations:
 			iterations += 1
-			_, current_node = open_list.get()
+			_, current_node = self.open_list.get()
 			
 			# Check if already processed
 			current_pos_rounded = (round(current_node.position.x + 1e-10), round(current_node.position.y + 1e-10))
@@ -134,15 +130,15 @@ class Pathfinder:
 				costs = []
 				node = current_node  # Use a separate variable to build path
 				while node:
-					path.append(node.position)
-					costs.append(node.g)
+					path.append(node)
 					node = node.parent
 				print(f"Path found in {iterations} iterations")
 				if ax and hasattr(ax, '_visualizer'):
 					# Update visualization one last time
-					ax._visualizer.update_node(current_node, current_node.position, open_list, test_name)
+					ax._visualizer.update_node(current_node, current_node.position, self.open_list)
 					plt.pause(1)  # Final pause to show the complete path
-				return path[::-1], costs[::-1]
+				self.nodes = path
+				return
 			
 			# Add to closed set after goal check
 			closed_set.add(current_pos_rounded)
@@ -164,12 +160,12 @@ class Pathfinder:
 				neighbor.h = self.composite_h.calculate(neighbor_pos, end_node.position)
 				neighbor.f = neighbor.g + neighbor.h
 				
-				open_list.put((neighbor.f, neighbor))
+				self.open_list.put((neighbor.f, neighbor))
 				
 				if ax:
 					if not hasattr(ax, '_visualizer'):
 						ax._visualizer = PathfindingVisualizer(ax)
-					ax._visualizer.update_node(current_node, neighbor_pos, open_list, test_name)
+					ax._visualizer.update_node(current_node, neighbor_pos, self.open_list)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
 					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
 			
@@ -180,4 +176,5 @@ class Pathfinder:
 		return [], []
 
 	def create_direct_route(self, start: Point, end: Point) -> List[Point]:
-		return [start, end]
+		self.nodes = [start, end]
+		return
