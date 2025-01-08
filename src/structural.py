@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 from core import Cost
-from geometry import Point, Vector
+from geometry import Point, Line, Vector
 from MEP import AirHandlingUnit
 from math import acos, pi, sqrt
 
@@ -12,31 +12,15 @@ class WallType:
 	CONCRETE = 2
 	OUTER_WALL = 3
 
-class Wall:
-	def __init__(self, startpoint: Point, endpoint: Point, wall_type: WallType = WallType.DRYWALL):
-		self.start = startpoint
-		self.end = endpoint
-		self._vector = Point(endpoint.x - startpoint.x, endpoint.y - startpoint.y)
+class Wall(Line):
+	def __init__(self, start: Point, end: Point, wall_type: WallType = WallType.DRYWALL):
+		super(start,end)
 		self.wall_type = wall_type
 	
 	@property
-	def vector(self) -> Point:
+	def vector(self) -> Vector:
 		"""Get wall direction vector"""
 		return self._vector
-	
-	@property
-	def length(self) -> float:
-		"""Get wall length"""
-		return sqrt(self._vector.x * self._vector.x + self._vector.y * self._vector.y)
-	
-	def get_angle_with(self, other_vector: Vector) -> float:
-		"""Calculate angle between wall and another vector in degrees"""
-		dot = self.vector.x * other_vector.x + self.vector.y * other_vector.y + self.vector.z*other_vector.z
-		norms = self.length * sqrt(other_vector.x * other_vector.x + other_vector.y * other_vector.y+self.vector.z*other_vector.z)
-		cos_angle = dot / norms if norms != 0 else 0
-		cos_angle = min(1.0, max(-1.0, cos_angle))  # Handle numerical errors
-		angle = acos(cos_angle) * 180 / pi
-		return angle
 	
 	def reverse(self):
 		"""Switch places of start and end points"""
@@ -148,7 +132,7 @@ class StandardWallCost(WallCrossingCost):
         # Check if path crosses wall
         if line_intersection(current, next, self.wall.start, self.wall.end):
             path_vector = Point(next.x - current.x, next.y - current.y)
-            angle = self.wall.get_angle_with(path_vector)
+            angle = self.wall.getAngleWith(path_vector)
             angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
             return self.perpendicular_cost if abs(90 - angle) <= 3 else self.angled_cost
         
