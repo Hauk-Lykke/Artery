@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from core import Cost
 from geometry import line_intersection, point_to_line_distance, Point
-from MEPcomponents import AirHandlingUnit
+from MEP import AirHandlingUnit
 from math import sqrt
 
 

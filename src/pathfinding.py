@@ -1,12 +1,13 @@
 from typing import List, Tuple, Protocol
 import numpy as np
-from src.components import Room, Wall, AirHandlingUnit, FloorPlan
-from src.core import Node, Cost
+from structural import Room, Wall, FloorPlan
+from MEP import AirHandlingUnit
+from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
-from src.visualization import PathfindingVisualizer
-from src.structural import StandardWallCost, WallCosts
-from src.geometry import line_intersection, Point
+from visualization import PathfindingVisualizer
+from structural import StandardWallCost, WallCosts
+from geometry import line_intersection, Point
 from abc import ABC, abstractmethod
 from math import atan2, pi, sqrt
 
