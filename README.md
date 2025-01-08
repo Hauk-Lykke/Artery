@@ -7,7 +7,7 @@ The problem we want to address is that buildings are made by teams siloed by dis
 
 The experts that make structures or hvac systems use their intuition to draft possible solutions. They then suggest them to the project members. Together they haggle and decide what's the best draft. Then they detail. The cost in compute for humans is similar to that of computers in the sense that exact evaluation of suggested solutions is impossible to do in a reasonable time.
 
->[!tldr] Problem formulation
+>[!TLDR] Problem formulation
 >We seek optimization of a building considering multiple disciplines together.
 
 ### Simplification of the problem
