@@ -64,7 +64,7 @@ class CompositeHeuristic(Heuristic):
 		return sum(h.calculate(current, goal) for h in self.heuristics)
 
 class Pathfinder:
-	def __init__(self, floor_plan: FloorPlan):
+	def __init__(self, floor_plan: FloorPlan, branch: Branch):
 		self.floor_plan = floor_plan
 		self._init_costs()
 		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
