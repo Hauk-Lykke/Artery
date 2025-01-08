@@ -1,19 +1,21 @@
 import pytest
 import numpy as np
 from structural import WallType, Wall, Room, FloorPlan
-from geometry import Point
+from geometry import Point, Vector
 
-def test_wall_creation():
-    # Test wall properties
-    wall = Wall(Point(0, 0), Point(3, 4))
-    assert np.allclose(wall.start.to_numpy(), np.array([0, 0]))
-    assert np.allclose(wall.end.to_numpy(), np.array([3, 4]))
-    assert np.allclose(wall.vector.to_numpy(), np.array([3, 4]))
+@pytest.fixture
+def wall():
+    return Wall(Point(0, 0), Point(3, 4))
+
+def test_wall_properties(wall):
+    assert np.allclose(wall.start.to_numpy(), np.array([0, 0, 0]))
+    assert np.allclose(wall.end.to_numpy(), np.array([3, 4, 0]))
+    assert np.allclose(wall.vector.to_numpy(), np.array([3, 4, 0]))
     assert abs(wall.length - 5.0) < 1e-10  # 3-4-5 triangle
-    
-    # Test angle calculation
-    other_point = Point(4, -3)  # perpendicular to wall vector
-    angle = wall.get_angle_with(other_point)
+
+def test_wall_angle(wall):
+    vector = Vector(4, -3)  # perpendicular to wall vector
+    angle = wall.get_angle_with(vector)
     assert 89 <= angle <= 91  # Should be 90 degrees ± numerical precision
 
 def test_room_walls():
@@ -37,7 +39,7 @@ def test_room_walls():
 def test_room_center():
     # Test room center calculation
     room = Room([Point(0, 0), Point(10, 0), Point(10, 10), Point(0, 10)])
-    assert np.allclose(room.center.to_numpy(), np.array([5, 5]))
+    assert np.allclose(room.center.to_numpy(), np.array([5, 5, 0]))
 
 def test_floor_plan_room_addition():
     floor_plan = FloorPlan()
