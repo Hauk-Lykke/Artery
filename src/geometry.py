@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Tuple, Union, List
-from math import pi, sqrt
+from math import pi, sqrt, acos
 import shapely as sh
 from shapely.ops import nearest_points
 from shapely import affinity
@@ -48,29 +48,25 @@ class Vector:
 		raise ValueError("Array must have 3 dimensions")
 	
 	def getAngleWith(self, other_vector: 'Vector') -> float:
-		"""Calculate angle between wall and another vector in degrees"""
-		dot = self.vector.x * other_vector.x + self.vector.y * other_vector.y + self.vector.z*other_vector.z
-		norms = self.length * sqrt(other_vector.x * other_vector.x + other_vector.y * other_vector.y+self.vector.z*other_vector.z)
+		"""Calculate the angle between this vector and another vector in degrees"""
+		dot = self.x * other_vector.x + self.y * other_vector.y + self.z * other_vector.z
+		norms = self.length * sqrt(other_vector.x * other_vector.x + other_vector.y * other_vector.y + other_vector.z * other_vector.z)
 		cos_angle = dot / norms if norms != 0 else 0
 		cos_angle = min(1.0, max(-1.0, cos_angle))  # Handle numerical errors
-		angle = np.acos(cos_angle) * 180 / pi
+		angle = acos(cos_angle) * 180 / pi
 		return angle
 
-
-class Point(Vector):
+class Point(sh.Point,Vector):
 	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):
 		if isinstance(x,tuple):
-			self.x = x[0]
-			self.y = x[1]
-			self.z = x[2]
+			sh.Point.__init__(x)
+			# self.z = z
 		else:
-			self.x = float(x)
-			self.y = float(y)
-			self.z = float(z)
+			sh.Point.__init__(x,y,z)
+		
 		if self.x == None or self.y == None or self.z == None:
 			raise AttributeError("Invalid point definition")
 		self.length = np.linalg.norm(self.to_numpy())
-		self._shapelyPoint = sh.Point((self.x,self.y))
 
 class Line:
 	def __init__(self, start: Point, end: Point):
