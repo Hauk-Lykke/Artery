@@ -1,16 +1,13 @@
-from typing import List, Tuple, Protocol
-import numpy as np
+from typing import List
 from structural import Room, Wall, FloorPlan
 from MEP import AirHandlingUnit
 from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
-from visualization import PathfindingVisualizer
 from structural import StandardWallCost, WallCosts
-from routing import Branch
 from geometry import line_intersection, Point
 from abc import ABC, abstractmethod
-from math import atan2, pi, sqrt
+from math import sqrt
 
 class MovementCost(Cost):
 	def calculate(self, current: Point, next: Point) -> float:
@@ -37,7 +34,7 @@ class EnhancedDistance(Heuristic):
 		
 	def _estimate_wall_cost(self, current: Point, goal: Point) -> float:
 		"""Estimate minimum wall crossing costs to goal"""
-		distance = len(goal-current)
+		distance = (goal-current).length
 		if distance == 0:
 			return 0
 		
@@ -52,7 +49,7 @@ class EnhancedDistance(Heuristic):
 			
 	def calculate(self, current: Point, goal: Point) -> float:
 		# Base distance
-		distance = self.len(goal-current)
+		distance = (goal-current).length
 		# Add minimum wall crossing costs
 		wall_cost = self._estimate_wall_cost(current, goal)
 		return distance + wall_cost
@@ -65,7 +62,7 @@ class CompositeHeuristic(Heuristic):
 		return sum(h.calculate(current, goal) for h in self.heuristics)
 
 class Pathfinder:
-	def __init__(self, floor_plan: FloorPlan, branch: Branch):
+	def __init__(self, floor_plan: FloorPlan):
 		self.floor_plan = floor_plan
 		self._init_costs()
 		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
@@ -163,9 +160,8 @@ class Pathfinder:
 				self.open_list.put((neighbor.f, neighbor))
 				
 				if ax:
-					if not hasattr(ax, '_visualizer'):
-						ax._visualizer = PathfindingVisualizer(ax)
-					ax._visualizer.update_node(current_node, neighbor_pos, self.open_list)
+					if hasattr(ax, '_visualizer'):
+						ax._visualizer.update_node(current_node, neighbor_pos, self.open_list)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
 					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
 			

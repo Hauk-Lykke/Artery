@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
 from core import Cost
-from geometry import line_intersection, point_to_line_distance, Point
+from geometry import Point, Vector
 from MEP import AirHandlingUnit
-from math import sqrt
+from math import acos, pi, sqrt
 
 
 class WallType:
@@ -29,10 +29,10 @@ class Wall:
 		"""Get wall length"""
 		return sqrt(self._vector.x * self._vector.x + self._vector.y * self._vector.y)
 	
-	def get_angle_with(self, other_vector: Point) -> float:
+	def get_angle_with(self, other_vector: Vector) -> float:
 		"""Calculate angle between wall and another vector in degrees"""
-		dot = self.vector.x * other_vector.x + self.vector.y * other_vector.y
-		norms = self.length * sqrt(other_vector.x * other_vector.x + other_vector.y * other_vector.y)
+		dot = self.vector.x * other_vector.x + self.vector.y * other_vector.y + self.vector.z*other_vector.z
+		norms = self.length * sqrt(other_vector.x * other_vector.x + other_vector.y * other_vector.y+self.vector.z*other_vector.z)
 		cos_angle = dot / norms if norms != 0 else 0
 		cos_angle = min(1.0, max(-1.0, cos_angle))  # Handle numerical errors
 		angle = acos(cos_angle) * 180 / pi
@@ -153,8 +153,8 @@ class StandardWallCost(WallCrossingCost):
             return self.perpendicular_cost if abs(90 - angle) <= 3 else self.angled_cost
         
         # If not crossing, check proximity
-        current_dist = point_to_line_distance(current, self.wall.start, self.wall.end)
-        next_dist = point_to_line_distance(next, self.wall.start, self.wall.end)
+        current_dist = current.distanceToLine(self.wall.start, self.wall.end)
+        next_dist = next.distanceToLine(self.wall.start, self.wall.end)
         
         min_dist = min(current_dist, next_dist)
         if min_dist >= WallCosts.PROXIMITY_THRESHOLD:

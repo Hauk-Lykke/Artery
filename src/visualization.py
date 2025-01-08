@@ -1,16 +1,10 @@
-from queue import PriorityQueue
 from core import Node
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from typing import List, Tuple
 import datetime
 import os
-from structural import Room, FloorPlan, WallType
-from MEP import AirHandlingUnit
+from structural import FloorPlan, WallType
 from geometry import Point
 from pathfinding import Pathfinder
-from routing import Branch2D
 
 def visualize_layout(floor_plan: FloorPlan, ax):
 	# Plot rooms

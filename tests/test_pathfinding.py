@@ -3,9 +3,8 @@ import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 from structural import Wall, FloorPlan, Room
-from pathfinding import (
-	Pathfinder, EnhancedDistance, MovementCost, 
-	CompositeCost, CompositeHeuristic
+from pathfinding import (EnhancedDistance, MovementCost, 
+	CompositeCost, CompositeHeuristic, Pathfinder
 )
 from structural import StandardWallCost
 from visualization import PathfindingVisualizer
@@ -21,7 +20,7 @@ def test_enhanced_distance():
 	# Test static method
 	point1 = Point(0, 0)
 	point2 = Point(3, 4)
-	assert np.allclose(between_points(point1, point2), 5.0)
+	assert np.allclose((point2-point1).length, 5.0)
 	
 	# Test as heuristic (should include base distance)
 	assert enhanced.calculate(point1, point2) >= 5.0
