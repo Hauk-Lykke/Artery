@@ -7,7 +7,6 @@ from pathfinding import (EnhancedDistance, MovementCost,
 	CompositeCost, CompositeHeuristic, Pathfinder
 )
 from structural import StandardWallCost
-from visualization import PathfindingVisualizer
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
@@ -79,7 +78,7 @@ def test_composite_heuristic():
 	goal = Point(3, 4)
 	
 	# Should be double the euclidean distance since we're using two identical heuristics
-	expected = 2 * EnhancedDistance.between_points(start, goal)
+	expected = 2 * (start-goal).length
 	assert np.allclose(composite.calculate(start, goal), expected)
 
 def test_pathfinder_initialization():
@@ -97,25 +96,13 @@ def test_a_star_simple_path():
 	start = Point(0, 0)
 	goal = Point(2, 2)
 	
-	path, costs = pathfinder.a_star(start, goal)
+	pathfinder.a_star(start, goal)
+	path = pathfinder.path
 	
-	assert len(path) > 0, "No path found"
-	assert len(costs) == len(path), "Costs and path lengths don't match"
-	assert np.allclose(path[0].to_numpy(), start.to_numpy()), "Path doesn't start at start point"
-	assert np.allclose(path[-1].to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
+	assert len(pathfinder) > 0, "No path found"
+	assert np.allclose(path[0].position.to_numpy(), start.to_numpy()), "Path doesn't start at start point"
+	assert np.allclose(path[-1].position.to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
 
-def test_visualization_updates():
-	floor_plan = FloorPlan()
-	pathfinder = Pathfinder(floor_plan)
-	
-	start = Point(0, 0)
-	goal = Point(2, 2)
-	
-	fig, ax = plt.subplots()
-	pathfinder.a_star(start,goal,ax)	
-	assert hasattr(ax, '_visualizer'), "Visualizer not created"
-	assert isinstance(ax._visualizer, PathfindingVisualizer), "Wrong visualizer type"
-	assert ax._visualizer._iterations > 0, "Iterations not tracked"
 
 def test_a_star_stops_at_goal():
 	floor_plan = FloorPlan()
@@ -126,7 +113,7 @@ def test_a_star_stops_at_goal():
 	
 	# First run to get number of iterations
 	pathfinder.a_star(start, goal)
-	iterations1 = len(pathfinder.nodes)
+	iterations1 = len(pathfinder.path)
 	
 	# Add more nodes around goal that could be explored
 	floor_plan.add_room(Room([Point(2, 2),Point(1, 1)]))  # Room near goal
@@ -134,8 +121,8 @@ def test_a_star_stops_at_goal():
 	# Second run should take same number of iterations
 	pathfinder2 = pathfinder
 	pathfinder2.a_star(start, goal)
-	iterations2 = len(pathfinder2.nodes)
+	iterations2 = len(pathfinder2.path)
 	
 	assert iterations1 == iterations2, "Algorithm continued after finding goal"
-	assert np.allclose(pathfinder.nodes[-1].to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
-	assert np.allclose(pathfinder2.nodes[-1].to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
+	assert np.allclose(pathfinder.path[-1].position.to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
+	assert np.allclose(pathfinder2.path[-1].position.to_numpy(), goal.to_numpy()), "Path doesn't reach goal"

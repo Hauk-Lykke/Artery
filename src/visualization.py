@@ -2,15 +2,14 @@ from core import Node
 import matplotlib.pyplot as plt
 import datetime
 import os
+from pathfinding import Pathfinder
 from structural import FloorPlan, WallType
 from geometry import Point
-from pathfinding import Pathfinder
+
 
 def visualize_layout(floor_plan: FloorPlan, ax):
 	# Plot rooms
-	for room in floor_plan._rooms:
-		# Plot each wall with appropriate color based on type
-		for wall in room.walls:
+	for wall in floor_plan.walls:
 			if wall.wall_type == WallType.OUTER_WALL:
 				color = 'k'  # Black for outer walls
 			elif wall.wall_type == WallType.CONCRETE:
@@ -23,7 +22,8 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 					color=color, linewidth=2)
 	
 	# Plot AHU
-	ax.plot(floor_plan.ahu.position.x, floor_plan.ahu.position.y, 'rs', markersize=10)
+	if floor_plan.ahu is not None:
+		ax.plot(floor_plan.ahu.position.x, floor_plan.ahu.position.y, 'rs', markersize=10)
 	
 	# Plot room centers
 	for room in floor_plan._rooms:
@@ -51,10 +51,11 @@ class PathfindingVisualizer:
 		"""Initialize visualizer with matplotlib axis"""
 		self.pathfinder = pathfinder
 		self.ax = ax
+		self.colormap = plt.cm.viridis
 		self._setup_visualization()
 		self._start_time = datetime.datetime.now()
 		self._iterations = 0
-		self.colormap = plt.cm.viridis
+
 	
 	def _setup_visualization(self):
 		"""Initialize visualization components"""

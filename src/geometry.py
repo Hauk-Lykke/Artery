@@ -1,18 +1,75 @@
 import numpy as np
 from typing import Tuple, Union, List
+from math import pi, sqrt, acos
+import shapely as sh
+from shapely.ops import nearest_points
+from shapely import affinity
+from shapely.geometry import Point as ShapelyPoint
+import string
 
-class Vector:
+class XYZ:
 	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):
-		if isinstance(x, tuple):
-			self.x = float(x[0])
-			self.y = float(x[1])
-			self.z = float(x[2])
+		if isinstance(x, Point):
+			point = x
+			self.x = point.x
+			self.y = point.y
+			self.z = point.z
+		if isinstance(x, Vector):
+			vector = x
+			self.x = vector.x
+			self.y = vector.y
+			self.z = vector.z
+		
+		if isinstance(x,tuple):
+			if len(x) == 3:
+				self.x = float(x[0])
+				self.y = float(x[1])
+				self.z = float(x[2])
+			elif len(x) == 2:
+				self.x = float(x[0])
+				self.y = float(x[1])
+				self.z = float(0)
+			else:
+				raise ValueError("XYZ must have 2 coordinates, at least x and y coordinates.")
+		
 		else:
+			if None in (x, y):
+				raise ValueError("XYZ must have 2 coordinates, at least x and y coordinates.")
+			if z is None:
+				z = 0
 			self.x = float(x)
 			self.y = float(y)
 			self.z = float(z)
-		self.length = np.linalg.norm(self.to_numpy())
+
+	def to_numpy(self) -> np.ndarray:
+		return np.array([self.x, self.y, self.z])  # Return 3D numpy array# Return 3D numpy array
 	
+	def __repr__(self) -> str:
+		output = ("XYZ({},{},{})").format(self.x,self.y,self.z)
+		return output
+		
+	def __iter__(self):
+		yield self.x
+		yield self.y
+		yield self.z
+
+	@staticmethod
+	def from_numpy(arr: np.ndarray) -> 'Vector':
+		if len(arr) == 3:
+			return Vector(arr[0], arr[1],arr[2])
+		raise ValueError("Array must have 3 dimensions")
+		
+	def __hash__(self):
+		"""Overload hash operator to use points in sets"""
+		return hash((self.x, self.y, self.z))
+
+class Vector(XYZ):
+	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):
+		super().__init__(x,y,z)
+		self.length = np.linalg.norm(self.to_numpy())
+		if self.x is None or self.y is None or self.z is None:
+			raise AttributeError("Invalid Vector definition")
+
 	def __sub__(self, other: 'Vector') -> 'Vector':
 		return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
 	
@@ -20,78 +77,68 @@ class Vector:
 		return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
 	
 	def __eq__(self, other):
-		"""Overload equality operator to compare Vectors"""
+		"""Overload equality operator to compare points"""
 		if not isinstance(other, Vector):
 			return False
 		return self.x == other.x and self.y == other.y and self.z == other.z
-	
-	def __hash__(self):
-		"""Overload hash operator to use Vectors in sets"""
-		return hash((self.x, self.y, self.z))
-	
-	def __iter__(self):
-		yield self.x
-		yield self.y
-		yield self.z
-	
-	def to_numpy(self) -> np.ndarray:
-		return np.array([self.x, self.y, self.z])  # Return 2D array to match existing code
-	
-	@staticmethod
-	def from_numpy(arr: np.ndarray) -> 'Vector':
-		if len(arr) == 3:
-			return Vector(arr[0], arr[1],arr[2])
-		raise ValueError("Array must have 3 dimensions")
-	
-	def __abs__(self):
-		"""
-		Returns the magnitude (Euclidean norm) of the vector.
 
-		Returns:
-			float: The length (magnitude) of the vector calculated using the Euclidean norm.
-		This is the same as the __len__ method.
-		"""
-		return self.length
+	def getAngleWith(self, other_vector: 'Vector') -> float:
+		"""Calculate the angle between this vector and another vector in degrees"""
+		dot = self.x * other_vector.x + self.y * other_vector.y + self.z * other_vector.z
+		norms = self.length * sqrt(other_vector.x * other_vector.x + other_vector.y * other_vector.y + other_vector.z * other_vector.z)
+		cos_angle = dot / norms if norms != 0 else 0
+		cos_angle = min(1.0, max(-1.0, cos_angle))  # Handle numerical errors
+		angle = acos(cos_angle) * 180 / pi
+		return angle
 	
+	def __repr__(self) -> str:
+		output = ("Vector({},{},{})").format(self.x,self.y,self.z)
+		return output
 
+class Point(XYZ):
+	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):
+		XYZ.__init__(self, x, y, z)
+		self.vector = Vector(self.x, self.y, self.z)
+		if self.x is None or self.y is None or self.z is None:
+			raise AttributeError("Invalid Point definition")
+
+	def __sub__(self, other: 'Point') -> Vector:
+		return Vector(
+			self.x - other.x,
+			self.y - other.y,
+			self.z - other.z
+		)
+
+	def __repr__(self) -> str:
+		output = ("Point({},{},{})").format(self.x,self.y,self.z)
+		return output
+	
+	def distanceTo(self,geometry) -> float:
+		if isinstance(geometry, Line):
+			shapelyItem = geometry._shapely
+		if isinstance(geometry, Point):
+			shapelyItem = sh.Point(geometry.to_numpy())
+		shapelyPoint = sh.Point(self.to_numpy())
+		distance = sh.distance(shapelyPoint,shapelyItem)
+		return distance
+	
+	def __add__(self, vector: Vector) -> 'Point':
+		if isinstance(vector,Vector):
+			return Point(self.x+vector.x, self.y+vector.y, self.z+vector.z)
+		else:
+			return super.__add__(vector)
 
 class Line:
-	def __init__(self,start: 'Point', end: 'Point'):
+	def __init__(self, start: Point, end: Point):
 		self.start = start
 		self.end = end
-		self.length = len(self)
-	
-	def __len__(self)-> float:
-		return np.linalg.norm(self.end.to_numpy() - self.start.to_numpy())
-		
+		self._shapely = sh.LineString([(start.x, start.y), (end.x, end.y)]) # Todo: Implement 3D
+		self.length = self._shapely.length
+		self.vector = end-start
 
+	def intersects(self, other: 'Line') -> bool:
+		return self._shapely.intersects(other._shapely)
 
-class Point(Vector):
-	def __init__(self, x: float = 0, y: float = 0, z: float = 0):
-		super().__init__(x,y,z)
-
-
-	def line_intersection(p1: 'Point', p2: 'Point', p3: 'Point', p4: 'Point') -> bool:
-		"""Check if line segments (p1,p2) and (p3,p4) intersect."""
-		def ccw(A: Point, B: Point, C: Point) -> bool:
-			val = (C.y - A.y) * (B.x - A.x) - (B.y - A.y) * (C.x - A.x)
-			if abs(val) < 1e-10:  # Points are collinear
-				return False
-			return val > 0
-		return (ccw(p1, p3, p4) != ccw(p2, p3, p4)) and (ccw(p1, p2, p3) != ccw(p1, p2, p4))
-
-	def distanceToLine(self, line: Line) -> float:
-		"""Calculate the shortest distance from a Vector to a line segment"""
-		p_arr = self.to_numpy()
-		start_arr = line.start.to_numpy()
-		end_arr = line.end.to_numpy()
-		
-		line_vec = end_arr - start_arr
-		line_len_sq = np.dot(line_vec, line_vec)
-		if line_len_sq == 0:
-			return np.linalg.norm(p_arr - start_arr)
-		
-		t = max(0, min(1, np.dot(p_arr - start_arr, line_vec) / line_len_sq))
-		projection = start_arr + t * line_vec
-		return np.linalg.norm(p_arr - projection)
-	
+	def distanceTo(self, point: Point) -> float: # Todo: Implement 3D
+		shapelyPoint = sh.Point(point.x,point.y)
+		return self._shapely.distance(shapelyPoint)
