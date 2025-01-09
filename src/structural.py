@@ -132,8 +132,8 @@ class StandardWallCost(WallCrossingCost):
 			return self.perpendicular_cost if abs(90 - angle) <= 3 else self.angled_cost
 		
 		# If not crossing, check proximity
-		current_dist = current.distanceToLine(self.wall)
-		next_dist = next.distanceToLine(self.wall)
+		current_dist = current.distanceTo(self.wall)
+		next_dist = next.distanceTo(self.wall)
 		
 		min_dist = min(current_dist, next_dist)
 		if min_dist >= WallCosts.PROXIMITY_THRESHOLD:
