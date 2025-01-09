@@ -127,7 +127,7 @@ class Pathfinder:
 					path.append(node)
 					node = node.parent
 				print(f"Path found in {iterations} iterations")
-				if self._visualizer:
+				if self._visualizer is not None:
 					# Update visualization one last time
 					self._visualizer.update_node(current_node, current_node.position, self.open_list)
 					plt.pause(1)  # Final pause to show the complete path
@@ -149,7 +149,7 @@ class Pathfinder:
 				
 				# Calculate g cost using our optimized cost calculation
 				g_cost = self._calculate_cost(current_node.position, neighbor_pos)
-				neighbor.g = current_node.g_cost + g_cost
+				neighbor.g_cost = current_node.g_cost + g_cost
 				
 				# Calculate h cost using provided heuristic
 				neighbor.h = self.composite_h.calculate(neighbor_pos, end_node.position)
@@ -157,8 +157,9 @@ class Pathfinder:
 				
 				self.open_list.put((neighbor.f, neighbor))
 				
-				if self._visualizer:
-					self._visualizer.update_node(current_node, neighbor_pos, self.open_list)
+				if self._visualizer is not None:
+					# Update visualization
+					self._visualizer.update_node(current_node, current_node.position, self.open_list)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
 					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
 			
@@ -166,7 +167,7 @@ class Pathfinder:
 				print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")
 		
 		print(f"No path found from {start} to {goal} after {iterations} iterations")
-		return [], []
+		return
 
 	def create_direct_route(self, start: Point, end: Point) -> List[Point]:
 		self.path = [start, end]

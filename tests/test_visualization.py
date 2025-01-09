@@ -1,10 +1,13 @@
 import pytest
 from matplotlib import pyplot as plt
 import numpy as np
+from MEP import AirHandlingUnit
+from core import Node
 from geometry import Point
 from pathfinding import Pathfinder
+from routing import Branch2D
 from structural import FloorPlan, Room, WallType
-from visualization import PathfindingVisualizer
+from visualization import PathfindingVisualizer, visualize_layout
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
@@ -30,17 +33,21 @@ class TestVisualization:
 		return FloorPlan([room1, room2, room3, room4])
 
 
-	def display_floor_plan(simple_floor_plan):
-			
-	# def test_visualization_updates(self, simple_floor_plan):
-	#     floor_plan = simple_floor_plan
-	#     pathfinder = Pathfinder(floor_plan)
+	def test_display_floor_plan(self,simple_floor_plan):
+		fig, ax = plt.subplots()
+		visualize_layout(simple_floor_plan,ax)
+		plt.show(block=True)
+		assert fig
+		assert ax
 
-	#     start = Point(0, 0)
-	#     goal = Point(2, 2)
-
-	#     fig, ax = plt.subplots()
-	#     visualizer = PathfindingVisualizer(floor_plan, ax)
-	#     pathfinder.a_star(start, goal, ax)
-	#     assert isinstance(ax, plt.Axes)
-	#     assert visualizer.iterations > 0, "Iterations not tracked"
+	def test_visualization_updates(self, simple_floor_plan):
+		floor_plan = simple_floor_plan
+		start = simple_floor_plan._rooms[0].center
+		fig, ax = plt.subplots()
+		visualize_layout(simple_floor_plan, ax)
+		branch = Branch2D(simple_floor_plan,start,isIndexRoute=True,ax=ax, visualize=True)
+		branch.generate()
+		assert isinstance(branch._visualizer, PathfindingVisualizer)
+		assert isinstance(ax, plt.Axes)
+		assert isinstance(fig, plt.Figure)
+		

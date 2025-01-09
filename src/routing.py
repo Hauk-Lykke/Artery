@@ -48,22 +48,24 @@ class Branch(Path): # Mechanical, Electrical, Plumbing branch
 		self.isIndexRoute = isIndexRoute
 
 class Branch2D(Branch):
-	def __init__(self, floorPlan: FloorPlan, startNode: Node, isIndexRoute: bool = False, ax: plt.Axes=None):
-		super().__init__(startNode, isIndexRoute)
+	def __init__(self, floorPlan: FloorPlan, startPoint: Union[Node, Point], isIndexRoute: bool = False, ax: plt.Axes=None, visualize = False):
+		super().__init__(startPoint, isIndexRoute)
 		self.ax = ax # Figure axes
+		self.visualize = visualize
+		self._visualizer = None
 		if isinstance(floorPlan, FloorPlan):
 			self.floorPlan = floorPlan
 		else:
 			raise ValueError("floorPlan must be of type FloorPlan.")
 
 	def generate(self):
-		if self.floorPlan.ahu is None:
-			raise ValueError("AHU must be set in floor plan before routing ducts")
-
 		self.pathfinder = Pathfinder(self.floorPlan)
-		furthest_room = self.pathfinder.find_furthest_room(self.floorPlan.ahu)
+		if self.visualize == True:
+			# Initialize the PathfindingVisualizer
+			self._visualizer = PathfindingVisualizer(self.pathfinder, self.ax)
+		furthest_room = self.pathfinder.findFurthestRoom(self.floorPlan.ahu.position)
 		print(f"AHU position: {self.floorPlan.ahu.position}")
 		print(f"Furthest room center: {furthest_room.center}")
 		# Create route to the furthest room using optimized A* pathfinding
-		self.pathfinder.a_star(self.floorPlan.ahu.position, furthest_room.center)
+		self.pathfinder.a_star(self.floorPlan.ahu.position, furthest_room.center, self._visualizer)
 		self.nodes = self.pathfinder.path

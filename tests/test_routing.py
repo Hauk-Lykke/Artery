@@ -17,20 +17,18 @@ def test_route_ducts_basic():
 	assert len(branch.nodes) >= 2
 	assert len(branch) >= 2
 
-# def test_route_ducts_distant_rooms():
-# 	rooms = [
-# 		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
-# 		Room([Point(10, 10), Point(12, 10), Point(12, 12), Point(10, 12)])
-# 	]
-# 	ahu = AirHandlingUnit(position=Point(6, 6))
-# 	floor_plan = FloorPlan(rooms, ahu)
-	
-# 	routes, fig, ax = route_ducts(floor_plan)
-	
-# 	assert len(routes) == 1
-# 	path, costs = routes[0]
-# 	assert len(path) >= 2
-# 	# plt.close(fig)
+def test_route_ducts_distant_rooms():
+	rooms = [
+		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
+		Room([Point(10, 10), Point(12, 10), Point(12, 12), Point(10, 12)])
+	]
+	ahu = AirHandlingUnit(position=Point(6, 6))
+	floor_plan = FloorPlan(rooms, ahu)
+	start = ahu.position
+	branch = Branch2D(floor_plan,start,isIndexRoute=True)
+	branch.generate()
+	furthest_Room = branch.pathfinder.findFurthestRoom(ahu.position)	
+	assert len(branch) >= 2
 
 # # def test_route_ducts_complex_layout():
 # # 	rooms = [
