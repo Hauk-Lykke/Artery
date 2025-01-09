@@ -140,4 +140,5 @@ class Line:
 		return self._shapely.intersects(other._shapely)
 
 	def distanceTo(self, point: Point) -> float: # Todo: Implement 3D
-		return self._shapely.distance(point)
+		shapelyPoint = sh.Point(point.x,point.y)
+		return self._shapely.distance(shapelyPoint)
