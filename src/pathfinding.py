@@ -93,16 +93,14 @@ class Pathfinder:
 		
 		return total_cost
 	
-	def find_furthest_room(self, ahu: AirHandlingUnit) -> Room:
-		if ahu is None:
-			raise ValueError("AHU must be set in floor plan before finding furthest room")
+	def findFurthestRoom(self, start: Point) -> Room:
+		if not isinstance(start, Point):
+			raise ValueError("Start must be a Point.")
 		if not self.floor_plan._rooms:
 			raise ValueError("Floor plan must have rooms before finding furthest room")
-		ahu_pos = ahu.position
-		return max(self.floor_plan._rooms, key=lambda room: room.center.distanceTo(ahu_pos))
+		return max(self.floor_plan._rooms, key=lambda room: room.center.distanceTo(start))
 
-	def a_star(self, start: Point, goal: Point, viz=None):
-		from visualization import PathfindingVisualizer
+	def a_star(self, start: Point, goal: Point, viz = None):
 		start_node = Node(start)
 		end_node = Node(goal)
 		
