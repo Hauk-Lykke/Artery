@@ -92,14 +92,14 @@ class PathfindingVisualizer:
 		self._update_title()
 		
 		# Get max cost from open list and current node
-		current_max_cost = max(neighbor.g_cost for _, neighbor in list(self.pathfinder.open_list.queue) + [(None, current_node)])
+		self.current_max_cost = max(neighbor.g_cost for _, neighbor in list(self.pathfinder.open_list.queue) + [(None, current_node)])
 		
 		# Update normalization for colorbar
-		self.ax._cost_mapper.norm.vmax = current_max_cost
+		self.ax._cost_mapper.norm.vmax = self.current_max_cost
 		
 		# Color nodes based on cost
-		normalized_cost = (current_node.g_cost / current_max_cost 
-						 if current_max_cost > 0 else 0)
+		normalized_cost = (current_node.g_cost / self.current_max_cost 
+						 if self.current_max_cost > 0 else 0)
 		color = self.colormap(normalized_cost)
 		
 		# Plot the explored point
@@ -113,5 +113,30 @@ class PathfindingVisualizer:
 		# Update the colorbar
 		self.ax._colorbar.update_normal(self.ax._cost_mapper)
 
-	def update_path(self):
-		'''Display path using the correct colormap''' #Implement this
+
+	def update_path(self, ax, test_name: str = None):
+		
+		# Plot routes with color grading based on cost
+		for node in self.pathfinder.path:
+			points = 
+			# Normalize costs using global maximum
+			normalized_costs = np.array(costs[:-1]) / global_max_cost if global_max_cost > 0 else np.zeros_like(costs[:-1])
+			
+			# Create line segments colored by cost
+			for i in range(len(points)):
+				color = colormap(normalized_costs[i])  # Use viridis colormap
+				ax.plot([points[i][0], next_points[i][0]], 
+					[points[i][1], next_points[i][1]], 
+					c=color, linewidth=2)
+		
+		# Update existing colorbar if present, otherwise create new one
+		if hasattr(ax, '_cost_mapper'):
+			ax._cost_mapper.norm.vmax = global_max_cost
+			ax._colorbar.update_normal(ax._cost_mapper)
+		else:
+			ax._cost_mapper = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
+			ax._colorbar = plt.colorbar(ax._cost_mapper, ax=ax, label='Path Cost')
+		
+		# Save figure if test_name is provided
+		if test_name and hasattr(ax, '_visualizer'):
+			ax._visualizer.save_figure(test_name)
