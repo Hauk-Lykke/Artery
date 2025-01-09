@@ -5,7 +5,7 @@ from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
 from structural import StandardWallCost, WallCosts
-from geometry import Line, Point
+from geometry import Line, Point, Vector
 from abc import ABC, abstractmethod
 from math import sqrt
 
@@ -62,12 +62,13 @@ class CompositeHeuristic(Heuristic):
 		return sum(h.calculate(current, goal) for h in self.heuristics)
 
 class Pathfinder:
-	def __init__(self, floor_plan: FloorPlan):
+	def __init__(self, floor_plan: FloorPlan, vizualiser=None):
 		self.floor_plan = floor_plan
 		self._init_costs()
 		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
 		self.open_list = None
-		self.nodes = None
+		self.path = None
+		self._visualizer = vizualiser
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
@@ -100,8 +101,8 @@ class Pathfinder:
 		ahu_pos = ahu.position
 		return max(self.floor_plan._rooms, key=lambda room: room.center.distanceTo(ahu_pos))
 
-	def a_star(self, start: Point, goal: Point, ax=None):
-			
+	def a_star(self, start: Point, goal: Point, viz=None):
+		from visualization import PathfindingVisualizer
 		start_node = Node(start)
 		end_node = Node(goal)
 		
@@ -128,9 +129,9 @@ class Pathfinder:
 					path.append(node)
 					node = node.parent
 				print(f"Path found in {iterations} iterations")
-				if ax and hasattr(ax, '_visualizer'):
+				if self._visualizer:
 					# Update visualization one last time
-					ax._visualizer.update_node(current_node, current_node.position, self.open_list)
+					self._visualizer.update_node(current_node, current_node.position, self.open_list)
 					plt.pause(1)  # Final pause to show the complete path
 				path.reverse()
 				self.path = path
@@ -158,9 +159,8 @@ class Pathfinder:
 				
 				self.open_list.put((neighbor.f, neighbor))
 				
-				if ax:
-					if hasattr(ax, '_visualizer'):
-						ax._visualizer.update_node(current_node, neighbor_pos, self.open_list)
+				if self._visualizer:
+					self._visualizer.update_node(current_node, neighbor_pos, self.open_list)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
 					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
 			
