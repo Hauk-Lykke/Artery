@@ -132,14 +132,15 @@ class Pathfinder:
 					# Update visualization one last time
 					ax._visualizer.update_node(current_node, current_node.position, self.open_list)
 					plt.pause(1)  # Final pause to show the complete path
-				self.nodes = path
+				path.reverse()
+				self.path = path
 				return
 			
 			# Add to closed set after goal check
 			closed_set.add(current_pos_rounded)
 
 			for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
-				neighbor_pos = Point(current_node.position.x + dx, current_node.position.y + dy)
+				neighbor_pos = current_node.position + Vector(dx,dy)
 				neighbor_pos_rounded = Point(round(neighbor_pos.x + 1e-10), round(neighbor_pos.y + 1e-10))
 				
 				if neighbor_pos_rounded in closed_set:
@@ -149,11 +150,11 @@ class Pathfinder:
 				
 				# Calculate g cost using our optimized cost calculation
 				g_cost = self._calculate_cost(current_node.position, neighbor_pos)
-				neighbor.g = current_node.g + g_cost
+				neighbor.g = current_node.g_cost + g_cost
 				
 				# Calculate h cost using provided heuristic
 				neighbor.h = self.composite_h.calculate(neighbor_pos, end_node.position)
-				neighbor.f = neighbor.g + neighbor.h
+				neighbor.f = neighbor.g_cost + neighbor.h
 				
 				self.open_list.put((neighbor.f, neighbor))
 				
@@ -170,8 +171,8 @@ class Pathfinder:
 		return [], []
 
 	def create_direct_route(self, start: Point, end: Point) -> List[Point]:
-		self.nodes = [start, end]
+		self.path = [start, end]
 		return
 
 	def __len__(self) -> float:
-		return len(self.nodes)
+		return len(self.path)
