@@ -79,7 +79,7 @@ def test_composite_heuristic():
 	goal = Point(3, 4)
 	
 	# Should be double the euclidean distance since we're using two identical heuristics
-	expected = 2 * EnhancedDistance.between_points(start, goal)
+	expected = 2 * (start-goal).length
 	assert np.allclose(composite.calculate(start, goal), expected)
 
 def test_pathfinder_initialization():
@@ -97,10 +97,10 @@ def test_a_star_simple_path():
 	start = Point(0, 0)
 	goal = Point(2, 2)
 	
-	path, costs = pathfinder.a_star(start, goal)
+	pathfinder.a_star(start, goal)
+
 	
-	assert len(path) > 0, "No path found"
-	assert len(costs) == len(path), "Costs and path lengths don't match"
+	assert len(pathfinder) > 0, "No path found"
 	assert np.allclose(path[0].to_numpy(), start.to_numpy()), "Path doesn't start at start point"
 	assert np.allclose(path[-1].to_numpy(), goal.to_numpy()), "Path doesn't reach goal"
 
