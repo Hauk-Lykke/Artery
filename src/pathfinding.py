@@ -72,8 +72,8 @@ class Pathfinder:
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
 		return [wall for wall in self.floor_plan.walls 
-				if min(self.between_points(position, wall.start), 
-						self.between_points(position, wall.end)) <= radius]
+				if min((Line(position,wall.start).length), 
+						Line(position, wall.end).length) <= radius]
 
 	def _init_costs(self):
 		"""Initialize cost functions with movement as primary cost"""
@@ -98,8 +98,7 @@ class Pathfinder:
 		if not self.floor_plan._rooms:
 			raise ValueError("Floor plan must have rooms before finding furthest room")
 		ahu_pos = ahu.position
-		return max(self.floor_plan._rooms, key=lambda room: self.between_points(
-			room.center, ahu_pos))
+		return max(self.floor_plan._rooms, key=lambda room: room.center.distanceTo(ahu_pos))
 
 	def a_star(self, start: Point, goal: Point, ax=None):
 			
@@ -122,9 +121,8 @@ class Pathfinder:
 			if current_pos_rounded in closed_set:
 				continue
 
-			if self.between_points(current_node.position, end_node.position) < 0.5:
+			if current_node.position.distanceTo(end_node.position) < 0.5:
 				path = []
-				costs = []
 				node = current_node  # Use a separate variable to build path
 				while node:
 					path.append(node)
@@ -174,3 +172,6 @@ class Pathfinder:
 	def create_direct_route(self, start: Point, end: Point) -> List[Point]:
 		self.nodes = [start, end]
 		return
+
+	def __len__(self) -> float:
+		return len(self.nodes)
