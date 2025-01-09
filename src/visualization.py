@@ -2,9 +2,10 @@ from core import Node
 import matplotlib.pyplot as plt
 import datetime
 import os
+from pathfinding import Pathfinder
 from structural import FloorPlan, WallType
 from geometry import Point
-from pathfinding import Pathfinder
+
 
 def visualize_layout(floor_plan: FloorPlan, ax):
 	# Plot rooms
