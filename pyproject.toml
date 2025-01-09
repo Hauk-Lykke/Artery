@@ -1,0 +1,16 @@
+[project]
+name = "artery"
+version = "0.1.0"
+description = "Automatic drafting of duct and piping routings and column placement in buildings."
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "isort",
+]
