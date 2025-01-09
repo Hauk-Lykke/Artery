@@ -64,9 +64,9 @@ class Branch2D(Branch):
 		if self.visualize == True:
 			# Initialize the PathfindingVisualizer
 			self._visualizer = PathfindingVisualizer(self.pathfinder, self.ax)
-		furthest_room = self.pathfinder.findFurthestRoom(self.floorPlan.ahu.position)
-		print(f"AHU position: {self.floorPlan.ahu.position}")
+		furthest_room = self.pathfinder.findFurthestRoom(self.startNode.position)
+		print(f"Start position: {self.startNode.position}")
 		print(f"Furthest room center: {furthest_room.center}")
 		# Create route to the furthest room using optimized A* pathfinding
-		self.pathfinder.a_star(self.floorPlan.ahu.position, furthest_room.center, self._visualizer)
+		self.pathfinder.a_star(self.startNode.position, furthest_room.center, self._visualizer)
 		self.nodes = self.pathfinder.path
