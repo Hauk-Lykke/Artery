@@ -20,10 +20,10 @@ def mpl_test_settings():
 class TestVisualization:
 	@pytest.fixture
 	def simple_floor_plan(self):
-		corners_room1 = [Point(0, 0), Point(10, 0), Point(10, 10), Point(0, 10)]
-		corners_room2 = [Point(10, 0), Point(20, 0), Point(20, 10), Point(10, 10)]
-		corners_room3 = [Point(0, 10), Point(10, 10), Point(10, 20), Point(0, 20)]
-		corners_room4 = [Point(10, 10), Point(20, 10), Point(20, 20), Point(10, 20)]
+		corners_room1 = [Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)]
+		corners_room2 = [Point(5, 0), Point(10, 0), Point(10, 5), Point(5, 5)]
+		corners_room3 = [Point(0, 5), Point(5, 5), Point(5, 10), Point(0, 10)]
+		corners_room4 = [Point(5, 5), Point(10, 5), Point(10, 10), Point(5, 10)]
 
 		room1 = Room(corners_room1)
 		room2 = Room(corners_room2)
