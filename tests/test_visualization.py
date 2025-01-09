@@ -45,9 +45,11 @@ class TestVisualization:
 		start = simple_floor_plan._rooms[0].center
 		fig, ax = plt.subplots()
 		visualize_layout(simple_floor_plan, ax)
-		branch = Branch2D(simple_floor_plan,start,isIndexRoute=True,ax=ax, visualize=True)
+		branch = Branch2D(floor_plan,start,isIndexRoute=True,ax=ax, visualize=True)
 		branch.generate()
 		assert isinstance(branch._visualizer, PathfindingVisualizer)
 		assert isinstance(ax, plt.Axes)
 		assert isinstance(fig, plt.Figure)
+		
+		plt.show(block=True)
 		

@@ -92,14 +92,13 @@ class PathfindingVisualizer:
 		self._update_title()
 		
 		# Get max cost from open list and current node
-		current_max_cost = max(neighbor.g for _, neighbor in list(self.pathfinder.open_list.queue) 
-							 + [(0, current_node)])
+		current_max_cost = max(neighbor.g_cost for _, neighbor in list(self.pathfinder.open_list.queue) + [(None, current_node)])
 		
 		# Update normalization for colorbar
 		self.ax._cost_mapper.norm.vmax = current_max_cost
 		
 		# Color nodes based on cost
-		normalized_cost = (current_node.g / current_max_cost 
+		normalized_cost = (current_node.g_cost / current_max_cost 
 						 if current_max_cost > 0 else 0)
 		color = self.colormap(normalized_cost)
 		
@@ -113,3 +112,6 @@ class PathfindingVisualizer:
 		
 		# Update the colorbar
 		self.ax._colorbar.update_normal(self.ax._cost_mapper)
+
+	def update_path(self):
+		'''Display path using the correct colormap''' #Implement this

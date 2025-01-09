@@ -100,6 +100,8 @@ class Pathfinder:
 		return max(self.floor_plan._rooms, key=lambda room: room.center.distanceTo(start))
 
 	def a_star(self, start: Point, goal: Point, viz = None):
+		if viz:
+			self._visualizer = viz
 		start_node = Node(start)
 		end_node = Node(goal)
 		
@@ -128,7 +130,7 @@ class Pathfinder:
 				print(f"Path found in {iterations} iterations")
 				if self._visualizer is not None:
 					# Update visualization one last time
-					self._visualizer.update_node(current_node, current_node.position, self.open_list)
+					self._visualizer.update_node(current_node, current_node.position)
 					plt.pause(1)  # Final pause to show the complete path
 				path.reverse()
 				self.path = path
@@ -158,7 +160,7 @@ class Pathfinder:
 				
 				if self._visualizer is not None:
 					# Update visualization
-					self._visualizer.update_node(current_node, current_node.position, self.open_list)
+					self._visualizer.update_node(current_node, current_node.position)
 					# Add a longer pause every 10 iterations, otherwise use a small pause
 					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
 			
