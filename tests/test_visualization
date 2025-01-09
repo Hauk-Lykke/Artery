@@ -1,0 +1,36 @@
+# import pytest
+# from matplotlib import pyplot as plt
+# import numpy as np
+# from geometry import Point
+# from pathfinding import Pathfinder
+# from structural import FloorPlan, Room, WallType
+# from visualization import PathfindingVisualizer
+
+
+# class TestVisualization:
+#     @pytest.fixture
+#     def simple_floor_plan(self):
+#         corners_room1 = [Point(0, 0), Point(10, 0), Point(10, 10), Point(0, 10)]
+#         corners_room2 = [Point(10, 0), Point(20, 0), Point(20, 10), Point(10, 10)]
+#         corners_room3 = [Point(0, 10), Point(10, 10), Point(10, 20), Point(0, 20)]
+#         corners_room4 = [Point(10, 10), Point(20, 10), Point(20, 20), Point(10, 20)]
+
+#         room1 = Room(corners_room1)
+#         room2 = Room(corners_room2)
+#         room3 = Room(corners_room3)
+#         room4 = Room(corners_room4)
+
+#         return FloorPlan([room1, room2, room3, room4])
+
+#     def test_visualization_updates(self, simple_floor_plan):
+#         floor_plan = simple_floor_plan
+#         pathfinder = Pathfinder(floor_plan)
+
+#         start = Point(0, 0)
+#         goal = Point(2, 2)
+
+#         fig, ax = plt.subplots()
+#         visualizer = PathfindingVisualizer(floor_plan, ax)
+#         pathfinder.a_star(start, goal, ax)
+#         assert isinstance(ax, plt.Axes)
+#         assert visualizer.iterations > 0, "Iterations not tracked"
