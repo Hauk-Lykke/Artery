@@ -61,6 +61,7 @@ class FloorPlan:
 			self.add_rooms(rooms)
 		if ahu is not None:
 			self.ahu = ahu
+		self.update_walls()
 
 	def add_room(self, room):
 		self._rooms.append(room)

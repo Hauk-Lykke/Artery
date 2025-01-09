@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 from structural import FloorPlan
 from pathfinding import Pathfinder
 from geometry import Point
+from visualization import PathfindingVisualizer
 
 class Path:
 	'''Class for storing Mechanical, Electrical and Plumbing routes. Each bend/fitting is a node.'''
-	def __init__(self, startNode: Union[Node,List[Node]]): # Union[float, Tuple[float, float, float]] 
+	def __init__(self, startNode: Union[Node,Point,List[Node]]): # Union[float, Tuple[float, float, float]] 
 		if isinstance(startNode, Node):
 			self.startNode = startNode
 			self.nodes = [self.startNode]

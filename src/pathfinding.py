@@ -1,6 +1,5 @@
 from typing import List
 from structural import Room, Wall, FloorPlan
-from MEP import AirHandlingUnit
 from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
