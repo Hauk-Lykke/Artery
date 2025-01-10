@@ -60,10 +60,11 @@ class PathfindingVisualizer:
 	
 	def _setup_visualization(self):
 		"""Initialize visualization components"""
-		self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, 
-													norm=plt.Normalize(vmin=0, vmax=1))
-		self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, 
-									   label='Path Cost')
+		if not hasattr(self.ax, '_colorbar'):
+			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, 
+														norm=plt.Normalize(vmin=0, vmax=1))
+			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, 
+										label='Path Cost')
 		# Store initial axis limits
 		self.ax._xlim = self.ax.get_xlim()
 		self.ax._ylim = self.ax.get_ylim()
