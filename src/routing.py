@@ -81,5 +81,12 @@ class Branch2D(Branch):
 
 	def findClosestNode(self,point: Point):
 		nodes = self.nodes.copy()
-		nodes.sort(key=lambda x: x.distanceTo(point), reverse=True)
+		nodes.sort(key=lambda x: x.position.distanceTo(point))
 		return nodes[0]
+	
+	def findClosestNodePair(self,point: Point) -> Tuple[Point]:
+		nodes = self.nodes.copy()
+		nodes.sort(key=lambda x: x.position.distanceTo(point))
+		return (nodes[0],nodes[1])
+
+	
