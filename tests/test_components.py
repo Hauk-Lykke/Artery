@@ -143,7 +143,7 @@ class TestComplexLayout:
 		square_room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
 		square_room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
 
-		corridor = Room([Point(0,10),Point(0,15),Point(25,15),Point(25,20),Point(30,20),Point(30,10),Point(0,10)])
+		corridor = Room([Point(0,10),Point(0,15),Point(25,15),Point(25,20),Point(30,20),Point(30,10)])
 		corridor.walls[0].wall_type = WallType.OUTER_WALL  # Left wall
 		corridor.walls[4].wall_type = WallType.OUTER_WALL  # Right wall
 

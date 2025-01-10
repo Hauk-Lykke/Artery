@@ -58,8 +58,6 @@ class FloorPlan:
 		self.rooms = []
 		if rooms is not None:
 			self.addRooms(rooms)
-		else: 
-			self.rooms = []
 		if ahu is not None:
 			self.ahu = ahu
 
