@@ -72,8 +72,8 @@ class Pathfinder:
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
 		return [wall for wall in self.floor_plan.walls 
-				if min((Line(position,wall.start).length), 
-						Line(position, wall.end).length) <= radius]
+				if min(position.distanceTo(wall.start), 
+						position.distanceTo(wall.end)) <= radius]
 
 	def _init_costs(self):
 		"""Initialize cost functions with movement as primary cost"""
