@@ -9,6 +9,9 @@ from visualization import PathfindingVisualizer
 class Path:
 	'''Class for storing Mechanical, Electrical and Plumbing routes. Each bend/fitting is a node.'''
 	def __init__(self, startNode: Union[Node,Point,List[Node]]): # Union[float, Tuple[float, float, float]] 
+		if startNode is None:
+			raise ValueError("Starting point must be either a Node, a Point or a list of Nodes.")
+
 		if isinstance(startNode, Node):
 			self.startNode = startNode
 			self.nodes = [self.startNode]
