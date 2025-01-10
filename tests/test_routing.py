@@ -4,31 +4,27 @@ from structural import Room, FloorPlan
 from MEP import AirHandlingUnit
 from routing import Branch2D
 
-def test_route_ducts_basic():
-	rooms = [
-		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
-		Room([Point(3, 0), Point(5, 0), Point(5, 2), Point(3, 2)]),
-	]
-	ahu = AirHandlingUnit(position=Point(1, 1))
-	floor_plan = FloorPlan(rooms, ahu)
-	start = ahu.position
-	branch = Branch2D(floor_plan,start,isIndexRoute=True)	
-	branch.generate()
-	assert len(branch.nodes) >= 2
-	assert len(branch) >= 2
+class TestRouting:	
+	@pytest.mark.usefixtures("simple_floor_plan")
+	def test_route_ducts_basic(self,simple_floor_plan):
+		start = simple_floor_plan._rooms[0].center
+		branch = Branch2D(simple_floor_plan,start)	
+		branch.generate()
+		assert len(branch.nodes) >= 2
+		assert len(branch) >= 2
 
-def test_route_ducts_distant_rooms():
-	rooms = [
-		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
-		Room([Point(10, 10), Point(12, 10), Point(12, 12), Point(10, 12)])
-	]
-	ahu = AirHandlingUnit(position=Point(6, 6))
-	floor_plan = FloorPlan(rooms, ahu)
-	start = ahu.position
-	branch = Branch2D(floor_plan,start,isIndexRoute=True)
-	branch.generate()
-	furthest_Room = branch.pathfinder.findFurthestRoom(ahu.position)	
-	assert len(branch) >= 2
+	@pytest.mark.usefixtures("simple_floor_plan")
+	def test_route_ducts_distant_rooms(self):
+		rooms = [
+			Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
+			Room([Point(10, 10), Point(12, 10), Point(12, 12), Point(10, 12)])
+		]
+		ahu = AirHandlingUnit(position=Point(6, 6))
+		floor_plan = FloorPlan(rooms, ahu)
+		start = ahu.position
+		branch = Branch2D(floor_plan,start)
+		branch.generate()
+		assert len(branch) >= 2
 
 # # def test_route_ducts_complex_layout():
 # # 	rooms = [
