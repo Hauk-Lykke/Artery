@@ -23,7 +23,7 @@ class TestVisualization:
 	@pytest.mark.usefixtures("simple_floor_plan_fixture")
 	def test_visualization_updates(self,simple_floor_plan_fixture):
 		floor_plan = simple_floor_plan_fixture
-		start = simple_floor_plan_fixture._rooms[0].center
+		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
 		visualize_layout(simple_floor_plan_fixture, ax)
 		branch = Branch2D(floor_plan,start,ax=ax, visualize=True)
@@ -36,12 +36,12 @@ class TestVisualization:
 		assert isinstance(fig, plt.Figure)
 		
 	def test_visualization_multiple_branches(self,simple_floor_plan_fixture):
-		start = simple_floor_plan_fixture._rooms[0].center
+		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
 		visualize_layout(simple_floor_plan_fixture, ax)
 		indexBranch = Branch2D(simple_floor_plan_fixture,start, ax, visualize=True)
 		indexBranch.generate()
-		closestNode = indexBranch.findClosestNodePair(simple_floor_plan_fixture._rooms[2].center)
+		closestNode = indexBranch.findClosestNodePair(simple_floor_plan_fixture.rooms[2].center)
 		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, ax, visualize=True)
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
