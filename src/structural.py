@@ -40,15 +40,15 @@ class Room:
 		center_x = sum(corner.x for corner in corners) / len(corners)
 		center_y = sum(corner.y for corner in corners) / len(corners)
 		self.center = Point(center_x, center_y)
-		self.walls = self._create_walls()
+		self._create_walls()
 	
-	def _create_walls(self) -> List[Wall]:
-		walls = []
-		for i in range(len(self.corners)):
-			start = self.corners[i]
+	def _create_walls(self):
+		self.walls = []
+		for i, corner in enumerate(self.corners):
+			start = corner
 			end = self.corners[(i + 1) % len(self.corners)]
-			walls.append(Wall(start, end))
-		return walls
+			self.walls.append(Wall(start, end))
+		return
 
 
 class FloorPlan:
