@@ -27,7 +27,7 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 		ax.plot(floor_plan.ahu.position.x, floor_plan.ahu.position.y, 'rs', markersize=10)
 	
 	# Plot room centers
-	for room in floor_plan._rooms:
+	for room in floor_plan.rooms:
 		ax.plot(room.center.x, room.center.y, 'go', markersize=5)
 	
 	# Add wall type legend

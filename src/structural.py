@@ -54,21 +54,22 @@ class Room:
 class FloorPlan:
 	def __init__(self, rooms: list[Room] = None, ahu: AirHandlingUnit = None):
 		self.walls = set()
-		self._rooms = rooms if rooms is not None else []
 		self.ahu = None  # Initialize as None by default
+		self.rooms = []
 		if rooms is not None:
 			self.addRooms(rooms)
+		else: 
+			self.rooms = []
 		if ahu is not None:
 			self.ahu = ahu
-		self.updateWalls()
 
 	def addRoom(self, room):
-		self._rooms.append(room)
+		self.rooms.append(room)
 		self.updateWalls()
 
 	def updateWalls(self):
 		# uniqueWalls = set()
-		for room in self._rooms:
+		for room in self.rooms:
 			for wall in room.walls:
 				reverse_wall = wall.reverse()
 				if wall not in self.walls and reverse_wall not in self.walls:

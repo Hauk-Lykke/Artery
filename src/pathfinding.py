@@ -95,9 +95,9 @@ class Pathfinder:
 	def findFurthestRoom(self, start: Point) -> Room:
 		if not isinstance(start, Point):
 			raise ValueError("Start must be a Point.")
-		if not self.floor_plan._rooms:
+		if not self.floor_plan.rooms:
 			raise ValueError("Floor plan must have rooms before finding furthest room")
-		return max(self.floor_plan._rooms, key=lambda room: room.center.distanceTo(start))
+		return max(self.floor_plan.rooms, key=lambda room: room.center.distanceTo(start))
 
 	def a_star(self, start: Point, goal: Point, viz = None):
 		if viz:

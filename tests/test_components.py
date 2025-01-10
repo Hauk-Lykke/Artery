@@ -58,11 +58,11 @@ def test_floor_plan_room_addition():
 	room2 = Room([Point(5, 0), Point(10, 0), Point(10, 5), Point(5, 5)])
 	
 	floor_plan.addRooms([room1, room2])
-	assert len(floor_plan._rooms) == 2
+	assert len(floor_plan.rooms) == 2
 	
 	# Test wall types are preserved
 	room1.walls[0].wall_type = WallType.OUTER_WALL
-	assert floor_plan._rooms[0].walls[0].wall_type == WallType.OUTER_WALL
+	assert floor_plan.rooms[0].walls[0].wall_type == WallType.OUTER_WALL
 	
 def test_wall_reversal():
 	# Original wall
@@ -90,7 +90,7 @@ def test_floor_plan_walls():
 	floor_plan.addRoom(room1)
 	assert len(floor_plan.walls) == 4
 	floor_plan.addRoom(room2)
-	assert len(floor_plan._rooms) == 2 
+	assert len(floor_plan.rooms) == 2 
 	assert len(floor_plan.walls) == 7  # Shared wall between rooms should be counted once
 	
 	# Verify walls list contains actual Wall objects
@@ -160,8 +160,8 @@ class TestComplexLayout:
 
 	def test_room_creation(self, complex_floor_plan):
 			"""Test that all rooms are created with correct attributes."""
-			for room in complex_floor_plan._rooms:
+			for room in complex_floor_plan.rooms:
 				assert isinstance(room, Room)
 				assert hasattr(room, 'corners')
 				assert hasattr(room, 'center')
-			assert len(complex_floor_plan._rooms) == 12
+			assert len(complex_floor_plan.rooms) == 12
