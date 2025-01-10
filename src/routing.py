@@ -12,9 +12,15 @@ class Path:
 		if isinstance(startNode, Node):
 			self.startNode = startNode
 			self.nodes = [self.startNode]
+			if self.startNode.parentBranch is None:
+				self.parentBranch = self.startNode.parentBranch
+				self.isIndexRoute = True
+			else:
+				self.isIndexRoute = False
+			self.parentNode = startNode
 		if isinstance(startNode, list):
 			self.nodes = startNode
-			if len(startNode):
+			if len(startNode) and isinstance(startNode[0]):
 				self.startNode = startNode[0]
 		if isinstance(startNode, Point):
 			startpoint = startNode
@@ -43,14 +49,13 @@ class Path:
 		return len(self.nodes)
 
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
-	def __init__(self, startNode: Node, isIndexRoute: bool = False):
+	def __init__(self, startNode: Node):
 		super().__init__(startNode)
 		self.sub_branches = []
-		self.isIndexRoute = isIndexRoute
 
 class Branch2D(Branch):
-	def __init__(self, floorPlan: FloorPlan, startPoint: Union[Node, Point], isIndexRoute: bool = False, ax: plt.Axes=None, visualize = False):
-		super().__init__(startPoint, isIndexRoute)
+	def __init__(self, floorPlan: FloorPlan, startPoint: Union[Node, Point], ax: plt.Axes=None, visualize = False):
+		super().__init__(startPoint)
 		self.ax = ax # Figure axes
 		self.visualize = visualize
 		self._visualizer = None

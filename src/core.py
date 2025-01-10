@@ -14,9 +14,16 @@ class Node:
 		h (float): Heuristic estimate from this node to goal
 		f (float): Total cost (g_cost + h) used for path evaluation
 	"""
-	def __init__(self, position: Point, parent=None):
+	def __init__(self, position: Point, parentNode=None):
 		self.position = position
-		self.parent = parent
+		self.parentNode = parentNode
+		if parentNode is not None:
+			if parentNode.parentBranch is not None:
+				self.parentBranch = parentNode.parentBranch
+			else:
+				self.parentBranch = None
+		else:
+			self.parentBranch = None
 		self.g_cost = 0
 		self.h = 0
 		self.f = 0
