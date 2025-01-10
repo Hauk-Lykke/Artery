@@ -103,6 +103,7 @@ class Pathfinder:
 		if viz:
 			self._visualizer = viz
 		start_node = Node(start)
+		self.path = [start_node]
 		end_node = Node(goal)
 		
 		self.open_list = PriorityQueue()
@@ -125,9 +126,10 @@ class Pathfinder:
 				path = []
 				node = current_node  # Use a separate variable to build path
 				while node:
-					path.append(node)
-					node = node.parent
+					path.insert(0,node)
+					node = node.parentNode
 				print(f"Path found in {iterations} iterations")
+				self.path = path
 				if self._visualizer is not None:
 					# Update visualization one last time
 					self._visualizer.update_node(current_node, current_node.position)
