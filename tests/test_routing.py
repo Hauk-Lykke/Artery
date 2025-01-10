@@ -1,20 +1,24 @@
-import pytest
-from core import Node
 from geometry import Point
 from structural import Room, FloorPlan
 from MEP import AirHandlingUnit
 from routing import Branch2D
 
 class TestRouting:	
-	@pytest.mark.usefixtures("simple_floor_plan")
-	def test_route_ducts_basic(self,simple_floor_plan):
-		start = simple_floor_plan._rooms[0].center
-		branch = Branch2D(simple_floor_plan,start)	
+	def test_fixture(self,simple_fixture):
+		assert isinstance(simple_fixture, str)
+	
+	def test_assert_floor_plan(self, simple_floor_plan_fixture):
+		assert isinstance(simple_floor_plan_fixture,FloorPlan)
+
+	def test_route_ducts_basic(self, simple_floor_plan_fixture):
+		assert isinstance(simple_floor_plan_fixture, FloorPlan)
+		assert isinstance(simple_floor_plan_fixture.rooms[0].center, Point)
+		start = simple_floor_plan_fixture.rooms[0].center
+		branch = Branch2D(simple_floor_plan_fixture,start)	
 		branch.generate()
 		assert len(branch.nodes) >= 2
 		assert len(branch) >= 2
 
-	@pytest.mark.usefixtures("simple_floor_plan")
 	def test_route_ducts_distant_rooms(self):
 		rooms = [
 			Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
@@ -27,12 +31,11 @@ class TestRouting:
 		branch.generate()
 		assert len(branch) >= 2
 
-	@pytest.mark.usefixtures("simple_floor_plan")
-	def test_multiple_branches(self,simple_floor_plan):
-		start = simple_floor_plan._rooms[0].center
-		indexBranch = Branch2D(simple_floor_plan,start)
-		closestNode = indexBranch.findClosestNode(simple_floor_plan._rooms[2])
-		sub_branch = Branch2D(simple_floor_plan,closestNode)
+	def test_multiple_branches(self,simple_floor_plan_fixture):
+		start = simple_floor_plan_fixture._rooms[0].center
+		indexBranch = Branch2D(simple_floor_plan_fixture,start)
+		closestNode = indexBranch.findClosestNode(simple_floor_plan_fixture._rooms[2].center)
+		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode)
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
 
