@@ -1,3 +1,4 @@
+import pytest
 from core import Node
 from geometry import Point
 from structural import Room, FloorPlan
@@ -25,6 +26,16 @@ class TestRouting:
 		branch = Branch2D(floor_plan,start)
 		branch.generate()
 		assert len(branch) >= 2
+
+	@pytest.mark.usefixtures("simple_floor_plan")
+	def test_multiple_branches(self,simple_floor_plan):
+		start = simple_floor_plan._rooms[0].center
+		indexBranch = Branch2D(simple_floor_plan,start)
+		closestNode = indexBranch.findClosestNode(simple_floor_plan._rooms[2])
+		sub_branch = Branch2D(simple_floor_plan,closestNode)
+		sub_branch.generate()
+		assert len(sub_branch) >= 2
+
 
 # # def test_route_ducts_complex_layout():
 # # 	rooms = [
