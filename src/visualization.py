@@ -1,3 +1,4 @@
+import numpy as np
 from core import Node
 import matplotlib.pyplot as plt
 import datetime
@@ -76,7 +77,7 @@ class PathfindingVisualizer:
 	def save_figure(self, test_name: str):
 		"""Save the current figure with test name and timestamp"""
 		date_str = datetime.datetime.now().strftime("%Y%m%d")
-		base_filename = f"results/{test_name}_{date_str}"
+		base_filename = f"results_mep/{test_name}_{date_str}"
 		
 		counter = 0
 		while os.path.exists(f"{base_filename}_{counter}.png"):
@@ -113,30 +114,26 @@ class PathfindingVisualizer:
 		# Update the colorbar
 		self.ax._colorbar.update_normal(self.ax._cost_mapper)
 
-
-	def update_path(self, ax, test_name: str = None):
-		
+	def update_path(self):
 		# Plot routes with color grading based on cost
-		for node in self.pathfinder.path:
-			points = 
-			# Normalize costs using global maximum
-			normalized_costs = np.array(costs[:-1]) / global_max_cost if global_max_cost > 0 else np.zeros_like(costs[:-1])
-			
-			# Create line segments colored by cost
-			for i in range(len(points)):
-				color = colormap(normalized_costs[i])  # Use viridis colormap
-				ax.plot([points[i][0], next_points[i][0]], 
-					[points[i][1], next_points[i][1]], 
+		points = [node.position for node in self.pathfinder.path]
+		costs = [node.g_cost for node in self.pathfinder.path]
+		global_max_cost = max(costs) if costs else 1  # Avoid division by zero
+
+		# Normalize costs using global maximum
+		normalized_costs = np.array(costs) / global_max_cost if global_max_cost > 0 else np.zeros_like(costs)
+
+		# Create line segments colored by cost
+		for i in range(len(points) - 1):
+			color = self.colormap(normalized_costs[i])  # Use viridis colormap
+			self.ax.plot([points[i].x, points[i + 1].x], 
+					[points[i].y, points[i + 1].y], 
 					c=color, linewidth=2)
-		
+
 		# Update existing colorbar if present, otherwise create new one
-		if hasattr(ax, '_cost_mapper'):
-			ax._cost_mapper.norm.vmax = global_max_cost
-			ax._colorbar.update_normal(ax._cost_mapper)
+		if hasattr(self.ax, '_cost_mapper'):
+			self.ax._cost_mapper.norm.vmax = global_max_cost
+			self.ax._colorbar.update_normal(self.ax._cost_mapper)
 		else:
-			ax._cost_mapper = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
-			ax._colorbar = plt.colorbar(ax._cost_mapper, ax=ax, label='Path Cost')
-		
-		# Save figure if test_name is provided
-		if test_name and hasattr(ax, '_visualizer'):
-			ax._visualizer.save_figure(test_name)
+			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
+			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')

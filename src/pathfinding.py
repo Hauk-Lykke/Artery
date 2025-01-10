@@ -133,9 +133,8 @@ class Pathfinder:
 				if self._visualizer is not None:
 					# Update visualization one last time
 					self._visualizer.update_node(current_node, current_node.position)
+					self._visualizer.update_path()
 					plt.pause(1)  # Final pause to show the complete path
-				path.reverse()
-				self.path = path
 				return
 			
 			# Add to closed set after goal check
