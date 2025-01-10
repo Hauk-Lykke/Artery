@@ -75,3 +75,8 @@ class Branch2D(Branch):
 		# Create route to the furthest room using optimized A* pathfinding
 		self.pathfinder.a_star(self.startNode.position, furthest_room.center, self._visualizer)
 		self.nodes = self.pathfinder.path
+
+	def findClosestNode(self,point: Point):
+		nodes = self.nodes.copy()
+		nodes.sort(key=lambda x: x.distanceTo(point), reverse=True)
+		return nodes[0]
