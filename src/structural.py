@@ -16,10 +16,8 @@ class Wall(Line):
 		self.wall_type = wall_type
 		self.line = Line(start,end)
 
-	def reverse(self):
+	def reverse(self) -> 'Wall':
 		"""Switch places of start and end points"""
-		if self.start == self.end:
-			return self
 		return Wall(self.end, self.start)
 	
 	def __eq__(self, other):
@@ -31,8 +29,9 @@ class Wall(Line):
 	def __hash__(self):
 		"""Overload hash operator to use walls in sets"""
 		return hash((self.start, self.end, self.wall_type))
-
-
+	
+	def __repr__(self) -> str:
+		return "Wall from {0} to {1} of type {2}".format(self.start, self.end, self.wall_type)
 
 class Room:
 	def __init__(self, corners: list[Point]):
@@ -54,33 +53,31 @@ class Room:
 
 class FloorPlan:
 	def __init__(self, rooms: list[Room] = None, ahu: AirHandlingUnit = None):
-		self.walls = []
-		self._rooms = []
+		self.walls = set()
+		self._rooms = rooms if rooms is not None else []
 		self.ahu = None  # Initialize as None by default
 		if rooms is not None:
-			self.add_rooms(rooms)
+			self.addRooms(rooms)
 		if ahu is not None:
 			self.ahu = ahu
-		self.update_walls()
+		self.updateWalls()
 
-	def add_room(self, room):
+	def addRoom(self, room):
 		self._rooms.append(room)
-		self.update_walls()
+		self.updateWalls()
 
-	def update_walls(self):
-		unique_walls = set()
+	def updateWalls(self):
+		# uniqueWalls = set()
 		for room in self._rooms:
 			for wall in room.walls:
 				reverse_wall = wall.reverse()
-				if wall not in unique_walls and reverse_wall not in unique_walls:
-					unique_walls.add(wall)
-		self.walls = list(unique_walls)
+				if wall not in self.walls and reverse_wall not in self.walls:
+					self.walls.add(wall)
+		# self.walls = list(self.walls) # Would be nice if walls were somehow ordered, but that's for later
 
-	
-
-	def add_rooms(self, rooms):
+	def addRooms(self, rooms):
 		for room in rooms:
-			self.add_room(room)
+			self.addRoom(room)
 
 
 

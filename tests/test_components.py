@@ -5,6 +5,11 @@ from structural import WallType, Wall, Room, FloorPlan
 from MEP import AirHandlingUnit
 from geometry import Point, Vector
 
+def test_point_equality():
+	point0 = Point(1,2,3)
+	point1 = Point(1,2,3)
+	assert point0 == point1
+
 @pytest.fixture
 def wall():
 	return Wall(Point(0,0,0), Point(3, 4,0))
@@ -52,7 +57,7 @@ def test_floor_plan_room_addition():
 	room1 = Room([Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)])
 	room2 = Room([Point(5, 0), Point(10, 0), Point(10, 5), Point(5, 5)])
 	
-	floor_plan.add_rooms([room1, room2])
+	floor_plan.addRooms([room1, room2])
 	assert len(floor_plan._rooms) == 2
 	
 	# Test wall types are preserved
@@ -60,26 +65,31 @@ def test_floor_plan_room_addition():
 	assert floor_plan._rooms[0].walls[0].wall_type == WallType.OUTER_WALL
 	
 def test_wall_reversal():
-		# Original wall
-		original_wall = Wall(Point(0, 0), Point(3, 4))
-		
-		# Create reversed wall
-		reversed_wall = Wall(original_wall.end, original_wall.start)
-		
-		# Test wall vectors are opposite
-		assert np.allclose(original_wall.vector.to_numpy(), -reversed_wall.vector.to_numpy())
-		assert original_wall.length == reversed_wall.length
+	# Original wall
+	original_wall = Wall(Point(0, 0), Point(3, 4))
+	
+	# Create reversed wall
+	reversed_wall = Wall(original_wall.end, original_wall.start)
+	
+	# Test wall vectors are opposite
+	assert np.allclose(original_wall.vector.to_numpy(), -reversed_wall.vector.to_numpy())
+	assert original_wall.length == reversed_wall.length
+
+def test_wall_equality():
+	wall0 = Wall(Point(0, 0), Point(3, 4))
+	wall1 = Wall(Point(0, 0), Point(3, 4))
+	assert wall0==wall1
+
+
 
 def test_floor_plan_walls():
 	# Test wall list updates correctly
 	floor_plan = FloorPlan()
 	room1 = Room([Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)])
 	room2 = Room([Point(5, 0), Point(10, 0), Point(10, 5), Point(5, 5)])
-	
-	floor_plan.add_room(room1)
+	floor_plan.addRoom(room1)
 	assert len(floor_plan.walls) == 4
-	
-	floor_plan.add_room(room2)
+	floor_plan.addRoom(room2)
 	assert len(floor_plan._rooms) == 2 
 	assert len(floor_plan.walls) == 7  # Shared wall between rooms should be counted once
 	
@@ -142,7 +152,7 @@ class TestComplexLayout:
 			office_b1, office_b2, office_b3, office_b4, office_b5, office_b6,
 			office_t1, office_t2, office_t3, office_t4, square_room, corridor
 		]
-		floor_plan.add_rooms(rooms_to_add)
+		floor_plan.addRooms(rooms_to_add)
 		floor_plan.ahu = AirHandlingUnit(Point(2.5, 2.5))  # AHU in bottom-left room
 		return floor_plan
 
