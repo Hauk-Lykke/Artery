@@ -70,12 +70,17 @@ def complex_floor_plan_fixture():
 	corridor = Room([Point(0,10),Point(0,15),Point(25,15),Point(25,20),Point(30,20),Point(30,10)])
 	corridor.walls[0].wall_type = WallType.OUTER_WALL  # Left wall
 	corridor.walls[4].wall_type = WallType.OUTER_WALL  # Right wall
+	corridor.soundRating = 50
+
 
 	# Add rooms to floor plan
 	rooms_to_add = [
 		office_b1, office_b2, office_b3, office_b4, office_b5, office_b6,
 		office_t1, office_t2, office_t3, office_t4, square_room, corridor
 	]
+
+	for room in rooms_to_add[0:-2]:
+		room.supplyAirDemand = 200
 	floor_plan.addRooms(rooms_to_add)
 	floor_plan.ahu = AirHandlingUnit(Point(2.5, 2.5))  # AHU in bottom-left room
 	return floor_plan

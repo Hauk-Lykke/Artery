@@ -105,3 +105,6 @@ def test_floor_plan_walls():
 				assert hasattr(room, 'corners')
 				assert hasattr(room, 'center')
 			assert len(complex_floor_plan_fixture.rooms) == 12
+
+def testSoundRating(simple_floor_plan_fixture):
+	assert(simple_floor_plan_fixture.rooms[0].soundRating==37)

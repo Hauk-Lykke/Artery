@@ -41,6 +41,8 @@ class Room:
 		center_y = sum(corner.y for corner in corners) / len(corners)
 		self.center = Point(center_x, center_y)
 		self._create_walls()
+		self.soundRating = 37 # Default sound rating in decibel
+		self.supplyAirDemand = 0
 	
 	def _create_walls(self):
 		self.walls = []
@@ -50,7 +52,7 @@ class Room:
 			self.walls.append(Wall(start, end))
 		return
 
-	def is_inside_room(self,point: Point) ->bool:
+	def isInsideRoom(self,point: Point) ->bool:
 		# Ray casting algorithm to determine if point is inside polygon
 		n = len(self.corners)
 		inside = False
@@ -107,7 +109,7 @@ class WallCrossingCost(Cost):
 class WallCosts:
 	"""Central definition of wall-related costs"""
 	PROXIMITY_THRESHOLD = 0.5  # Distance at which wall proximity starts affecting cost
-	ANGLE_MULTIPLIER = 2.0  # Multiplier for angled crossings
+	ANGLE_MULTIPLIER = 7.0  # Multiplier for angled crossings
 	
 	@staticmethod
 	def get_base_cost(wall_type: WallType) -> float:
