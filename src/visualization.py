@@ -138,3 +138,17 @@ class PathfindingVisualizer:
 		else:
 			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
 			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')
+
+			
+def save_figure(ax, test_name: str):
+	"""Save the current figure with test name and timestamp"""
+	date_str = datetime.datetime.now().strftime("%Y%m%d")
+	base_filename = f"results_mep/{test_name}_{date_str}"
+	
+	counter = 0
+	while os.path.exists(f"{base_filename}_{counter}.png"):
+		counter += 1
+		
+	filename = f"{base_filename}_{counter}.png"
+	ax.figure.savefig(filename)
+	print(f"Saved figure to {filename}")
