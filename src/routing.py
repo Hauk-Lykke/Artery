@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Tuple, Union
 from core import Node
 import matplotlib.pyplot as plt
@@ -82,23 +83,6 @@ class Path:
 				return node
 		raise ValueError("No node at given position.")
 
-	def getClosestNode(self, point: Point) -> Node:
-		"""Find and return the closest Node to the given point.
-		
-		Args:
-			point (Point): Target point to find closest node to
-			
-		Returns:
-			Node: The closest node from the network
-			
-		Raises:
-			ValueError: If no nodes exist in the network
-		"""
-		if not self.nodes:
-			raise ValueError("No nodes available in network")
-			
-		return min(self.nodes, key=lambda node: node.position.distanceTo(point))
-
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):
 		super().__init__(startNode)
@@ -162,8 +146,8 @@ class Network:
 			destination = room.center
 			# node0,node1 = self.mainBranch.findClosestNodePair(destination)
 			# new_node = self.generate_closest_node(destination)
-			closestNode = self.mainBranch.getClosestNode(destination)
-			sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax)
+			closestNode = self.getClosestNode(destination)
+			sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax, self.startTime)
 			sub_branch.generate()
 			from visualization import save_figure
 			# if self.ax is not None:
@@ -171,7 +155,6 @@ class Network:
 			self.mainBranch.sub_branches.append(sub_branch)
 			self.branches.append(sub_branch)
 			self.nodes.extend(sub_branch.nodes)
-
 
 	def getSourceRoom(self) -> Union[Room, None]:
 		"""Find and return the room containing the starting node."""
@@ -190,6 +173,23 @@ class Network:
 		return max(self.floorPlan.rooms, key=lambda room: room.center.distanceTo(start))
 
 					
+					
+	def getClosestNode(self, point: Point) -> Node:
+		"""Find and return the closest Node to the given point.
+		
+		Args:
+			point (Point): Target point to find closest node to
+			
+		Returns:
+			Node: The closest node from the network
+			
+		Raises:
+			ValueError: If no nodes exist in the network
+		"""
+		if not self.nodes:
+			raise ValueError("No nodes available in network")
+		return min(self.nodes, key=lambda node: node.position.distanceTo(point))
+	
 	def generate_closest_node(self, point: Point) -> Node:
 		"""Find closest point on any path segment and create new node there."""
 		min_distance = float('inf')
