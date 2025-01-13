@@ -32,9 +32,9 @@ class TestRouting:
 		assert len(branch) >= 2
 
 	def test_multiple_branches(self,simple_floor_plan_fixture):
-		start = simple_floor_plan_fixture._rooms[0].center
+		start = simple_floor_plan_fixture.rooms[0].center
 		indexBranch = Branch2D(simple_floor_plan_fixture,start)
-		closestNode = indexBranch.findClosestNode(simple_floor_plan_fixture._rooms[2].center)
+		closestNode = indexBranch.find_closest_node(simple_floor_plan_fixture.rooms[2].center)
 		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode)
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
