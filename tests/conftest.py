@@ -30,47 +30,47 @@ def complex_floor_plan_fixture():
 	
 	# Bottom row offices (left to right)
 	office_b1 = Room([Point(0, 0), Point(5, 0), Point(5, 10), Point(0, 10)])
-	office_b1.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-	office_b1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	office_b1.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
+	office_b1.walls[3].wallType = WallType.OUTER_WALL  # Left wall
 	
 	office_b2 = Room([Point(5, 0), Point(10, 0), Point(10, 10), Point(5, 10)])
-	office_b2.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b2.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
 	
 	office_b3 = Room([Point(10, 0), Point(15, 0), Point(15, 10), Point(10, 10)])
-	office_b3.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b3.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
 	
 	office_b4 = Room([Point(15, 0), Point(20, 0), Point(20, 10), Point(15, 10)])
-	office_b4.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b4.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
 	
 	office_b5 = Room([Point(20, 0), Point(25, 0), Point(25, 10), Point(20, 10)])
-	office_b5.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
+	office_b5.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
 	
 	office_b6 = Room([Point(25, 0), Point(30, 0), Point(30, 10), Point(25, 10)])
-	office_b6.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-	office_b6.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+	office_b6.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
+	office_b6.walls[1].wallType = WallType.OUTER_WALL  # Right wall
 
 	# Top row offices (left to right)
 	office_t1 = Room([Point(0, 15), Point(10, 15), Point(10, 25), Point(0, 25)])
-	office_t1.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
-	office_t1.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+	office_t1.walls[2].wallType = WallType.OUTER_WALL  # Top wall
+	office_t1.walls[3].wallType = WallType.OUTER_WALL  # Left wall
 	
 	office_t2 = Room([Point(10, 15), Point(15, 15), Point(15, 25), Point(10, 25)])
-	office_t2.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	office_t2.walls[2].wallType = WallType.OUTER_WALL  # Top wall
 	
 	office_t3 = Room([Point(15, 15), Point(20, 15), Point(20, 25), Point(15, 25)])
-	office_t3.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	office_t3.walls[2].wallType = WallType.OUTER_WALL  # Top wall
 	
 	office_t4 = Room([Point(20, 15), Point(25, 15), Point(25, 25), Point(20, 25)])
-	office_t4.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	office_t4.walls[2].wallType = WallType.OUTER_WALL  # Top wall
 
 	# Small square room (top right)
 	square_room = Room([Point(25, 20), Point(30, 20), Point(30, 25), Point(25, 25)])
-	square_room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
-	square_room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+	square_room.walls[1].wallType = WallType.OUTER_WALL  # Right wall
+	square_room.walls[2].wallType = WallType.OUTER_WALL  # Top wall
 
 	corridor = Room([Point(0,10),Point(0,15),Point(25,15),Point(25,20),Point(30,20),Point(30,10)])
-	corridor.walls[0].wall_type = WallType.OUTER_WALL  # Left wall
-	corridor.walls[4].wall_type = WallType.OUTER_WALL  # Right wall
+	corridor.walls[0].wallType = WallType.OUTER_WALL  # Left wall
+	corridor.walls[4].wallType = WallType.OUTER_WALL  # Right wall
 	corridor.soundRating = 50
 
 
@@ -87,8 +87,9 @@ def complex_floor_plan_fixture():
 	return floor_plan
 
 @pytest.fixture(scope="module")
-def room_plan_11_rooms_random_concete_fixture():
+def room_plan_11_rooms_random_concrete_fixture(complex_floor_plan_fixture):
 	floorPlan = complex_floor_plan_fixture
 	for wall in floorPlan.walls:
 		if wall.wallType != WallType.OUTER_WALL:
 			wall.wallType = random.choices([WallType.DRYWALL, WallType.CONCRETE], weights=[70, 30])[0]
+	return floorPlan  # Add this return statement
