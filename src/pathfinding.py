@@ -68,6 +68,8 @@ class Pathfinder:
 		self.open_list = None
 		self.path = None
 		self._visualizer = vizualiser
+		self.TOLERANCE = 1
+		self.MAX_ITERATIONS = 5000
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
@@ -116,9 +118,8 @@ class Pathfinder:
 		closed_set = set()
 		
 		iterations = 0
-		max_iterations = 1000
 		
-		while not self.open_list.empty() and iterations < max_iterations:
+		while not self.open_list.empty() and iterations < self.MAX_ITERATIONS:
 			iterations += 1
 			_, current_node = self.open_list.get()
 			
@@ -127,7 +128,7 @@ class Pathfinder:
 			if current_pos_rounded in closed_set:
 				continue
 
-			if current_node.position.distanceTo(end_node.position) < 0.5:
+			if current_node.position.distanceTo(end_node.position) < self.TOLERANCE:
 				path = []
 				node = current_node  # Use a separate variable to build path
 				while node:
@@ -164,11 +165,11 @@ class Pathfinder:
 				
 				self.open_list.put((neighbor.f, neighbor))
 				
-				if self._visualizer is not None:
-					# Update visualization
-					self._visualizer.update_node(current_node, current_node.position)
-					# Add a longer pause every 10 iterations, otherwise use a small pause
-					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
+				# if self._visualizer is not None:
+				# 	# Update visualization
+				# 	self._visualizer.update_node(current_node, current_node.position)
+				# 	# Add a longer pause every 10 iterations, otherwise use a small pause
+				# 	plt.pause(0.000001)
 			
 			if iterations % 100 == 0:
 				print(f"Iteration {iterations}, current position: {current_node.position}, destination: {target}")
