@@ -50,6 +50,19 @@ class Room:
 			self.walls.append(Wall(start, end))
 		return
 
+	def is_inside_room(self,point: Point) ->bool:
+		# Ray casting algorithm to determine if point is inside polygon
+		n = len(self.corners)
+		inside = False
+		j = n - 1
+		for i in range(n):
+			if ((self.corners[i].y > point.y) != (self.corners[j].y > point.y) and
+				point.x < (self.corners[j].x - self.corners[i].x) * 
+				(point.y - self.corners[i].y) / (self.corners[j].y - self.corners[i].y) 
+				+ self.corners[i].x):
+				inside = not inside
+			j = i
+		return inside
 
 class FloorPlan:
 	def __init__(self, rooms: list[Room] = None, ahu: AirHandlingUnit = None):
