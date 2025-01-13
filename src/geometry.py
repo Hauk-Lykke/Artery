@@ -60,7 +60,7 @@ class XYZ:
 		raise ValueError("Array must have 3 dimensions")
 		
 	def __hash__(self):
-		"""Overload hash operator to use points in sets"""
+		"""Overload hash operator to use instances in sets"""
 		return hash((self.x, self.y, self.z))
 
 class Vector(XYZ):
@@ -76,12 +76,14 @@ class Vector(XYZ):
 	def __add__(self, other: 'Vector') -> 'Vector':
 		return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
 	
-	def __eq__(self, other):
-		"""Overload equality operator to compare points"""
-		if not isinstance(other, Vector):
-			return False
-		return self.x == other.x and self.y == other.y and self.z == other.z
+	def __eq__(self, other: 'Vector') -> bool:
+		if isinstance(other, Vector):
+			return self.x == other.x and self.y == other.y and self.z == other.z
+		return False
 
+	def __hash__(self) -> int:
+		return hash((self.x, self.y, self.z))
+	
 	def getAngleWith(self, other_vector: 'Vector') -> float:
 		"""Calculate the angle between this vector and another vector in degrees"""
 		dot = self.x * other_vector.x + self.y * other_vector.y + self.z * other_vector.z
@@ -128,8 +130,18 @@ class Point(XYZ):
 		else:
 			return super.__add__(vector)
 
+	def __eq__(self, other: 'Point') -> bool:
+		if isinstance(other, Point):
+			return self.x == other.x and self.y == other.y and self.z == other.z
+		return False
+
+	def __hash__(self) -> int:
+		return hash((self.x, self.y, self.z))
+
 class Line:
 	def __init__(self, start: Point, end: Point):
+		if start == end:
+			raise ValueError("Start and end points cannot be the same.")
 		self.start = start
 		self.end = end
 		self._shapely = sh.LineString([(start.x, start.y), (end.x, end.y)]) # Todo: Implement 3D
@@ -142,3 +154,23 @@ class Line:
 	def distanceTo(self, point: Point) -> float: # Todo: Implement 3D
 		shapelyPoint = sh.Point(point.x,point.y)
 		return self._shapely.distance(shapelyPoint)
+	
+	def __repr__(self) -> str:
+		return "Line from {0} to {1}".format(self.start, self.end)
+	
+	def interpolate(self, point: Point) -> Point:
+		# Create Shapely point from input
+		shapely_point = sh.Point(point.x, point.y, point.z)
+		
+		# Get the distance along the line of the nearest point
+		distance = self._shapely.project(shapely_point)
+		
+		# Get the actual point coordinates
+		interpolated_point = self._shapely.interpolate(distance)
+		
+		# Convert back to our Point class, preserving z-coordinate
+		# We linearly interpolate z based on distance along line
+		fraction = distance / self.length
+		z = self.start.z + fraction * (self.end.z - self.start.z)
+		
+		return Point(interpolated_point.x, interpolated_point.y, z)

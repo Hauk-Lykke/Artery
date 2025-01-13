@@ -116,7 +116,7 @@ def test_a_star_stops_at_goal():
 	iterations1 = len(pathfinder.path)
 	
 	# Add more nodes around goal that could be explored
-	floor_plan.add_room(Room([Point(2, 2),Point(1, 1)]))  # Room near goal
+	floor_plan.addRoom(Room([Point(2, 2),Point(1, 1)]))  # Room near goal
 	
 	# Second run should take same number of iterations
 	pathfinder2 = pathfinder
