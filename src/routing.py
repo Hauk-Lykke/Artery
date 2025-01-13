@@ -159,7 +159,7 @@ class Network:
 	def getSourceRoom(self) -> Union[Room, None]:
 		"""Find and return the room containing the starting node."""
 		for room in self.floorPlan.rooms:
-			if room.is_inside_room(self.startPoint):
+			if room.isInsideRoom(self.startPoint):
 				self.closed_room_set.add(room)
 				self.open_room_set.remove(room)
 				return room

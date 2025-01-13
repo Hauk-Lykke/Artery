@@ -11,10 +11,24 @@ from math import sqrt
 
 class MovementCost(Cost):
 	def calculate(self, current: Point, next: Point) -> float:
-		dx = abs(next.x - current.x)
-		dy = abs(next.y - current.y)
-		# Use Euclidean distance for more accurate diagonal costs
-		return sqrt(dx * dx + dy * dy)
+		# dx = abs(next.x - current.x)
+		# dy = abs(next.y - current.y)
+		# # Use Euclidean distance for more accurate diagonal costs
+		# return sqrt(dx * dx + dy * dy)
+		return current.distanceTo(next)
+
+class SoundRatingCost(Cost):
+	def __init__(self, floorPlan: FloorPlan):
+		self.floorPlan = floorPlan
+		self._maxSoundRating = 70
+	
+	def calculate(self, current: Point, next: Point) -> float:
+		for room in self.floorPlan.rooms:
+			if room.isInsideRoom(next):
+				distance = current.distanceTo(next)
+				return (self._maxSoundRating-room.soundRating)*distance
+		else:
+			return 0
 
 class CompositeCost(Cost):
 	def __init__(self, costs: List[Cost]):
@@ -30,7 +44,7 @@ class Heuristic(ABC):
 
 class EnhancedDistance(Heuristic):
 	def __init__(self, floor_plan: FloorPlan):
-		self.floor_plan = floor_plan
+		self.floorPlan = floor_plan
 		
 	def _estimate_wall_cost(self, current: Point, destination: Point) -> float:
 		"""Estimate minimum wall crossing costs to destination"""
@@ -40,7 +54,7 @@ class EnhancedDistance(Heuristic):
 		
 		# Count wall crossings along direct path
 		min_cost = 0
-		for wall in self.floor_plan.walls:
+		for wall in self.floorPlan.walls:
 			if Line(wall.start, wall.end).intersects(Line(current, destination)):
 				# Use base cost as minimum (perpendicular crossing)
 				min_cost += WallCosts.get_base_cost(wall.wall_type)
@@ -54,6 +68,10 @@ class EnhancedDistance(Heuristic):
 		wall_cost = self._estimate_wall_cost(current, destination)
 		return distance + wall_cost
 
+class SoundRatingHeuristic(SoundRatingCost):
+	def __init__(self, floorPlan: FloorPlan):
+		super().__init__(floorPlan)
+
 class CompositeHeuristic(Heuristic):
 	def __init__(self, heuristics: List[Heuristic]):
 		self.heuristics = heuristics  # List of heuristics
@@ -65,13 +83,19 @@ class Pathfinder:
 	def __init__(self, floor_plan: FloorPlan,vizualiser=None, startTime: datetime=None):
 		self.floor_plan = floor_plan
 		self._init_costs()
-		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
+		self.composite_h = CompositeHeuristic([EnhancedDistance(self.floor_plan)
+										 ,SoundRatingHeuristic(self.floor_plan)])
 		self.open_list = None
 		self.path = None
 		self._visualizer = vizualiser
 		self.startTime = startTime
 		self.TOLERANCE = 1
 		self.MAX_ITERATIONS = 5000
+		self.costWeights={
+			"distance":1,
+			"wallProximity":1,
+			"soundRating":1
+		}
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
@@ -82,18 +106,24 @@ class Pathfinder:
 	def _init_costs(self):
 		"""Initialize cost functions with movement as primary cost"""
 		self.movement_cost = MovementCost()
+		self.soundRatingCost = SoundRatingCost(self.floor_plan)
 		
 	def _calculate_cost(self, current: Point, next: Point) -> float:
 		"""Calculate total cost considering only nearby walls"""
 		# Base movement cost
-		total_cost = self.movement_cost.calculate(current, next)
+		total_cost = 0
+		movementCost = self.costWeights["distance"]*self.movement_cost.calculate(current, next)
 		
 		# Get nearby walls and calculate their costs
 		nearby_walls = self._get_nearby_walls(current)
 		for wall in nearby_walls:
 			wall_cost = StandardWallCost(wall)
-			total_cost += wall_cost.calculate(current, next)
+			total_cost += self.costWeights["wallProximity"]*wall_cost.calculate(current, next)
 		
+		# Calculate cost of movement inside a room with sound rating
+		sound_cost = self.costWeights["soundRating"]*self.soundRatingCost.calculate(current, next)
+		total_cost += sound_cost
+
 		return total_cost
 
 	def a_star(self, start: Point, target: Point, viz = None):
