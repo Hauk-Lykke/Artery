@@ -54,7 +54,8 @@ class Test11Rooms:
 	def test_complex_rooms(self,complex_floor_plan_fixture):
 		floorPlan = complex_floor_plan_fixture
 		start = floorPlan.ahu.position
-		fig, ax = plt.subplots()
+		cm = 1/2.54  # centimeters in inches
+		fig, ax = plt.subplots(figsize=(20*cm, 20*cm))
 		visualize_layout(floorPlan, ax)
 		network = routing.Network(floorPlan, start, ax)
 		network.generate()
@@ -65,3 +66,17 @@ class Test11Rooms:
 		assert isinstance(fig, plt.Figure)
 		plt.show(block=True)
 
+	def test_complex_rooms_with_concrete_walls(self,room_plan_11_rooms_random_concete_fixture):
+		floorPlan = room_plan_11_rooms_random_concete_fixture
+		start = floorPlan.ahu.position
+		cm = 1/2.54  # centimeters in inches
+		fig, ax = plt.subplots(figsize=(20*cm, 20*cm))
+		visualize_layout(floorPlan, ax)
+		network = routing.Network(floorPlan, start, ax)
+		network.generate()
+		save_figure(ax, "First concrete wall attempt")
+		assert(isinstance(network.mainBranch, routing.Branch2D))
+		assert(isinstance(network.branches, list))
+		assert isinstance(ax, plt.Axes)
+		assert isinstance(fig, plt.Figure)
+		plt.show(block=True)
