@@ -1,3 +1,4 @@
+import random
 import pytest
 from MEP import AirHandlingUnit
 from geometry import Point
@@ -85,3 +86,9 @@ def complex_floor_plan_fixture():
 	floor_plan.ahu = AirHandlingUnit(Point(2.5, 2.5))  # AHU in bottom-left room
 	return floor_plan
 
+@pytest.fixture(scope="module")
+def room_plan_11_rooms_random_concete_fixture():
+	floorPlan = complex_floor_plan_fixture
+	for wall in floorPlan.walls:
+		if wall.wallType != WallType.OUTER_WALL:
+			wall.wallType = random.choices([WallType.DRYWALL, WallType.CONCRETE], weights=[70, 30])[0]

@@ -151,9 +151,18 @@ class Line:
 	def intersects(self, other: 'Line') -> bool:
 		return self._shapely.intersects(other._shapely)
 
-	def distanceTo(self, point: Point) -> float: # Todo: Implement 3D
-		shapelyPoint = sh.Point(point.x,point.y)
-		return self._shapely.distance(shapelyPoint)
+	def distanceTo(self, otherObject: Union[Point, 'Line']) -> float: # Todo: Implement 3D
+		if isinstance(otherObject,Point):
+			point = otherObject
+			shapelyPoint = sh.Point(point.x,point.y)
+			return self._shapely.distance(shapelyPoint)
+		elif isinstance(otherObject, 'Line'):
+			line = otherObject
+			lineStart = sh.Point(line.start.x, line.start.y)
+			lineEnd = sh.Point(line.end.x, line.end.y)
+			return self._shapely.distance(sh.LineString(lineStart,lineEnd))
+		else:
+			raise ValueError("Method not overloaded for other classes than Line and Point.")
 	
 	def __repr__(self) -> str:
 		return "Line from {0} to {1}".format(self.start, self.end)

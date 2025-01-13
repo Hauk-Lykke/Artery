@@ -4,9 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from structural import Wall, FloorPlan, Room
 from pathfinding import (EnhancedDistance, MovementCost, 
-	CompositeCost, CompositeHeuristic, Pathfinder
+	CompositeCost, CompositeHeuristic, Pathfinder, WallCost, SoundRatingCost
 )
-from structural import StandardWallCost
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
@@ -38,7 +37,14 @@ def test_movement_cost():
 
 def test_wall_crossing_cost():
 	wall = Wall(Point(0, 0), Point(10, 0))  # Horizontal wall
-	cost = StandardWallCost(wall)
+	costWeights={
+			"distance":1,
+			"wallProximity":1,
+			"perpendicularWallCrossing":3,
+			"angledWallCrossing":10,
+			"soundRating":1
+		}
+	cost = WallCost(wall,costWeights)
 	
 	# Test point far from wall
 	point1 = Point(5, 5)
@@ -51,12 +57,21 @@ def test_wall_crossing_cost():
 	
 	# Test crossing wall
 	point4 = Point(5, -1)  # Point on other side of wall
-	assert cost.calculate(point1, point4) > cost.calculate(point1, point3)  # Crossing should cost more than proximity
+	crossingCost = cost.calculate(point1, point4)
+	proximityCost = cost.calculate(point1, point3) 
+	assert crossingCost > proximityCost # Crossing should cost more than proximity
 
 def test_composite_cost():
 	cost1 = MovementCost()
 	wall = Wall(Point(0, 0), Point(10, 0))
-	cost2 = StandardWallCost(wall)
+	costWeights={
+		"distance":1,
+		"wallProximity":1,
+		"perpendicularWallCrossing":3,
+		"angledWallCrossing":10,
+		"soundRating":1
+	}
+	cost2 = WallCost(wall,costWeights)
 	
 	composite = CompositeCost([cost1, cost2])
 	

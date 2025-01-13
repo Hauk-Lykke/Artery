@@ -4,7 +4,6 @@ from structural import Room, Wall, FloorPlan, WallType
 from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
-from structural import AngledWallCost, WallProximityCost, WallCosts
 from geometry import Line, Point, Vector
 from abc import ABC, abstractmethod
 from math import sqrt
@@ -24,34 +23,10 @@ class WallCost(Cost):
 	
 	def __init__(self, wall: Wall, costWeights: dict[str, float]):
 		self.wall = wall
-		self.costWeights
+		self.costWeights = costWeights
 		self._pathVector = None
 		self._pathSegment = None
-
-	def calculate(self, current: Point, next: Point) -> float:
-		self._pathVector=next-current
-		self._pathSegment = Line(current, next)
-		proximityToWall = self._pathSegment.distanceTo(self.wall)
-		if proximityToWall < self.PROXIMITY_THRESHOLD:
-
-			if self._pathSegment.intersects(self.wall):
-				# Through a wall
-				angle = self._pathVector.getAngleWith(self.wall)
-				angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
-				if abs(90-angle) <= self.ANGLE_TOLERANCE:
-					#Handles perpendicular wall crossings (90° ± tolerance°)
-					return self.costWeights["perpendicularWallCrossing"]
-				else:
-					# Angled wall crossing
-					return self.costWeights["angledWallCrossing"]
-				
-			else:
-				# Close to a wall, but not through it
-				return self.costWeights["wallProximity"]
-
-		else:
-			# Not close to a wall, no cost
-			return 0
+		self._baseCost = self._getBaseCost(self.wall.wall_type)
 
 	@staticmethod
 	def _getBaseCost(wall_type: WallType) -> float:
@@ -59,9 +34,35 @@ class WallCost(Cost):
 		if wall_type == WallType.DRYWALL:
 			return 1.0
 		elif wall_type == WallType.CONCRETE:
-			return 5.0
+			return 10.0
 		else:  # OUTER_WALL
-			return 20.0
+			return 200.0
+
+	def calculate(self, current: Point, next: Point) -> float:
+		self._pathVector=next-current
+		self._pathSegment = Line(current, next)
+		if self._pathSegment.intersects(self.wall):
+			# Through a wall
+			angle = self._pathVector.getAngleWith(self.wall.vector)
+			angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
+			if abs(90-angle) <= self.ANGLE_TOLERANCE:
+				#Handles perpendicular wall crossings (90° ± tolerance°)
+				return self._baseCost*self.costWeights["perpendicularWallCrossing"]
+			else:
+				# Angled wall crossing
+				return self._baseCost*self.costWeights["angledWallCrossing"]
+			
+		else:
+			# Not through a wall, but maybe close?
+			proximityToWall = min(current.distanceTo(self.wall),next.distanceTo(self.wall))
+			if proximityToWall < self.PROXIMITY_THRESHOLD:
+				# Close to a wall, but not through it
+				return self._baseCost* self.costWeights["wallProximity"]
+		
+			else:
+				# Not close to a wall, no cost
+				return 0
+
 	
 class SoundRatingCost(Cost):
 	def __init__(self, floorPlan: FloorPlan):
@@ -141,8 +142,8 @@ class Pathfinder:
 			"distance":1,
 			"wallProximity":1,
 			"perpendicularWallCrossing":1,
-			"angledWallCrossing":1,
-			"soundRating":1
+			"angledWallCrossing":30,
+			"soundRating":1.5
 		}
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:

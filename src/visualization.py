@@ -48,7 +48,7 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 	ax.grid(True)
 
 class PathfindingVisualizer:
-	def __init__(self, pathfinder: Pathfinder, ax, startTime: datetime):
+	def __init__(self, pathfinder: Pathfinder, ax: plt.Axes, startTime: datetime):
 		"""Initialize visualizer with matplotlib axis"""
 		self.pathfinder = pathfinder
 		self.ax = ax
@@ -60,14 +60,23 @@ class PathfindingVisualizer:
 	
 	def _setup_visualization(self):
 		"""Initialize visualization components"""
+		# Setup colorbar if not already present
 		if not hasattr(self.ax, '_colorbar'):
 			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, 
 														norm=plt.Normalize(vmin=0, vmax=1))
 			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, 
-										label='Path Cost')
+											label='Path Cost')
+		
 		# Store initial axis limits
 		self.ax._xlim = self.ax.get_xlim()
 		self.ax._ylim = self.ax.get_ylim()
+		
+		# Add grid and styling
+		self.ax.grid(True, linestyle='--', alpha=0.7)
+		self.ax.set_title('Path Planning Visualization', pad=20)
+		
+		# Ensure proper layout
+		self.ax.figure.tight_layout()
 	
 	def _update_title(self):
 		"""Update the plot title with current iterations and elapsed time"""
