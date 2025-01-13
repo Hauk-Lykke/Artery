@@ -1,7 +1,7 @@
 import numpy as np
 from core import Node
 import matplotlib.pyplot as plt
-import datetime
+from datetime import datetime
 import os
 from pathfinding import Pathfinder
 from structural import FloorPlan, WallType
@@ -48,13 +48,13 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 	ax.grid(True)
 
 class PathfindingVisualizer:
-	def __init__(self, pathfinder: Pathfinder, ax):
+	def __init__(self, pathfinder: Pathfinder, ax, startTime: datetime):
 		"""Initialize visualizer with matplotlib axis"""
 		self.pathfinder = pathfinder
 		self.ax = ax
 		self.colormap = plt.cm.viridis
 		self._setup_visualization()
-		self._start_time = datetime.datetime.now()
+		self._start_time = startTime
 		self._iterations = 0
 
 	
@@ -71,13 +71,15 @@ class PathfindingVisualizer:
 	
 	def _update_title(self):
 		"""Update the plot title with current iterations and elapsed time"""
-		elapsed = (datetime.datetime.now() - self._start_time).total_seconds()
+		elapsed_timedelta = datetime.now() - self._start_time
+		elapsed_time_obj = (datetime.min + elapsed_timedelta).time()
+		formatted_time = elapsed_time_obj.strftime('%M:%S')
 		self.ax.set_title(f'A* Pathfinding - Iterations: {self._iterations}, '
-						 f'Time: {elapsed:.2f}s')
+				f'Time: {formatted_time}')
 
 	def save_figure(self, test_name: str):
 		"""Save the current figure with test name and timestamp"""
-		date_str = datetime.datetime.now().strftime("%Y%m%d")
+		date_str = datetime.now().strftime("%Y%m%d")
 		base_filename = f"results_mep/{test_name}_{date_str}"
 		
 		counter = 0
@@ -142,7 +144,7 @@ class PathfindingVisualizer:
 			
 def save_figure(ax, test_name: str):
 	"""Save the current figure with test name and timestamp"""
-	date_str = datetime.datetime.now().strftime("%Y%m%d")
+	date_str = datetime.now().strftime("%Y%m%d")
 	base_filename = f"results_mep/{test_name}_{date_str}"
 	
 	counter = 0

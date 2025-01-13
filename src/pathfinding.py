@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from structural import Room, Wall, FloorPlan
 from core import Node, Cost
@@ -61,13 +62,14 @@ class CompositeHeuristic(Heuristic):
 		return sum(h.calculate(current, destination) for h in self.heuristics)
 
 class Pathfinder:
-	def __init__(self, floor_plan: FloorPlan,vizualiser=None):
+	def __init__(self, floor_plan: FloorPlan,vizualiser=None, startTime: datetime=None):
 		self.floor_plan = floor_plan
 		self._init_costs()
 		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
 		self.open_list = None
 		self.path = None
 		self._visualizer = vizualiser
+		self.startTime = startTime
 		self.TOLERANCE = 1
 		self.MAX_ITERATIONS = 5000
 	

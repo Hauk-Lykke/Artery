@@ -105,7 +105,7 @@ class Branch(Path): # Mechanical, Electrical, Plumbing branch
 		self.sub_branches = []
 
 class Branch2D(Branch):
-	def __init__(self, floorPlan: FloorPlan, startPoint: Union[Node, Point], targetPoint: Point, ax: plt.Axes=None):
+	def __init__(self, floorPlan: FloorPlan, startPoint: Union[Node, Point], targetPoint: Point, ax: plt.Axes=None, startTime: datetime=None):
 		super().__init__(startPoint)
 		self.ax = ax # Figure axes
 		self._visualizer = None
@@ -118,12 +118,13 @@ class Branch2D(Branch):
 		if not isinstance(targetPoint, Point):
 			raise ValueError("Target must be a Point.")
 		self.target = targetPoint
+		self._startTime = startTime
 
 	def generate(self):
 		self.pathfinder = Pathfinder(self.floorPlan)
 		if self.ax is not None:
 			# Initialize the PathfindingVisualizer
-			self._visualizer = PathfindingVisualizer(self.pathfinder, self.ax)
+			self._visualizer = PathfindingVisualizer(self.pathfinder, self.ax, self._startTime)
 		print(f"Start position: {self.startNode.position}")
 		print(f"Furthest room center: {self.target}")
 		# Create route to the furthest room using optimized A* pathfinding
@@ -150,8 +151,9 @@ class Network:
 		self.closed_room_set.add(self.sourceRoom)
 
 	def generate(self):
+		self.startTime = datetime.now()
 		destination = self.findMostDistantRoom(self.startPoint).center
-		self.mainBranch = Branch2D(self.floorPlan, self.startPoint, destination,self.ax)
+		self.mainBranch = Branch2D(self.floorPlan, self.startPoint, destination,self.ax, self.startTime)
 		self.branches = [self.mainBranch] # All existing branches in the network
 		self.mainBranch.generate()
 		self.nodes.extend(self.mainBranch.nodes)
