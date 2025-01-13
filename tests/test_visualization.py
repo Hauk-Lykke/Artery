@@ -26,7 +26,7 @@ class TestVisualization:
 		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
 		visualize_layout(simple_floor_plan_fixture, ax)
-		branch = Branch2D(floor_plan,start,ax=ax, visualize=True)
+		branch = Branch2D(floor_plan,start,ax=ax)
 		branch.generate()
 		plt.show(block=True)		
 		# Save figure if test_name is provided
@@ -39,19 +39,20 @@ class TestVisualization:
 		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
 		visualize_layout(simple_floor_plan_fixture, ax)
-		indexBranch = Branch2D(simple_floor_plan_fixture,start, ax, visualize=True)
+		mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
+		indexBranch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center, ax)
 		indexBranch.generate()
-		closestNode = indexBranch.find_closest_node(simple_floor_plan_fixture.rooms[2].center)
-		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, ax, visualize=True)
+		closestNode = indexBranch.getClosestNode(simple_floor_plan_fixture.rooms[2].center)
+		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, simple_floor_plan_fixture.rooms[3].center,ax)
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
 		plt.show(block=True)
 
-	def test_network(self,simple_floor_plan_fixture):
+	def test_vizualisation_network(self,simple_floor_plan_fixture):
 		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
 		visualize_layout(simple_floor_plan_fixture, ax)
-		network = Network(simple_floor_plan_fixture,start,ax,visualize=True)
+		network = Network(simple_floor_plan_fixture,start,ax)
 		network.generate()
 		save_figure(ax,"test_network")
 		assert(isinstance(network.mainBranch, Branch2D))
