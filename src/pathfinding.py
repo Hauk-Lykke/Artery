@@ -61,7 +61,7 @@ class CompositeHeuristic(Heuristic):
 		return sum(h.calculate(current, goal) for h in self.heuristics)
 
 class Pathfinder:
-	def __init__(self, floor_plan: FloorPlan, vizualiser=None):
+	def __init__(self, floor_plan: FloorPlan,vizualiser=None):
 		self.floor_plan = floor_plan
 		self._init_costs()
 		self.composite_h = CompositeHeuristic([EnhancedDistance(floor_plan)])
@@ -91,7 +91,7 @@ class Pathfinder:
 			total_cost += wall_cost.calculate(current, next)
 		
 		return total_cost
-	
+
 	def findFurthestRoom(self, start: Point) -> Room:
 		if not isinstance(start, Point):
 			raise ValueError("Start must be a Point.")
@@ -100,14 +100,26 @@ class Pathfinder:
 		return max(self.floor_plan.rooms, key=lambda room: room.center.distanceTo(start))
 
 	def a_star(self, start: Point, goal: Point, viz = None):
+	
+		"""Find shortest path between start_pos and goal_pos using A* algorithm.
+		
+		Args:
+			start_pos: Tuple of (x,y) coordinates for start position
+			goal_pos: Tuple of (x,y) coordinates for goal position 
+			
+		Returns:
+			List of (x,y) coordinates representing shortest path, or empty list if no path found
+		"""
 		if viz:
 			self._visualizer = viz
 		start_node = Node(start)
-		self.path = [start_node]
 		end_node = Node(goal)
 		
+		# Priority queue for nodes to explore, ordered by f_score (g_score + heuristic)
 		self.open_list = PriorityQueue()
 		self.open_list.put((0, start_node))
+		
+		# Set to track nodes already evaluated
 		closed_set = set()
 		
 		iterations = 0
