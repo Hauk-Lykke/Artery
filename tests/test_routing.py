@@ -1,7 +1,7 @@
 from geometry import Point
 from structural import Room, FloorPlan
 from MEP import AirHandlingUnit
-from routing import Branch2D
+from routing import Branch2D, Network
 
 class TestRouting:	
 	def test_fixture(self,simple_fixture):
@@ -38,6 +38,14 @@ class TestRouting:
 		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode)
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
+
+
+	def test_network(self,simple_floor_plan_fixture):
+		start = simple_floor_plan_fixture.rooms[0].center
+		network = Network(simple_floor_plan_fixture,start)
+		network.generate()
+		assert(isinstance(network.mainBranch, Branch2D))
+		assert(isinstance(network.branches, list))
 
 
 # # def test_route_ducts_complex_layout():

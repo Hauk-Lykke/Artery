@@ -1,7 +1,7 @@
 import pytest
 from matplotlib import pyplot as plt
-from routing import Branch2D
-from visualization import PathfindingVisualizer, visualize_layout
+from routing import Branch2D, Network
+from visualization import PathfindingVisualizer, visualize_layout, save_figure
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
@@ -41,8 +41,22 @@ class TestVisualization:
 		visualize_layout(simple_floor_plan_fixture, ax)
 		indexBranch = Branch2D(simple_floor_plan_fixture,start, ax, visualize=True)
 		indexBranch.generate()
-		closestNode = indexBranch.findClosestNodePair(simple_floor_plan_fixture.rooms[2].center)
+		closestNode = indexBranch.find_closest_node(simple_floor_plan_fixture.rooms[2].center)
 		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, ax, visualize=True)
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
 		plt.show(block=True)
+
+	def test_network(self,simple_floor_plan_fixture):
+		start = simple_floor_plan_fixture.rooms[0].center
+		fig, ax = plt.subplots()
+		visualize_layout(simple_floor_plan_fixture, ax)
+		network = Network(simple_floor_plan_fixture,start,ax,visualize=True)
+		network.generate()
+		save_figure(ax,"test_network")
+		assert(isinstance(network.mainBranch, Branch2D))
+		assert(isinstance(network.branches, list))
+		assert isinstance(ax, plt.Axes)
+		assert isinstance(fig, plt.Figure)
+		plt.show(block=True)
+

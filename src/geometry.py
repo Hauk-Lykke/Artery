@@ -157,3 +157,20 @@ class Line:
 	
 	def __repr__(self) -> str:
 		return "Line from {0} to {1}".format(self.start, self.end)
+	
+	def interpolate(self, point: Point) -> Point:
+		# Create Shapely point from input
+		shapely_point = sh.Point(point.x, point.y, point.z)
+		
+		# Get the distance along the line of the nearest point
+		distance = self._shapely.project(shapely_point)
+		
+		# Get the actual point coordinates
+		interpolated_point = self._shapely.interpolate(distance)
+		
+		# Convert back to our Point class, preserving z-coordinate
+		# We linearly interpolate z based on distance along line
+		fraction = distance / self.length
+		z = self.start.z + fraction * (self.end.z - self.start.z)
+		
+		return Point(interpolated_point.x, interpolated_point.y, z)
