@@ -1,9 +1,9 @@
-from typing import List, Union
+from typing import List, Tuple, Union
 from core import Node
 import matplotlib.pyplot as plt
-from structural import FloorPlan
+from structural import FloorPlan, Room
 from pathfinding import Pathfinder
-from geometry import Point
+from geometry import Line, Point
 from visualization import PathfindingVisualizer
 
 class Path:
@@ -11,7 +11,6 @@ class Path:
 	def __init__(self, startNode: Union[Node,Point,List[Node]]): # Union[float, Tuple[float, float, float]] 
 		if startNode is None:
 			raise ValueError("Starting point must be either a Node, a Point or a list of Nodes.")
-
 		if isinstance(startNode, Node):
 			self.startNode = startNode
 			self.nodes = [self.startNode]
@@ -50,6 +49,32 @@ class Path:
 	
 	def __len__(self) -> int:
 		return len(self.nodes)
+	
+	def insert_node(self, point: Point) -> Node:
+		'''Method that adds a node in the path at the given location.'''
+		# Find closest node pair to determine insertion point
+		node0, node1 = self.find_closest_node_pair(point)
+		
+		# Create new node
+		new_node = Node(point)
+		new_node.parentNode = node0
+		
+		# Find index of node0 
+		idx = self.nodes.index(node0)
+		
+		# Insert new node after node0
+		self.nodes.insert(idx + 1, new_node)
+		
+		# Update parent reference of node1 if it exists
+		if idx + 2 < len(self.nodes):
+			self.nodes[idx + 2].parentNode = new_node
+
+		return new_node
+
+	def find_closest_node_pair(self,point: Point) -> Tuple[Point]:
+		nodes = self.nodes.copy()
+		nodes.sort(key=lambda x: x.position.distanceTo(point))
+		return (nodes[-1],nodes[-2])	
 
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):
@@ -57,13 +82,13 @@ class Branch(Path): # Mechanical, Electrical, Plumbing branch
 		self.sub_branches = []
 
 class Branch2D(Branch):
-	def __init__(self, floorPlan: FloorPlan, startPoint: Union[Node, Point], ax: plt.Axes=None, visualize = False):
+	def __init__(self, floor_plan: FloorPlan, startPoint: Union[Node, Point], ax: plt.Axes=None, visualize = False):
 		super().__init__(startPoint)
 		self.ax = ax # Figure axes
 		self.visualize = visualize
 		self._visualizer = None
-		if isinstance(floorPlan, FloorPlan):
-			self.floorPlan = floorPlan
+		if isinstance(floor_plan, FloorPlan):
+			self.floorPlan = floor_plan
 		else:
 			raise ValueError("floorPlan must be of type FloorPlan.")
 
