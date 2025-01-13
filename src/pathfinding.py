@@ -24,41 +24,41 @@ class CompositeCost(Cost):
 
 class Heuristic(ABC):
 	@abstractmethod
-	def calculate(self, current: Point, goal: Point) -> float:
+	def calculate(self, current: Point, destination: Point) -> float:
 		pass
 
 class EnhancedDistance(Heuristic):
 	def __init__(self, floor_plan: FloorPlan):
 		self.floor_plan = floor_plan
 		
-	def _estimate_wall_cost(self, current: Point, goal: Point) -> float:
-		"""Estimate minimum wall crossing costs to goal"""
-		distance = (goal-current).length
+	def _estimate_wall_cost(self, current: Point, destination: Point) -> float:
+		"""Estimate minimum wall crossing costs to destination"""
+		distance = (destination-current).length
 		if distance == 0:
 			return 0
 		
 		# Count wall crossings along direct path
 		min_cost = 0
 		for wall in self.floor_plan.walls:
-			if Line(wall.start, wall.end).intersects(Line(current, goal)):
+			if Line(wall.start, wall.end).intersects(Line(current, destination)):
 				# Use base cost as minimum (perpendicular crossing)
 				min_cost += WallCosts.get_base_cost(wall.wall_type)
 		
 		return min_cost
 			
-	def calculate(self, current: Point, goal: Point) -> float:
+	def calculate(self, current: Point, destination: Point) -> float:
 		# Base distance
-		distance = (goal-current).length
+		distance = (destination-current).length
 		# Add minimum wall crossing costs
-		wall_cost = self._estimate_wall_cost(current, goal)
+		wall_cost = self._estimate_wall_cost(current, destination)
 		return distance + wall_cost
 
 class CompositeHeuristic(Heuristic):
 	def __init__(self, heuristics: List[Heuristic]):
 		self.heuristics = heuristics  # List of heuristics
 		
-	def calculate(self, current: Point, goal: Point) -> float:
-		return sum(h.calculate(current, goal) for h in self.heuristics)
+	def calculate(self, current: Point, destination: Point) -> float:
+		return sum(h.calculate(current, destination) for h in self.heuristics)
 
 class Pathfinder:
 	def __init__(self, floor_plan: FloorPlan,vizualiser=None):
@@ -92,28 +92,21 @@ class Pathfinder:
 		
 		return total_cost
 
-	def findFurthestRoom(self, start: Point) -> Room:
-		if not isinstance(start, Point):
-			raise ValueError("Start must be a Point.")
-		if not self.floor_plan.rooms:
-			raise ValueError("Floor plan must have rooms before finding furthest room")
-		return max(self.floor_plan.rooms, key=lambda room: room.center.distanceTo(start))
-
-	def a_star(self, start: Point, goal: Point, viz = None):
+	def a_star(self, start: Point, target: Point, viz = None):
 	
-		"""Find shortest path between start_pos and goal_pos using A* algorithm.
+		"""Find shortest path between start_pos and destination_pos using A* algorithm.
 		
 		Args:
-			start_pos: Tuple of (x,y) coordinates for start position
-			goal_pos: Tuple of (x,y) coordinates for goal position 
+			start_pos: Point providing coordinates for starting position.
+			target_pos: Point providing coordinates for target position.
 			
 		Returns:
-			List of (x,y) coordinates representing shortest path, or empty list if no path found
+			List of Node representing shortest path, or empty list if no path found
 		"""
 		if viz:
 			self._visualizer = viz
 		start_node = Node(start)
-		end_node = Node(goal)
+		end_node = Node(target)
 		
 		# Priority queue for nodes to explore, ordered by f_score (g_score + heuristic)
 		self.open_list = PriorityQueue()
@@ -149,7 +142,7 @@ class Pathfinder:
 					plt.pause(1)  # Final pause to show the complete path
 				return
 			
-			# Add to closed set after goal check
+			# Add to closed set after destination check
 			closed_set.add(current_pos_rounded)
 
 			for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
@@ -178,9 +171,9 @@ class Pathfinder:
 					plt.pause(0.001 if iterations % 10 == 0 else 0.0001)
 			
 			if iterations % 100 == 0:
-				print(f"Iteration {iterations}, current position: {current_node.position}, goal: {goal}")
+				print(f"Iteration {iterations}, current position: {current_node.position}, destination: {target}")
 		
-		print(f"No path found from {start} to {goal} after {iterations} iterations")
+		print(f"No path found from {start} to {target} after {iterations} iterations")
 		return
 
 	def create_direct_route(self, start: Point, end: Point) -> List[Point]:
