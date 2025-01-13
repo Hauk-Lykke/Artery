@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import List
-from structural import Room, Wall, FloorPlan
+from structural import Room, Wall, FloorPlan, WallType
 from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
-from structural import StandardWallCost, WallCosts
+from structural import AngledWallCost, WallProximityCost, WallCosts
 from geometry import Line, Point, Vector
 from abc import ABC, abstractmethod
 from math import sqrt
@@ -17,6 +17,52 @@ class MovementCost(Cost):
 		# return sqrt(dx * dx + dy * dy)
 		return current.distanceTo(next)
 
+class WallCost(Cost):
+	"""Central definition of wall-related costs"""
+	PROXIMITY_THRESHOLD = 0.5  # Distance at which wall proximity starts affecting cost
+	ANGLE_TOLERANCE = 2 # Degrees of tolerance in angle calculations
+	
+	def __init__(self, wall: Wall, costWeights: dict[str, float]):
+		self.wall = wall
+		self.costWeights
+		self._pathVector = None
+		self._pathSegment = None
+
+	def calculate(self, current: Point, next: Point) -> float:
+		self._pathVector=next-current
+		self._pathSegment = Line(current, next)
+		proximityToWall = self._pathSegment.distanceTo(self.wall)
+		if proximityToWall < self.PROXIMITY_THRESHOLD:
+
+			if self._pathSegment.intersects(self.wall):
+				# Through a wall
+				angle = self._pathVector.getAngleWith(self.wall)
+				angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
+				if abs(90-angle) <= self.ANGLE_TOLERANCE:
+					#Handles perpendicular wall crossings (90° ± tolerance°)
+					return self.costWeights["perpendicularWallCrossing"]
+				else:
+					# Angled wall crossing
+					return self.costWeights["angledWallCrossing"]
+				
+			else:
+				# Close to a wall, but not through it
+				return self.costWeights["wallProximity"]
+
+		else:
+			# Not close to a wall, no cost
+			return 0
+
+	@staticmethod
+	def _getBaseCost(wall_type: WallType) -> float:
+		"""Get the base perpendicular crossing cost for a wall type"""
+		if wall_type == WallType.DRYWALL:
+			return 1.0
+		elif wall_type == WallType.CONCRETE:
+			return 5.0
+		else:  # OUTER_WALL
+			return 20.0
+	
 class SoundRatingCost(Cost):
 	def __init__(self, floorPlan: FloorPlan):
 		self.floorPlan = floorPlan
@@ -57,7 +103,7 @@ class EnhancedDistance(Heuristic):
 		for wall in self.floorPlan.walls:
 			if Line(wall.start, wall.end).intersects(Line(current, destination)):
 				# Use base cost as minimum (perpendicular crossing)
-				min_cost += WallCosts.get_base_cost(wall.wall_type)
+				min_cost += WallCost._getBaseCost(wall.wall_type)
 		
 		return min_cost
 			
@@ -94,6 +140,8 @@ class Pathfinder:
 		self.costWeights={
 			"distance":1,
 			"wallProximity":1,
+			"perpendicularWallCrossing":1,
+			"angledWallCrossing":1,
 			"soundRating":1
 		}
 	
@@ -117,8 +165,8 @@ class Pathfinder:
 		# Get nearby walls and calculate their costs
 		nearby_walls = self._get_nearby_walls(current)
 		for wall in nearby_walls:
-			wall_cost = StandardWallCost(wall)
-			total_cost += self.costWeights["wallProximity"]*wall_cost.calculate(current, next)
+			wallCost = WallCost(wall,self.costWeights)
+			total_cost += wallCost.calculate(current, next)
 		
 		# Calculate cost of movement inside a room with sound rating
 		sound_cost = self.costWeights["soundRating"]*self.soundRatingCost.calculate(current, next)
