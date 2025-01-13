@@ -11,9 +11,9 @@ from geometry import Point
 def visualize_layout(floor_plan: FloorPlan, ax):
 	# Plot rooms
 	for wall in floor_plan.walls:
-			if wall.wall_type == WallType.OUTER_WALL:
+			if wall.wallType == WallType.OUTER_WALL:
 				color = 'k'  # Black for outer walls
-			elif wall.wall_type == WallType.CONCRETE:
+			elif wall.wallType == WallType.CONCRETE:
 				color = 'r'  # Red for concrete walls
 			else:
 				color = 'b'  # Blue for regular walls

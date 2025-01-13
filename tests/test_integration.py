@@ -24,26 +24,26 @@ class TestFourRooms:
 		
 		# Bottom-left room
 		room = Room([Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)])
-		room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-		room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+		room.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
+		room.walls[3].wallType = WallType.OUTER_WALL  # Left wall
 		rooms.append(room)
 		
 		# Bottom-right room
 		room = Room([Point(5, 0), Point(10, 0), Point(10, 5), Point(5, 5)])
-		room.walls[0].wall_type = WallType.OUTER_WALL  # Bottom wall
-		room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
+		room.walls[0].wallType = WallType.OUTER_WALL  # Bottom wall
+		room.walls[1].wallType = WallType.OUTER_WALL  # Right wall
 		rooms.append(room)
 		
 		# Top-left room
 		room = Room([Point(0, 5), Point(5, 5), Point(5, 10), Point(0, 10)])
-		room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
-		room.walls[3].wall_type = WallType.OUTER_WALL  # Left wall
+		room.walls[2].wallType = WallType.OUTER_WALL  # Top wall
+		room.walls[3].wallType = WallType.OUTER_WALL  # Left wall
 		rooms.append(room)
 		
 		# Top-right room
 		room = Room([Point(5, 5), Point(10, 5), Point(10, 10), Point(5, 10)])
-		room.walls[1].wall_type = WallType.OUTER_WALL  # Right wall
-		room.walls[2].wall_type = WallType.OUTER_WALL  # Top wall
+		room.walls[1].wallType = WallType.OUTER_WALL  # Right wall
+		room.walls[2].wallType = WallType.OUTER_WALL  # Top wall
 		rooms.append(room)
 		
 		floor_plan.add_rooms(rooms)
@@ -66,8 +66,9 @@ class Test11Rooms:
 		assert isinstance(fig, plt.Figure)
 		plt.show(block=True)
 
-	def test_complex_rooms_with_concrete_walls(self,room_plan_11_rooms_random_concete_fixture):
-		floorPlan = room_plan_11_rooms_random_concete_fixture
+	def test_complex_rooms_with_concrete_walls(self,room_plan_11_rooms_random_concrete_fixture):
+		floorPlan = room_plan_11_rooms_random_concrete_fixture
+		assert isinstance(floorPlan, FloorPlan)
 		start = floorPlan.ahu.position
 		cm = 1/2.54  # centimeters in inches
 		fig, ax = plt.subplots(figsize=(20*cm, 20*cm))

@@ -12,9 +12,9 @@ class WallType:
 	OUTER_WALL = 3
 
 class Wall(Line):
-	def __init__(self, start: Point, end: Point, wall_type: WallType = WallType.DRYWALL):
+	def __init__(self, start: Point, end: Point, wallType: WallType = WallType.DRYWALL):
 		super().__init__(start,end)
-		self.wall_type = wall_type
+		self.wallType = wallType
 		self.line = Line(start,end)
 
 	def reverse(self) -> 'Wall':
@@ -25,14 +25,14 @@ class Wall(Line):
 		"""Overload equality operator to compare walls"""
 		if not isinstance(other, Wall):
 			return False
-		return self.start == other.start and self.end == other.end and self.wall_type == other.wall_type
+		return self.start == other.start and self.end == other.end and self.wallType == other.wallType
 	
 	def __hash__(self):
 		"""Overload hash operator to use walls in sets"""
-		return hash((self.start, self.end, self.wall_type))
+		return hash((self.start, self.end, self.wallType))
 	
 	def __repr__(self) -> str:
-		return "Wall from {0} to {1} of type {2}".format(self.start, self.end, self.wall_type)
+		return "Wall from {0} to {1} of type {2}".format(self.start, self.end, self.wallType)
 
 class Room:
 	def __init__(self, corners: list[Point]):

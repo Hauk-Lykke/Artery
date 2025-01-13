@@ -26,15 +26,15 @@ class WallCost(Cost):
 		self.costWeights = costWeights
 		self._pathVector = None
 		self._pathSegment = None
-		self._baseCost = self._getBaseCost(self.wall.wall_type)
+		self._baseCost = self._getBaseCost(self.wall.wallType)
 
 	@staticmethod
-	def _getBaseCost(wall_type: WallType) -> float:
+	def _getBaseCost(wallType: WallType) -> float:
 		"""Get the base perpendicular crossing cost for a wall type"""
-		if wall_type == WallType.DRYWALL:
+		if wallType == WallType.DRYWALL:
 			return 1.0
-		elif wall_type == WallType.CONCRETE:
-			return 10.0
+		elif wallType == WallType.CONCRETE:
+			return 25.0
 		else:  # OUTER_WALL
 			return 200.0
 
@@ -104,7 +104,7 @@ class EnhancedDistance(Heuristic):
 		for wall in self.floorPlan.walls:
 			if Line(wall.start, wall.end).intersects(Line(current, destination)):
 				# Use base cost as minimum (perpendicular crossing)
-				min_cost += WallCost._getBaseCost(wall.wall_type)
+				min_cost += WallCost._getBaseCost(wall.wallType)
 		
 		return min_cost
 			
