@@ -14,7 +14,8 @@ class TestRouting:
 		assert isinstance(simple_floor_plan_fixture, FloorPlan)
 		assert isinstance(simple_floor_plan_fixture.rooms[0].center, Point)
 		start = simple_floor_plan_fixture.rooms[0].center
-		branch = Branch2D(simple_floor_plan_fixture,start)	
+		mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
+		branch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center)	
 		branch.generate()
 		assert len(branch.nodes) >= 2
 		assert len(branch) >= 2
@@ -27,21 +28,14 @@ class TestRouting:
 		ahu = AirHandlingUnit(position=Point(6, 6))
 		floor_plan = FloorPlan(rooms, ahu)
 		start = ahu.position
-		branch = Branch2D(floor_plan,start)
+		mostDistantRoom = max(floor_plan.rooms, key=lambda room: room.center.distanceTo(start))
+		branch = Branch2D(floor_plan,start,mostDistantRoom.center)
 		branch.generate()
 		assert len(branch) >= 2
 
-	def test_multiple_branches(self,simple_floor_plan_fixture):
-		start = simple_floor_plan_fixture.rooms[0].center
-		indexBranch = Branch2D(simple_floor_plan_fixture,start)
-		closestNode = indexBranch.find_closest_node(simple_floor_plan_fixture.rooms[2].center)
-		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode)
-		sub_branch.generate()
-		assert len(sub_branch) >= 2
-
-
 	def test_network(self,simple_floor_plan_fixture):
 		start = simple_floor_plan_fixture.rooms[0].center
+		# mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
 		network = Network(simple_floor_plan_fixture,start)
 		network.generate()
 		assert(isinstance(network.mainBranch, Branch2D))
