@@ -142,7 +142,7 @@ class Pathfinder:
 			"distance":1,
 			"wallProximity":1,
 			"perpendicularWallCrossing":1,
-			"angledWallCrossing":30,
+			"angledWallCrossing":200,
 			"soundRating":1.5
 		}
 	
