@@ -1,3 +1,4 @@
+import numpy as np
 from core import Node
 import matplotlib.pyplot as plt
 import datetime
@@ -26,7 +27,7 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 		ax.plot(floor_plan.ahu.position.x, floor_plan.ahu.position.y, 'rs', markersize=10)
 	
 	# Plot room centers
-	for room in floor_plan._rooms:
+	for room in floor_plan.rooms:
 		ax.plot(room.center.x, room.center.y, 'go', markersize=5)
 	
 	# Add wall type legend
@@ -59,10 +60,11 @@ class PathfindingVisualizer:
 	
 	def _setup_visualization(self):
 		"""Initialize visualization components"""
-		self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, 
-													norm=plt.Normalize(vmin=0, vmax=1))
-		self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, 
-									   label='Path Cost')
+		if not hasattr(self.ax, '_colorbar'):
+			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, 
+														norm=plt.Normalize(vmin=0, vmax=1))
+			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, 
+										label='Path Cost')
 		# Store initial axis limits
 		self.ax._xlim = self.ax.get_xlim()
 		self.ax._ylim = self.ax.get_ylim()
@@ -76,7 +78,7 @@ class PathfindingVisualizer:
 	def save_figure(self, test_name: str):
 		"""Save the current figure with test name and timestamp"""
 		date_str = datetime.datetime.now().strftime("%Y%m%d")
-		base_filename = f"results/{test_name}_{date_str}"
+		base_filename = f"results_mep/{test_name}_{date_str}"
 		
 		counter = 0
 		while os.path.exists(f"{base_filename}_{counter}.png"):
@@ -92,15 +94,14 @@ class PathfindingVisualizer:
 		self._update_title()
 		
 		# Get max cost from open list and current node
-		current_max_cost = max(neighbor.g for _, neighbor in list(self.pathfinder.open_list.queue) 
-							 + [(0, current_node)])
+		self.current_max_cost = max(neighbor.g_cost for _, neighbor in list(self.pathfinder.open_list.queue) + [(None, current_node)])
 		
 		# Update normalization for colorbar
-		self.ax._cost_mapper.norm.vmax = current_max_cost
+		self.ax._cost_mapper.norm.vmax = self.current_max_cost
 		
 		# Color nodes based on cost
-		normalized_cost = (current_node.g / current_max_cost 
-						 if current_max_cost > 0 else 0)
+		normalized_cost = (current_node.g_cost / self.current_max_cost 
+						 if self.current_max_cost > 0 else 0)
 		color = self.colormap(normalized_cost)
 		
 		# Plot the explored point
@@ -113,3 +114,41 @@ class PathfindingVisualizer:
 		
 		# Update the colorbar
 		self.ax._colorbar.update_normal(self.ax._cost_mapper)
+
+	def update_path(self):
+		# Plot routes with color grading based on cost
+		points = [node.position for node in self.pathfinder.path]
+		costs = [node.g_cost for node in self.pathfinder.path]
+		global_max_cost = max(costs) if costs else 1  # Avoid division by zero
+
+		# Normalize costs using global maximum
+		normalized_costs = np.array(costs) / global_max_cost if global_max_cost > 0 else np.zeros_like(costs)
+
+		# Create line segments colored by cost
+		for i in range(len(points) - 1):
+			color = self.colormap(normalized_costs[i])  # Use viridis colormap
+			self.ax.plot([points[i].x, points[i + 1].x], 
+					[points[i].y, points[i + 1].y], 
+					c=color, linewidth=2)
+
+		# Update existing colorbar if present, otherwise create new one
+		if hasattr(self.ax, '_cost_mapper'):
+			self.ax._cost_mapper.norm.vmax = global_max_cost
+			self.ax._colorbar.update_normal(self.ax._cost_mapper)
+		else:
+			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
+			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')
+
+			
+def save_figure(ax, test_name: str):
+	"""Save the current figure with test name and timestamp"""
+	date_str = datetime.datetime.now().strftime("%Y%m%d")
+	base_filename = f"results_mep/{test_name}_{date_str}"
+	
+	counter = 0
+	while os.path.exists(f"{base_filename}_{counter}.png"):
+		counter += 1
+		
+	filename = f"{base_filename}_{counter}.png"
+	ax.figure.savefig(filename)
+	print(f"Saved figure to {filename}")

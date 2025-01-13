@@ -1,13 +1,7 @@
 import pytest
 from matplotlib import pyplot as plt
-import numpy as np
-from MEP import AirHandlingUnit
-from core import Node
-from geometry import Point
-from pathfinding import Pathfinder
-from routing import Branch2D
-from structural import FloorPlan, Room, WallType
-from visualization import PathfindingVisualizer, visualize_layout
+from routing import Branch2D, Network
+from visualization import PathfindingVisualizer, visualize_layout, save_figure
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
@@ -18,36 +12,52 @@ def mpl_test_settings():
 	# plt.close('all')
 
 class TestVisualization:
-	@pytest.fixture
-	def simple_floor_plan(self):
-		corners_room1 = [Point(0, 0), Point(10, 0), Point(10, 10), Point(0, 10)]
-		corners_room2 = [Point(10, 0), Point(20, 0), Point(20, 10), Point(10, 10)]
-		corners_room3 = [Point(0, 10), Point(10, 10), Point(10, 20), Point(0, 20)]
-		corners_room4 = [Point(10, 10), Point(20, 10), Point(20, 20), Point(10, 20)]
-
-		room1 = Room(corners_room1)
-		room2 = Room(corners_room2)
-		room3 = Room(corners_room3)
-		room4 = Room(corners_room4)
-
-		return FloorPlan([room1, room2, room3, room4])
-
-
-	def test_display_floor_plan(self,simple_floor_plan):
+	@pytest.mark.usefixtures("simple_floor_plan_fixture")
+	def test_display_floor_plan(self,simple_floor_plan_fixture):
 		fig, ax = plt.subplots()
-		visualize_layout(simple_floor_plan,ax)
+		visualize_layout(simple_floor_plan_fixture,ax)
 		plt.show(block=True)
 		assert fig
 		assert ax
 
-	def test_visualization_updates(self, simple_floor_plan):
-		floor_plan = simple_floor_plan
-		start = simple_floor_plan._rooms[0].center
+	@pytest.mark.usefixtures("simple_floor_plan_fixture")
+	def test_visualization_updates(self,simple_floor_plan_fixture):
+		floor_plan = simple_floor_plan_fixture
+		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
-		visualize_layout(simple_floor_plan, ax)
-		branch = Branch2D(simple_floor_plan,start,isIndexRoute=True,ax=ax, visualize=True)
+		visualize_layout(simple_floor_plan_fixture, ax)
+		branch = Branch2D(floor_plan,start,ax=ax)
 		branch.generate()
+		plt.show(block=True)		
+		# Save figure if test_name is provided
+		branch.pathfinder._visualizer.save_figure("test_visualization_updates")
 		assert isinstance(branch._visualizer, PathfindingVisualizer)
 		assert isinstance(ax, plt.Axes)
 		assert isinstance(fig, plt.Figure)
 		
+	def test_visualization_multiple_branches(self,simple_floor_plan_fixture):
+		start = simple_floor_plan_fixture.rooms[0].center
+		fig, ax = plt.subplots()
+		visualize_layout(simple_floor_plan_fixture, ax)
+		mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
+		indexBranch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center, ax)
+		indexBranch.generate()
+		closestNode = indexBranch.getClosestNode(simple_floor_plan_fixture.rooms[2].center)
+		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, simple_floor_plan_fixture.rooms[3].center,ax)
+		sub_branch.generate()
+		assert len(sub_branch) >= 2
+		plt.show(block=True)
+
+	def test_vizualisation_network(self,simple_floor_plan_fixture):
+		start = simple_floor_plan_fixture.rooms[0].center
+		fig, ax = plt.subplots()
+		visualize_layout(simple_floor_plan_fixture, ax)
+		network = Network(simple_floor_plan_fixture,start,ax)
+		network.generate()
+		save_figure(ax,"test_network")
+		assert(isinstance(network.mainBranch, Branch2D))
+		assert(isinstance(network.branches, list))
+		assert isinstance(ax, plt.Axes)
+		assert isinstance(fig, plt.Figure)
+		plt.show(block=True)
+
