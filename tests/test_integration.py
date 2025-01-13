@@ -5,6 +5,7 @@ from structural import Room, FloorPlan, WallType
 from MEP import AirHandlingUnit
 import routing as routing
 from core import Point
+from visualization import save_figure, visualize_layout
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
@@ -49,4 +50,18 @@ class TestFourRooms:
 		floor_plan.ahu = AirHandlingUnit(Point(2.5, 2.5))  # AHU in bottom-left room
 		return floor_plan
 
-	# def test_create_path_four_rooms(self,four_room_floor_plan):
+class Test11Rooms:
+	def test_complex_rooms(self,complex_floor_plan_fixture):
+		floorPlan = complex_floor_plan_fixture
+		start = floorPlan.ahu.position
+		fig, ax = plt.subplots()
+		visualize_layout(floorPlan, ax)
+		network = routing.Network(floorPlan, start, ax)
+		network.generate()
+		save_figure(ax, "integration_test_11-room-layout")
+		assert(isinstance(network.mainBranch, routing.Branch2D))
+		assert(isinstance(network.branches, list))
+		assert isinstance(ax, plt.Axes)
+		assert isinstance(fig, plt.Figure)
+		plt.show(block=True)
+
