@@ -4,7 +4,7 @@ from core import Node
 import matplotlib.pyplot as plt
 from structural import FloorPlan, Room
 from pathfinding import Pathfinder
-from geometry import Line, Point
+from geometry import Line, Point, Vector
 from visualization import PathfindingVisualizer
 
 class Path:
@@ -32,6 +32,7 @@ class Path:
 		self.endNode = None
 		self.cost = self.nodes[-1].g_cost
 		self.goal = None
+		self._segments = None
 	
 	def maxCost(self) -> float:
 		# Create a copy to avoid modifying original list
@@ -54,7 +55,7 @@ class Path:
 	def insertNode(self, point: Point) -> Node:
 		'''Method that adds a node in the path at the given location.'''
 		# Find closest node pair to determine insertion point
-		node0, node1 = self.findClosestNodePair(point)
+		node0, node1 = self.getClosestNodePair(point)
 		
 		# Create new node
 		new_node = Node(point)
@@ -106,6 +107,7 @@ class Branch2D(Branch):
 			raise ValueError("Target must be a Point.")
 		self.target = targetPoint
 		self._startTime = startTime
+		self._allowedAngles = [0,30,45,60,90]
 
 	def generate(self):
 		self.pathfinder = Pathfinder(self.floorPlan)
@@ -117,7 +119,12 @@ class Branch2D(Branch):
 		# Create route to the furthest room using optimized A* pathfinding
 		self.pathfinder.a_star(self.startNode.position, self.target, self._visualizer)
 		self.nodes = self.pathfinder.path
+		# for node in self.nodes:
+		# 	self._segments = 
 
+	# def simplify(self):
+	# 	'''A method that first removes nodes that are redundant()'''
+		
 
 class Network:
 	def __init__(self, floorPlan: FloorPlan, startPoint: Point, ax: plt.Axes=None):
@@ -136,6 +143,7 @@ class Network:
 		self.sourceRoom = self.getSourceRoom()
 		self.startPoint = self.sourceRoom.center
 		self.closed_room_set.add(self.sourceRoom)
+		self.CLEARANCE_TO_FITTINGS = 0.1
 
 	def generate(self):
 		self.startTime = datetime.now()
@@ -148,9 +156,10 @@ class Network:
 			room = self.open_room_set.pop()
 			destination = room.center
 			# node0,node1 = self.mainBranch.findClosestNodePair(destination)
-			# new_node = self.generate_closest_node(destination)
-			closestNode = self.getClosestNode(destination)
-			sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax, self.startTime)
+			new_node = self.generateClosestNode(destination)
+			# closestNode = self.getClosestNode(destination)
+			# sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax, self.startTime)
+			sub_branch = Branch2D(self.floorPlan, new_node, destination,self.ax, self.startTime)
 			sub_branch.generate()
 			from visualization import save_figure
 			# if self.ax is not None:
@@ -193,43 +202,34 @@ class Network:
 			raise ValueError("No nodes available in network")
 		return min(self.nodes, key=lambda node: node.position.distanceTo(point))
 	
-	def generate_closest_node(self, point: Point) -> Node:
+	def generateClosestNode(self, point: Point) -> Node:
 		"""Find closest point on any path segment and create new node there."""
-		min_distance = float('inf')
-		closest_segment = None
+		closest_projection = None
 		
-		# Check all path segments
-		for branch in self.branches:
-			for i in range(len(branch.nodes) - 1):
-				node1 = branch.nodes[i]
-				node2 = branch.nodes[i + 1]
+		
+		# Get closest node pair in this branch
+		nodes = self.mainBranch.getClosestNodePair(point)
+		if isinstance(nodes, Node): # Short branch
+			return self.getClosestNode(nodes.position)
+		elif len(nodes)==2:
+			try:
+				node1, node2 = nodes
 				line = Line(node1.position, node2.position)
-				
 				# Project point onto line segment
 				projected = line.interpolate(point)
 				dist = point.distanceTo(projected)
-				
-				if dist < min_distance:
-					min_distance = dist
-					closest_segment = (node1, node2, projected)
-		
-		if closest_segment:
-			node1, node2, projected = closest_segment
+				min_distance = dist
+				closest_projection = (node1, node2, projected)
+					
+			except ValueError:
+				# Fallback to closest existing node if no segments found
+				return self.getClosestNode(point)
+			
+		if closest_projection:
+			node1, node2, projected = closest_projection
 			# Create and insert new node at projection point
-			new_node = Node(projected)
-			new_node.parentNode = node1
-			
-			# Insert into branch nodes list
-			branch_idx = next(i for i, branch in enumerate(self.branches) 
-							if node1 in branch.nodes)
-			branch = self.branches[branch_idx]
-			node_idx = branch.nodes.index(node1)
-			branch.nodes.insert(node_idx + 1, new_node)
-			
+			new_node = self.mainBranch.insertNode(projected)
 			return new_node
 			
 		# Fallback to closest existing node if no segments found
-		nodes = self.nodes.copy()
-		nodes.sort(key=lambda x: x.position.distanceTo(point))
-		return nodes[0]
-	
+		return self.getClosestNode(point)
