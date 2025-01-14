@@ -107,7 +107,6 @@ class Branch2D(Branch):
 			raise ValueError("Target must be a Point.")
 		self.target = targetPoint
 		self._startTime = startTime
-		self._allowedAngles = [0,30,45,60,90]
 
 	def generate(self):
 		self.pathfinder = Pathfinder(self.floorPlan)

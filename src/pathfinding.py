@@ -6,7 +6,7 @@ from queue import PriorityQueue
 import matplotlib.pyplot as plt
 from geometry import Line, Point, Vector
 from abc import ABC, abstractmethod
-from math import sqrt
+from math import cos, degrees, sin, sqrt
 
 class MovementCost(Cost):
 	def calculate(self, current: Point, next: Point) -> float:
@@ -146,6 +146,11 @@ class Pathfinder:
 			"angledWallCrossing":200,
 			"soundRating":1.5
 		}
+		# self._allowedAngles = [30, 45, 60, 90]
+		self._allowedAngles = [30, 45, 90, 180]
+		self._allowedAngles.extend([-angle for angle in self._allowedAngles])
+		self._allowedAngles.sort()
+		self._allowedAngles.insert(0,0)
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
@@ -231,11 +236,24 @@ class Pathfinder:
 			# Add to closed set after destination check
 			closed_set.add(current_pos_rounded)
 			stepSize = self.MINIMUM_STEP_SIZE
+			horizontal = Vector(1,0,0)
+			current_direction = horizontal
+
+			# for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
+			for angleStep in self._allowedAngles:
+				currentAngle = current_direction.getAngleWith(horizontal)
+				angle = currentAngle + angleStep 
+				step = Vector(stepSize*cos(degrees(angle)),stepSize*sin(degrees(angle)))
+				neighbor_pos = current_node.position + step
 				neighbor_pos_rounded = Point(round(neighbor_pos.x + 1e-10), round(neighbor_pos.y + 1e-10))
-				
 				if neighbor_pos_rounded in closed_set:
 					continue
-				
+				try:
+					current_direction = current_node.position-current_node.parentNode.position
+					current_direction = current_direction.basis
+				except AttributeError:
+					# In case this is the first node that doesn't have a parent
+					current_direction = Vector(1,0,0)
 				neighbor = Node(neighbor_pos, current_node)
 				
 				# Calculate g cost using our optimized cost calculation
