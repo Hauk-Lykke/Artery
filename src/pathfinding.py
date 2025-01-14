@@ -34,7 +34,7 @@ class WallCost(Cost):
 		if wallType == WallType.DRYWALL:
 			return 1.0
 		elif wallType == WallType.CONCRETE:
-			return 25.0
+			return 50.0
 		else:  # OUTER_WALL
 			return 200.0
 
