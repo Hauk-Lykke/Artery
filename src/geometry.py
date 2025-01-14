@@ -64,12 +64,23 @@ class XYZ:
 		return hash((self.x, self.y, self.z))
 
 class Vector(XYZ):
-	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):
+	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0, _skip_basis: bool = False):
 		super().__init__(x,y,z)
 		self.length = np.linalg.norm(self.to_numpy())
 		if self.x is None or self.y is None or self.z is None:
 			raise AttributeError("Invalid Vector definition")
-
+			
+		if _skip_basis:
+			self.basis = None
+		else:
+			if self.length < 1e-10:  # Use small epsilon instead of exact zero
+				self.basis = Vector(0, 0, 0, _skip_basis=True)
+			else:
+				x = self.x / self.length if abs(self.x) >= 1e-10 else 0
+				y = self.y / self.length if abs(self.y) >= 1e-10 else 0
+				z = self.z / self.length if abs(self.z) >= 1e-10 else 0
+				self.basis = Vector(x, y, z, _skip_basis=True)
+				
 	def __sub__(self, other: 'Vector') -> 'Vector':
 		return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
 	
