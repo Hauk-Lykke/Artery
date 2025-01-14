@@ -83,7 +83,7 @@ class PathfindingVisualizer:
 		elapsed_timedelta = datetime.now() - self._start_time
 		elapsed_time_obj = (datetime.min + elapsed_timedelta).time()
 		formatted_time = elapsed_time_obj.strftime('%M:%S')
-		self.ax.set_title(f'A* Pathfinding - Iterations: {self._iterations}, '
+		self.ax.set_title(f'Automated duct routing, '
 				f'Time: {formatted_time}')
 
 	def save_figure(self, test_name: str):
