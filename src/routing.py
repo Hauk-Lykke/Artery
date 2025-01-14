@@ -72,10 +72,13 @@ class Path:
 
 		return new_node
 
-	def findClosestNodePair(self,point: Point) -> Tuple[Point]:
+	def getClosestNodePair(self,point: Point) -> Tuple[Point]:
 		nodes = self.nodes.copy()
 		nodes.sort(key=lambda x: x.position.distanceTo(point))
-		return (nodes[-1],nodes[-2])	
+		if len(nodes)>1:
+			return (nodes[0],nodes[1])	
+		else:
+			return (nodes[0])
 
 	def getNodeAtPosition(self, point: Point):
 		for node in self.nodes:
