@@ -138,6 +138,7 @@ class Pathfinder:
 		self.startTime = startTime
 		self.TOLERANCE = 1
 		self.MAX_ITERATIONS = 5000
+		self.MINIMUM_STEP_SIZE = 0.5
 		self.costWeights={
 			"distance":1,
 			"wallProximity":1,
@@ -157,23 +158,26 @@ class Pathfinder:
 		self.movement_cost = MovementCost()
 		self.soundRatingCost = SoundRatingCost(self.floor_plan)
 		
-	def _calculate_cost(self, current: Point, next: Point) -> float:
+	def _calculate_cost(self, current: Point, next: Point) -> tuple[float, bool]:
 		"""Calculate total cost considering only nearby walls"""
 		# Base movement cost
 		total_cost = 0
+		withinProximityOfWalls = False
 		movementCost = self.costWeights["distance"]*self.movement_cost.calculate(current, next)
 		
 		# Get nearby walls and calculate their costs
 		nearby_walls = self._get_nearby_walls(current)
 		for wall in nearby_walls:
-			wallCost = WallCost(wall,self.costWeights)
-			total_cost += wallCost.calculate(current, next)
+			wallCost = WallCost(wall,self.costWeights).calculate(current, next)
+			if wallCost:
+				withinProximityOfWalls = True
+			total_cost += wallCost
 		
 		# Calculate cost of movement inside a room with sound rating
 		sound_cost = self.costWeights["soundRating"]*self.soundRatingCost.calculate(current, next)
 		total_cost += sound_cost
 
-		return total_cost
+		return (total_cost, withinProximityOfWalls)
 
 	def a_star(self, start: Point, target: Point, viz = None):
 	
@@ -226,9 +230,7 @@ class Pathfinder:
 			
 			# Add to closed set after destination check
 			closed_set.add(current_pos_rounded)
-
-			for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
-				neighbor_pos = current_node.position + Vector(dx,dy)
+			stepSize = self.MINIMUM_STEP_SIZE
 				neighbor_pos_rounded = Point(round(neighbor_pos.x + 1e-10), round(neighbor_pos.y + 1e-10))
 				
 				if neighbor_pos_rounded in closed_set:
@@ -237,7 +239,8 @@ class Pathfinder:
 				neighbor = Node(neighbor_pos, current_node)
 				
 				# Calculate g cost using our optimized cost calculation
-				g_cost = self._calculate_cost(current_node.position, neighbor_pos)
+				closeToWalls = False
+				(g_cost, closeToWalls) = self._calculate_cost(current_node.position, neighbor_pos)
 				neighbor.g_cost = current_node.g_cost + g_cost
 				
 				# Calculate h cost using provided heuristic
@@ -245,18 +248,22 @@ class Pathfinder:
 				neighbor.f = neighbor.g_cost + neighbor.h
 				
 				self.open_list.put((neighbor.f, neighbor))
+				if closeToWalls:
+					stepSize = self.MINIMUM_STEP_SIZE
+				else: 
+					stepSize += 0.1
 				
-				# if self._visualizer is not None:
-				# 	# Update visualization
-				# 	self._visualizer.update_node(current_node, current_node.position)
-				# 	# Add a longer pause every 10 iterations, otherwise use a small pause
-				# 	plt.pause(0.000001)
+				if self._visualizer is not None:
+					# Update visualization
+					self._visualizer.update_node(current_node, current_node.position)
+					# Add a longer pause every 10 iterations, otherwise use a small pause
+					plt.pause(0.000001)
 			
 			if iterations % 100 == 0:
 				print(f"Iteration {iterations}, current position: {current_node.position}, destination: {target}")
 		
-		print(f"No path found from {start} to {target} after {iterations} iterations")
-		return
+		raise ValueError(f"No path found from {start} to {target} after {iterations} iterations")
+		# return
 
 	def create_direct_route(self, start: Point, end: Point) -> List[Point]:
 		self.path = [start, end]
