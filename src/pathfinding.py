@@ -1,5 +1,7 @@
 from datetime import datetime
 from typing import List
+
+import numpy as np
 from structural import Room, Wall, FloorPlan, WallType
 from core import Node, Cost
 from queue import PriorityQueue
@@ -138,6 +140,7 @@ class Pathfinder:
 		self.startTime = startTime
 		self.TOLERANCE = 1
 		self.MAX_ITERATIONS = 5000
+		self.MINIMUM_STEP_SIZE = 1
 		self.costWeights={
 			"distance":1,
 			"wallProximity":1,
@@ -145,6 +148,8 @@ class Pathfinder:
 			"angledWallCrossing":200,
 			"soundRating":1.5
 		}
+		self._steps = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]
+
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
 		"""Get walls within specified radius of position"""
@@ -157,23 +162,25 @@ class Pathfinder:
 		self.movement_cost = MovementCost()
 		self.soundRatingCost = SoundRatingCost(self.floor_plan)
 		
-	def _calculate_cost(self, current: Point, next: Point) -> float:
+	def _calculate_cost(self, current: Point, next: Point) -> tuple[float, bool]:
 		"""Calculate total cost considering only nearby walls"""
 		# Base movement cost
 		total_cost = 0
 		movementCost = self.costWeights["distance"]*self.movement_cost.calculate(current, next)
-		
+		closeToWall = False
 		# Get nearby walls and calculate their costs
 		nearby_walls = self._get_nearby_walls(current)
 		for wall in nearby_walls:
 			wallCost = WallCost(wall,self.costWeights)
+			if wallCost:
+				closeToWall = True
 			total_cost += wallCost.calculate(current, next)
 		
 		# Calculate cost of movement inside a room with sound rating
 		sound_cost = self.costWeights["soundRating"]*self.soundRatingCost.calculate(current, next)
 		total_cost += sound_cost
 
-		return total_cost
+		return (total_cost, closeToWall)
 
 	def a_star(self, start: Point, target: Point, viz = None):
 	
@@ -199,7 +206,9 @@ class Pathfinder:
 		closed_set = set()
 		
 		iterations = 0
-		
+		stepSize = 2.5
+		highestRegisteredStepSize = stepSize
+
 		while not self.open_list.empty() and iterations < self.MAX_ITERATIONS:
 			iterations += 1
 			_, current_node = self.open_list.get()
@@ -223,11 +232,20 @@ class Pathfinder:
 					self._visualizer.update_path()
 					plt.pause(1)  # Final pause to show the complete path
 				return
+			elif current_node.position.distanceTo(end_node.position) < stepSize:
+				stepSize = self.MINIMUM_STEP_SIZE
 			
 			# Add to closed set after destination check
 			closed_set.add(current_pos_rounded)
+			currentSteps = []
+			for step in self._steps:
+				dx, dy = step
+				dx = dx*stepSize
+				dy = dy*stepSize
+				currentSteps.append((dx,dy))
 
-			for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]:
+			inflencedByWalls = []
+			for dx, dy in currentSteps:
 				neighbor_pos = current_node.position + Vector(dx,dy)
 				neighbor_pos_rounded = Point(round(neighbor_pos.x + 1e-10), round(neighbor_pos.y + 1e-10))
 				
@@ -237,7 +255,9 @@ class Pathfinder:
 				neighbor = Node(neighbor_pos, current_node)
 				
 				# Calculate g cost using our optimized cost calculation
-				g_cost = self._calculate_cost(current_node.position, neighbor_pos)
+				
+				(g_cost, inflencedByWall) = self._calculate_cost(current_node.position, neighbor_pos)
+				inflencedByWalls.append(inflencedByWall)
 				neighbor.g_cost = current_node.g_cost + g_cost
 				
 				# Calculate h cost using provided heuristic
@@ -252,6 +272,12 @@ class Pathfinder:
 				# 	# Add a longer pause every 10 iterations, otherwise use a small pause
 				# 	plt.pause(0.000001)
 			
+			if sum(inflencedByWalls): # If close to at least one wall, decrease step size. It not, increase
+				stepSize = self.MINIMUM_STEP_SIZE
+			else:
+				stepSize += 0.5
+				if stepSize > highestRegisteredStepSize:
+					highestRegisteredStepSize = stepSize
 			if iterations % 100 == 0:
 				print(f"Iteration {iterations}, current position: {current_node.position}, destination: {target}")
 		

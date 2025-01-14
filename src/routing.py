@@ -86,6 +86,9 @@ class Path:
 			if node.position == point:
 				return node
 		raise ValueError("No node at given position.")
+	
+	def simplify(self):
+		
 
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):

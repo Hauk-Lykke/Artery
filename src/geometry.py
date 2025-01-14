@@ -194,3 +194,29 @@ class Line:
 		z = self.start.z + fraction * (self.end.z - self.start.z)
 		
 		return Point(interpolated_point.x, interpolated_point.y, z)
+	
+class PolyLine:
+	def __init__(self, lineSegments: list[Line]):
+		self.start = None
+		self.segments = []
+		self.vertices = []
+		shapelyLines = []
+		lastSegment = None
+		for segment in lineSegments:
+
+			if isinstance(segment,Line):
+				if self.start is None:
+					self.start = segment.start
+				else:
+					if segment.start != lastSegment.end:
+						raise ValueError("Segments must be connected")
+					self.segments.append(segment)
+					self.vertices.append(segment.start)
+					shapelyLines.append(segment._shapely)
+					lastSegment = segment
+		self.end = segment.end
+		self._shapely = sh.LineString(shapelyLines)
+
+	def simplify(self):
+		'''Simplify curve using shapely's Douglas-Peucker algorithm.'''
+		 
