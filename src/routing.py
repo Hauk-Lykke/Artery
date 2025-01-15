@@ -4,7 +4,7 @@ from core import Node
 import matplotlib.pyplot as plt
 from structural import FloorPlan, Room
 from pathfinding import Pathfinder
-from geometry import Line, Point, Vector
+from geometry import Line, Point, Vector, PolyLine
 from visualization import PathfindingVisualizer
 
 class Path:
@@ -98,6 +98,20 @@ class Path:
 		polyLine = PolyLine(lineSegments)
 		polyLine.simplify(tolerance=5)
 		self.buildPathFromPolyLine(polyLine)
+
+	def buildPathFromPolyLine(self,polyLine: PolyLine):
+		if not isinstance(polyLine, PolyLine):
+			raise ValueError("Input must be a PolyLine")
+		shapelyPoint = polyLine[0]
+		point
+		while shapelyPoint:
+			node = Node()
+
+	# 	node = current_node  # Use a separate variable to build path
+	# 		while node:
+	# 			path.insert(0,node)
+	# 			node = node.parentNode
+
 
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):
