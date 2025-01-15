@@ -14,13 +14,12 @@ class XYZ:
 			self.x = point.x
 			self.y = point.y
 			self.z = point.z
-		if isinstance(x, Vector):
+		elif isinstance(x, Vector):
 			vector = x
 			self.x = vector.x
 			self.y = vector.y
 			self.z = vector.z
-		
-		if isinstance(x,tuple):
+		elif isinstance(x, tuple):
 			if len(x) == 3:
 				self.x = float(x[0])
 				self.y = float(x[1])
@@ -31,12 +30,12 @@ class XYZ:
 				self.z = float(0)
 			else:
 				raise ValueError("XYZ must have 2 coordinates, at least x and y coordinates.")
-		
 		else:
 			if None in (x, y):
 				raise ValueError("XYZ must have 2 coordinates, at least x and y coordinates.")
 			if z is None:
 				z = 0
+
 			self.x = float(x)
 			self.y = float(y)
 			self.z = float(z)
@@ -199,24 +198,40 @@ class PolyLine:
 	def __init__(self, lineSegments: list[Line]):
 		self.start = None
 		self.segments = []
-		self.vertices = []
+		self.points = []
 		shapelyLines = []
 		lastSegment = None
+		self._shapelyPoints = []
 		for segment in lineSegments:
-
 			if isinstance(segment,Line):
 				if self.start is None:
 					self.start = segment.start
+					lastSegment = segment
+					self._shapelyPoints.append(segment.start.to_numpy())
+					self._shapelyPoints.append(segment.end.to_numpy())
 				else:
 					if segment.start != lastSegment.end:
 						raise ValueError("Segments must be connected")
 					self.segments.append(segment)
-					self.vertices.append(segment.start)
+					self.points.append(segment.start)
 					shapelyLines.append(segment._shapely)
 					lastSegment = segment
+					self._shapelyPoints.append(segment.end.to_numpy())
 		self.end = segment.end
-		self._shapely = sh.LineString(shapelyLines)
+		self._shapely = sh.LineString(self._shapelyPoints)
 
-	def simplify(self):
+	def _updateFromShapely(self):
+		self.points = []
+		self.segments = []
+		for shapelyPoint in self._shapely.coords:
+			self.points.append(Point(shapelyPoint))
+		previousPoint = self.points[0]
+		for point in self.points[1:]:
+			self.segments.append(Line(previousPoint,point))
+			point = previousPoint
+
+	def simplify(self, tolerance):
 		'''Simplify curve using shapely's Douglas-Peucker algorithm.'''
-		 
+		self._shapely = self._shapely.simplify(tolerance,preserve_topology=True)
+		self._updateFromShapely()
+		print("simplified")

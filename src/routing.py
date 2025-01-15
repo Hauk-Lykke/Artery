@@ -88,7 +88,16 @@ class Path:
 		raise ValueError("No node at given position.")
 	
 	def simplify(self):
-		
+		previousNode = self.startNode
+		lineSegments = []
+		for currentNode in self.nodes:
+			lineSegment = Line(previousNode.position, currentNode.position)
+			if lineSegment is not None:
+				lineSegments.append(lineSegment)
+			previousNode = currentNode
+		polyLine = PolyLine(lineSegments)
+		polyLine.simplify(tolerance=5)
+		self.buildPathFromPolyLine(polyLine)
 
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):

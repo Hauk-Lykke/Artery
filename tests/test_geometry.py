@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from math import isclose, sqrt
-from geometry import Vector, Point, Line  # Replace `your_module` with the actual module name
+from geometry import PolyLine, Vector, Point, Line  # Replace `your_module` with the actual module name
 
 def test_vector_initialization():
 	v1 = Vector(1, 2, 3)
@@ -75,3 +75,14 @@ def test_line_distance_to_point():
 
 if __name__ == "__main__":
 	pytest.main()
+
+def test_make_PolyLine():
+	segment0 = Line(Point(0,0,0),Point(1,1,0))
+	segment1 = Line(Point(1,1,0),Point(2,1,0))
+	polyLine = PolyLine([segment0, segment1])
+
+def test_simplify_PolyLine():
+	segment0 = Line(Point(0,0,0),Point(1,1,0))
+	segment1 = Line(Point(1,1,0),Point(2,1,0))
+	polyLine = PolyLine([segment0, segment1])
+	polyLine.simplify(tolerance=0.5)
