@@ -1,7 +1,7 @@
 import numpy as np
 from core import Node
 import matplotlib.pyplot as plt
-import datetime
+from datetime import datetime
 import os
 from pathfinding import Pathfinder
 from structural import FloorPlan, WallType
@@ -11,9 +11,9 @@ from geometry import Point
 def visualize_layout(floor_plan: FloorPlan, ax):
 	# Plot rooms
 	for wall in floor_plan.walls:
-			if wall.wall_type == WallType.OUTER_WALL:
+			if wall.wallType == WallType.OUTER_WALL:
 				color = 'k'  # Black for outer walls
-			elif wall.wall_type == WallType.CONCRETE:
+			elif wall.wallType == WallType.CONCRETE:
 				color = 'r'  # Red for concrete walls
 			else:
 				color = 'b'  # Blue for regular walls
@@ -48,36 +48,47 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 	ax.grid(True)
 
 class PathfindingVisualizer:
-	def __init__(self, pathfinder: Pathfinder, ax):
+	def __init__(self, pathfinder: Pathfinder, ax: plt.Axes, startTime: datetime):
 		"""Initialize visualizer with matplotlib axis"""
 		self.pathfinder = pathfinder
 		self.ax = ax
 		self.colormap = plt.cm.viridis
 		self._setup_visualization()
-		self._start_time = datetime.datetime.now()
+		self._start_time = startTime
 		self._iterations = 0
 
 	
 	def _setup_visualization(self):
 		"""Initialize visualization components"""
+		# Setup colorbar if not already present
 		if not hasattr(self.ax, '_colorbar'):
 			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, 
 														norm=plt.Normalize(vmin=0, vmax=1))
 			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, 
-										label='Path Cost')
+											label='Path Cost')
+		
 		# Store initial axis limits
 		self.ax._xlim = self.ax.get_xlim()
 		self.ax._ylim = self.ax.get_ylim()
+		
+		# Add grid and styling
+		self.ax.grid(True, linestyle='--', alpha=0.7)
+		self.ax.set_title('Path Planning Visualization', pad=20)
+		
+		# Ensure proper layout
+		self.ax.figure.tight_layout()
 	
 	def _update_title(self):
 		"""Update the plot title with current iterations and elapsed time"""
-		elapsed = (datetime.datetime.now() - self._start_time).total_seconds()
-		self.ax.set_title(f'A* Pathfinding - Iterations: {self._iterations}, '
-						 f'Time: {elapsed:.2f}s')
+		elapsed_timedelta = datetime.now() - self._start_time
+		elapsed_time_obj = (datetime.min + elapsed_timedelta).time()
+		formatted_time = elapsed_time_obj.strftime('%M:%S')
+		self.ax.set_title(f'Automated duct routing, '
+				f'Time: {formatted_time}')
 
 	def save_figure(self, test_name: str):
 		"""Save the current figure with test name and timestamp"""
-		date_str = datetime.datetime.now().strftime("%Y%m%d")
+		date_str = datetime.now().strftime("%Y%m%d")
 		base_filename = f"results_mep/{test_name}_{date_str}"
 		
 		counter = 0
@@ -142,7 +153,7 @@ class PathfindingVisualizer:
 			
 def save_figure(ax, test_name: str):
 	"""Save the current figure with test name and timestamp"""
-	date_str = datetime.datetime.now().strftime("%Y%m%d")
+	date_str = datetime.now().strftime("%Y%m%d")
 	base_filename = f"results_mep/{test_name}_{date_str}"
 	
 	counter = 0

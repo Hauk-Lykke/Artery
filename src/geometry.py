@@ -64,12 +64,23 @@ class XYZ:
 		return hash((self.x, self.y, self.z))
 
 class Vector(XYZ):
-	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):
+	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0, _skip_basis: bool = False):
 		super().__init__(x,y,z)
 		self.length = np.linalg.norm(self.to_numpy())
 		if self.x is None or self.y is None or self.z is None:
 			raise AttributeError("Invalid Vector definition")
-
+			
+		if _skip_basis:
+			self.basis = None
+		else:
+			if self.length < 1e-10:  # Use small epsilon instead of exact zero
+				self.basis = Vector(0, 0, 0, _skip_basis=True)
+			else:
+				x = self.x / self.length if abs(self.x) >= 1e-10 else 0
+				y = self.y / self.length if abs(self.y) >= 1e-10 else 0
+				z = self.z / self.length if abs(self.z) >= 1e-10 else 0
+				self.basis = Vector(x, y, z, _skip_basis=True)
+				
 	def __sub__(self, other: 'Vector') -> 'Vector':
 		return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
 	
@@ -151,9 +162,18 @@ class Line:
 	def intersects(self, other: 'Line') -> bool:
 		return self._shapely.intersects(other._shapely)
 
-	def distanceTo(self, point: Point) -> float: # Todo: Implement 3D
-		shapelyPoint = sh.Point(point.x,point.y)
-		return self._shapely.distance(shapelyPoint)
+	def distanceTo(self, otherObject: Union[Point, 'Line']) -> float: # Todo: Implement 3D
+		if isinstance(otherObject,Point):
+			point = otherObject
+			shapelyPoint = sh.Point(point.x,point.y)
+			return self._shapely.distance(shapelyPoint)
+		elif isinstance(otherObject, 'Line'):
+			line = otherObject
+			lineStart = sh.Point(line.start.x, line.start.y)
+			lineEnd = sh.Point(line.end.x, line.end.y)
+			return self._shapely.distance(sh.LineString(lineStart,lineEnd))
+		else:
+			raise ValueError("Method not overloaded for other classes than Line and Point.")
 	
 	def __repr__(self) -> str:
 		return "Line from {0} to {1}".format(self.start, self.end)

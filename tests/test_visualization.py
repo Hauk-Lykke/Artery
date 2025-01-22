@@ -60,4 +60,3 @@ class TestVisualization:
 		assert isinstance(ax, plt.Axes)
 		assert isinstance(fig, plt.Figure)
 		plt.show(block=True)
-

@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List
 from core import Cost
 from geometry import Point, Line, Vector
@@ -11,9 +12,9 @@ class WallType:
 	OUTER_WALL = 3
 
 class Wall(Line):
-	def __init__(self, start: Point, end: Point, wall_type: WallType = WallType.DRYWALL):
+	def __init__(self, start: Point, end: Point, wallType: WallType = WallType.DRYWALL):
 		super().__init__(start,end)
-		self.wall_type = wall_type
+		self.wallType = wallType
 		self.line = Line(start,end)
 
 	def reverse(self) -> 'Wall':
@@ -24,14 +25,14 @@ class Wall(Line):
 		"""Overload equality operator to compare walls"""
 		if not isinstance(other, Wall):
 			return False
-		return self.start == other.start and self.end == other.end and self.wall_type == other.wall_type
+		return self.start == other.start and self.end == other.end and self.wallType == other.wallType
 	
 	def __hash__(self):
 		"""Overload hash operator to use walls in sets"""
-		return hash((self.start, self.end, self.wall_type))
+		return hash((self.start, self.end, self.wallType))
 	
 	def __repr__(self) -> str:
-		return "Wall from {0} to {1} of type {2}".format(self.start, self.end, self.wall_type)
+		return "Wall from {0} to {1} of type {2}".format(self.start, self.end, self.wallType)
 
 class Room:
 	def __init__(self, corners: list[Point]):
@@ -41,6 +42,8 @@ class Room:
 		center_y = sum(corner.y for corner in corners) / len(corners)
 		self.center = Point(center_x, center_y)
 		self._create_walls()
+		self.soundRating = 37 # Default sound rating in decibel
+		self.supplyAirDemand = 0
 	
 	def _create_walls(self):
 		self.walls = []
@@ -50,7 +53,7 @@ class Room:
 			self.walls.append(Wall(start, end))
 		return
 
-	def is_inside_room(self,point: Point) ->bool:
+	def isInsideRoom(self,point: Point) ->bool:
 		# Ray casting algorithm to determine if point is inside polygon
 		n = len(self.corners)
 		inside = False
@@ -91,63 +94,7 @@ class FloorPlan:
 		for room in rooms:
 			self.addRoom(room)
 
-
-
 class Building:
 		def __init__(self, floorPlans: list = [FloorPlan]):
 			self.floor_plans = floorPlans
 
-
-
-class WallCrossingCost(Cost):
-	"""Base class for wall crossing costs"""
-	def __init__(self, wall: Wall):
-		self.wall = wall
-
-class WallCosts:
-	"""Central definition of wall-related costs"""
-	PROXIMITY_THRESHOLD = 0.5  # Distance at which wall proximity starts affecting cost
-	ANGLE_MULTIPLIER = 2.0  # Multiplier for angled crossings
-	
-	@staticmethod
-	def get_base_cost(wall_type: WallType) -> float:
-		"""Get the base perpendicular crossing cost for a wall type"""
-		if wall_type == WallType.DRYWALL:
-			return 1.0
-		elif wall_type == WallType.CONCRETE:
-			return 5.0
-		else:  # OUTER_WALL
-			return 20.0
-	
-	@staticmethod
-	def get_angled_cost(wall_type: WallType) -> float:
-		"""Get the angled crossing cost for a wall type"""
-		return WallCosts.get_base_cost(wall_type) * WallCosts.ANGLE_MULTIPLIER
-
-class StandardWallCost(WallCrossingCost):
-	"""Standard implementation of wall crossing costs"""
-	
-	def __init__(self, wall: Wall):
-		super().__init__(wall)
-		self.perpendicular_cost = WallCosts.get_base_cost(wall.wall_type)
-		self.angled_cost = WallCosts.get_angled_cost(wall.wall_type)
-	
-	def calculate(self, current: Point, next: Point) -> float:
-		otherLine = Line(current, next)
-		# Check if path crosses wall
-		if self.wall.intersects(otherLine):
-			path_vector = next-current
-			angle = self.wall.vector.getAngleWith(path_vector)
-			angle = min(angle, 180 - angle)  # Normalize to 0-90 degrees
-			return self.perpendicular_cost if abs(90 - angle) <= 3 else self.angled_cost
-		
-		# If not crossing, check proximity
-		current_dist = current.distanceTo(self.wall)
-		next_dist = next.distanceTo(self.wall)
-		
-		min_dist = min(current_dist, next_dist)
-		if min_dist >= WallCosts.PROXIMITY_THRESHOLD:
-			return 0.0
-		
-		# Linear interpolation between 0 and perpendicular_cost based on distance
-		return self.perpendicular_cost * (1 - min_dist / WallCosts.PROXIMITY_THRESHOLD)
