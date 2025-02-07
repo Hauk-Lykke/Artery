@@ -1,35 +1,34 @@
 import numpy as np
+from core import Node
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from typing import List, Tuple
-import datetime
+from datetime import datetime
 import os
-from src.components import AirHandlingUnit, Room, FloorPlan, WallType
+from pathfinding import Pathfinder
+from structural import FloorPlan, WallType
+from geometry import Point
 
-colormap = plt.cm.viridis
 
 def visualize_layout(floor_plan: FloorPlan, ax):
 	# Plot rooms
-	for room in floor_plan._rooms:
-		# Plot each wall with appropriate color based on type
-		for wall in room.walls:
-			if wall.wall_type == WallType.OUTER_WALL:
+	for wall in floor_plan.walls:
+			if wall.wallType == WallType.OUTER_WALL:
 				color = 'k'  # Black for outer walls
-			elif wall.wall_type == WallType.CONCRETE:
+			elif wall.wallType == WallType.CONCRETE:
 				color = 'r'  # Red for concrete walls
 			else:
 				color = 'b'  # Blue for regular walls
 			
-			ax.plot([wall.start[0], wall.end[0]], 
-					[wall.start[1], wall.end[1]], 
+			ax.plot([wall.start.x, wall.end.x], 
+					[wall.start.y, wall.end.y], 
 					color=color, linewidth=2)
 	
 	# Plot AHU
-	ax.plot(floor_plan.ahu.position[0], floor_plan.ahu.position[1], 'rs', markersize=10)
+	if floor_plan.ahu is not None:
+		ax.plot(floor_plan.ahu.position.x, floor_plan.ahu.position.y, 'rs', markersize=10)
 	
 	# Plot room centers
-	for room in floor_plan._rooms:
-		ax.plot(room.center[0], room.center[1], 'go', markersize=5)
+	for room in floor_plan.rooms:
+		ax.plot(room.center.x, room.center.y, 'go', markersize=5)
 	
 	# Add wall type legend
 	from matplotlib.lines import Line2D
@@ -49,94 +48,118 @@ def visualize_layout(floor_plan: FloorPlan, ax):
 	ax.grid(True)
 
 class PathfindingVisualizer:
-    def __init__(self, ax):
-        self.ax = ax
-        self._setup_visualization()
-        self._start_time = datetime.datetime.now()
-        self._iterations = 0
-    
-    def _setup_visualization(self):
-        """Initialize visualization components"""
-        self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(vmin=0, vmax=1))
-        self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')
-        # Store initial axis limits
-        self.ax._xlim = self.ax.get_xlim()
-        self.ax._ylim = self.ax.get_ylim()
-    
-    def _update_title(self):
-        """Update the plot title with current iterations and elapsed time"""
-        elapsed = (datetime.datetime.now() - self._start_time).total_seconds()
-        self.ax.set_title(f'A* Pathfinding - Iterations: {self._iterations}, Time: {elapsed:.2f}s')
+	def __init__(self, pathfinder: Pathfinder, ax: plt.Axes, startTime: datetime):
+		"""Initialize visualizer with matplotlib axis"""
+		self.pathfinder = pathfinder
+		self.ax = ax
+		self.colormap = plt.cm.viridis
+		self._setup_visualization()
+		self._start_time = startTime
+		self._iterations = 0
 
-    def save_figure(self, test_name: str):
-        """Save the current figure with test name, date, and counter"""
-        date_str = datetime.datetime.now().strftime("%Y%m%d")
-        base_filename = f"results/{test_name}_{date_str}"
-        
-        # Find next available counter
-        counter = 0
-        while os.path.exists(f"{base_filename}_{counter}.png"):
-            counter += 1
-            
-        filename = f"{base_filename}_{counter}.png"
-        self.ax.figure.savefig(filename)
-        print(f"Saved figure to {filename}")
-        
-    def update_node(self, current_node, neighbor_pos, open_list, test_name: str = None):
-        """Visualize a single node exploration step"""
-        self._iterations += 1
-        self._update_title()
-        
-        # Update the maximum cost seen so far
-        current_max_cost = max(neighbor.g for _, neighbor in list(open_list.queue) + [(0, current_node)])
-        
-        # Update normalization for colorbar
-        self.ax._cost_mapper.norm.vmax = current_max_cost
-        
-        # Color the attempted nodes based on cost relative to current maximum
-        normalized_cost = current_node.g / current_max_cost if current_max_cost > 0 else 0
-        color = colormap(normalized_cost)
-        self.ax.plot(neighbor_pos[0], neighbor_pos[1], 'o', color=color, markersize=2)
-        
-        # Restore axis limits
-        self.ax.set_xlim(self.ax._xlim)
-        self.ax.set_ylim(self.ax._ylim)
-        
-        # Update colorbar
-        self.ax._colorbar.update_normal(self.ax._cost_mapper)
-        
-        # If open list is empty, algorithm has completed
-        if not open_list.queue and test_name:
-            self.save_figure(test_name)
-
-def visualize_routing(routes: List[Tuple[List[np.ndarray], List[float]]], ax, test_name: str = None):
-	# Find global maximum cost for consistent color mapping
-	global_max_cost = max(max(costs) for _, costs in routes)
 	
-	# Plot routes with color grading based on cost
-	for route, costs in routes:
-		route_array = np.array(route)
-		points = route_array[:-1]  # All points except the last
-		next_points = route_array[1:]  # All points except the first
+	def _setup_visualization(self):
+		"""Initialize visualization components"""
+		# Setup colorbar if not already present
+		if not hasattr(self.ax, '_colorbar'):
+			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, 
+														norm=plt.Normalize(vmin=0, vmax=1))
+			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, 
+											label='Path Cost')
 		
+		# Store initial axis limits
+		self.ax._xlim = self.ax.get_xlim()
+		self.ax._ylim = self.ax.get_ylim()
+		
+		# Add grid and styling
+		self.ax.grid(True, linestyle='--', alpha=0.7)
+		self.ax.set_title('Path Planning Visualization', pad=20)
+		
+		# Ensure proper layout
+		self.ax.figure.tight_layout()
+	
+	def _update_title(self):
+		"""Update the plot title with current iterations and elapsed time"""
+		elapsed_timedelta = datetime.now() - self._start_time
+		elapsed_time_obj = (datetime.min + elapsed_timedelta).time()
+		formatted_time = elapsed_time_obj.strftime('%M:%S')
+		self.ax.set_title(f'Automated duct routing, '
+				f'Time: {formatted_time}')
+
+	def save_figure(self, test_name: str):
+		"""Save the current figure with test name and timestamp"""
+		date_str = datetime.now().strftime("%Y%m%d")
+		base_filename = f"results_mep/{test_name}_{date_str}"
+		
+		counter = 0
+		while os.path.exists(f"{base_filename}_{counter}.png"):
+			counter += 1
+			
+		filename = f"{base_filename}_{counter}.png"
+		self.ax.figure.savefig(filename)
+		print(f"Saved figure to {filename}")
+		
+	def update_node(self, current_node: Node, neighbor_pos: Point):
+		"""Visualize a single node exploration step"""
+		self._iterations += 1
+		self._update_title()
+		
+		# Get max cost from open list and current node
+		self.current_max_cost = max(neighbor.g_cost for _, neighbor in list(self.pathfinder.open_list.queue) + [(None, current_node)])
+		
+		# Update normalization for colorbar
+		self.ax._cost_mapper.norm.vmax = self.current_max_cost
+		
+		# Color nodes based on cost
+		normalized_cost = (current_node.g_cost / self.current_max_cost 
+						 if self.current_max_cost > 0 else 0)
+		color = self.colormap(normalized_cost)
+		
+		# Plot the explored point
+		self.ax.plot(neighbor_pos.x, neighbor_pos.y, 'o', 
+					color=color, markersize=2)
+		
+		# Maintain visualization bounds
+		self.ax.set_xlim(self.ax._xlim)
+		self.ax.set_ylim(self.ax._ylim)
+		
+		# Update the colorbar
+		self.ax._colorbar.update_normal(self.ax._cost_mapper)
+
+	def update_path(self):
+		# Plot routes with color grading based on cost
+		points = [node.position for node in self.pathfinder.path]
+		costs = [node.g_cost for node in self.pathfinder.path]
+		global_max_cost = max(costs) if costs else 1  # Avoid division by zero
+
 		# Normalize costs using global maximum
-		normalized_costs = np.array(costs[:-1]) / global_max_cost if global_max_cost > 0 else np.zeros_like(costs[:-1])
-		
+		normalized_costs = np.array(costs) / global_max_cost if global_max_cost > 0 else np.zeros_like(costs)
+
 		# Create line segments colored by cost
-		for i in range(len(points)):
-			color = colormap(normalized_costs[i])  # Use viridis colormap
-			ax.plot([points[i][0], next_points[i][0]], 
-				   [points[i][1], next_points[i][1]], 
-				   c=color, linewidth=2)
+		for i in range(len(points) - 1):
+			color = self.colormap(normalized_costs[i])  # Use viridis colormap
+			self.ax.plot([points[i].x, points[i + 1].x], 
+					[points[i].y, points[i + 1].y], 
+					c=color, linewidth=2)
+
+		# Update existing colorbar if present, otherwise create new one
+		if hasattr(self.ax, '_cost_mapper'):
+			self.ax._cost_mapper.norm.vmax = global_max_cost
+			self.ax._colorbar.update_normal(self.ax._cost_mapper)
+		else:
+			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
+			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')
+
+			
+def save_figure(ax, test_name: str):
+	"""Save the current figure with test name and timestamp"""
+	date_str = datetime.now().strftime("%Y%m%d")
+	base_filename = f"results_mep/{test_name}_{date_str}"
 	
-	# Update existing colorbar if present, otherwise create new one
-	if hasattr(ax, '_cost_mapper'):
-		ax._cost_mapper.norm.vmax = global_max_cost
-		ax._colorbar.update_normal(ax._cost_mapper)
-	else:
-		ax._cost_mapper = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
-		ax._colorbar = plt.colorbar(ax._cost_mapper, ax=ax, label='Path Cost')
-	
-	# Save figure if test_name is provided
-	if test_name and hasattr(ax, '_visualizer'):
-		ax._visualizer.save_figure(test_name)
+	counter = 0
+	while os.path.exists(f"{base_filename}_{counter}.png"):
+		counter += 1
+		
+	filename = f"{base_filename}_{counter}.png"
+	ax.figure.savefig(filename)
+	print(f"Saved figure to {filename}")

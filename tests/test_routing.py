@@ -1,60 +1,108 @@
-import pytest
-import numpy as np
-import matplotlib.pyplot as plt
-from src.components import Room, AirHandlingUnit, FloorPlan
-from src.routing import route_ducts
+from geometry import Point
+from structural import Room, FloorPlan
+from MEP import AirHandlingUnit
+from routing import Branch2D, Network
 
-def test_route_ducts_basic():
-    # Create a simple floor plan for testing
-    rooms = [
-        Room(np.array([[0, 0], [2, 0], [2, 2], [0, 2]]))
-    ]
-    ahu = AirHandlingUnit(position=np.array([3, 3]))
-    floor_plan = FloorPlan(rooms, ahu)
-    
-    # Test the routing function
-    routes, fig, ax = route_ducts(floor_plan)
-    
-    # Basic assertions
-    assert isinstance(routes, list)
-    assert len(routes) == 1
-    assert len(routes[0]) == 2  # Should contain (index_route, costs)
-    
-    # Check route structure
-    path, costs = routes[0]
-    assert isinstance(path, list)
-    assert all(isinstance(pos, np.ndarray) for pos in path)
-    assert all(pos.shape == (2,) for pos in path)  # Each point should be a 2D coordinate
-    assert isinstance(costs, list)
-    assert all(isinstance(cost, (int, float)) for cost in costs)
-    assert len(costs) > 0  # Should have costs for each step
+class TestRouting:	
+	def test_fixture(self,simple_fixture):
+		assert isinstance(simple_fixture, str)
+	
+	def test_assert_floor_plan(self, simple_floor_plan_fixture):
+		assert isinstance(simple_floor_plan_fixture,FloorPlan)
 
-def test_route_ducts_missing_ahu():
-    # Create floor plan without AHU
-    rooms = [
-        Room(np.array([[0, 0], [2, 0], [2, 2], [0, 2]]))
-    ]
-    floor_plan = FloorPlan(rooms=rooms)
-    
-    # Test that routing fails with appropriate error
-    with pytest.raises(ValueError, match="AHU must be set in floor plan before routing ducts"):
-        route_ducts(floor_plan)
+	def test_route_ducts_basic(self, simple_floor_plan_fixture):
+		assert isinstance(simple_floor_plan_fixture, FloorPlan)
+		assert isinstance(simple_floor_plan_fixture.rooms[0].center, Point)
+		start = simple_floor_plan_fixture.rooms[0].center
+		mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
+		branch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center)	
+		branch.generate()
+		assert len(branch.nodes) >= 2
+		assert len(branch) >= 2
 
-def test_route_ducts_visualization():
-    # Create test floor plan
-    rooms = [
-        Room(np.array([[0, 0], [2, 0], [2, 2], [0, 2]]))
-    ]
-    ahu = AirHandlingUnit(position=np.array([3, 3]))
-    floor_plan = FloorPlan(rooms=rooms, ahu=ahu)
-    
-    # Test the routing function
-    routes, fig, ax = route_ducts(floor_plan)
-    
-    # Check visualization outputs
-    assert fig is not None
-    assert ax is not None
-    assert len(ax.lines) > 0  # Should have plotted at least one line
-    
-    # Clean up matplotlib objects
-    plt.close(fig)
+	def test_route_ducts_distant_rooms(self):
+		rooms = [
+			Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
+			Room([Point(10, 10), Point(12, 10), Point(12, 12), Point(10, 12)])
+		]
+		ahu = AirHandlingUnit(position=Point(6, 6))
+		floor_plan = FloorPlan(rooms, ahu)
+		start = ahu.position
+		mostDistantRoom = max(floor_plan.rooms, key=lambda room: room.center.distanceTo(start))
+		branch = Branch2D(floor_plan,start,mostDistantRoom.center)
+		branch.generate()
+		assert len(branch) >= 2
+
+	def test_network(self,simple_floor_plan_fixture):
+		start = simple_floor_plan_fixture.rooms[0].center
+		# mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
+		network = Network(simple_floor_plan_fixture,start)
+		network.generate()
+		assert(isinstance(network.mainBranch, Branch2D))
+		assert(isinstance(network.branches, list))
+
+
+# # def test_route_ducts_complex_layout():
+# # 	rooms = [
+# # 		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)]),
+# # 		Room([Point(4, 0), Point(6, 0), Point(6, 2), Point(4, 2)]),
+# # 		Room([Point(2, 4), Point(4, 4), Point(4, 6), Point(2, 6)]),
+# # 		Room([Point(0, 8), Point(2, 8), Point(2, 10), Point(0, 10)])
+# # 	]
+# # 	ahu = AirHandlingUnit(position=Point(5, 5))
+# # 	floor_plan = FloorPlan(rooms, ahu)
+	
+# # 	routes, fig, ax = route_ducts(floor_plan)
+	
+# # 	assert len(routes) == 1
+# # 	path, costs = routes[0]
+# # 	assert len(path) >= 4
+# # 	# plt.close(fig)
+
+# # def test_route_ducts_ahu_inside_room():
+# # 	room = Room([Point(0, 0), Point(4, 0), Point(4, 4), Point(0, 4)])
+# # 	ahu = AirHandlingUnit(position=Point(2, 2))
+# # 	floor_plan = FloorPlan([room], ahu)
+	
+# # 	routes, fig, ax = route_ducts(floor_plan)
+	
+# # 	assert len(routes) == 1
+# # 	path, costs = routes[0]
+# # 	assert len(path) >= 1
+# # 	# plt.close(fig)
+
+# def test_route_ducts_negative_coordinates():
+# 	rooms = [
+# 		Room([Point(-2, -2), Point(0, -2), Point(0, 0), Point(-2, 0)]),
+# 		Room([Point(1, 1), Point(3, 1), Point(3, 3), Point(1, 3)])
+# 	]
+# 	ahu = AirHandlingUnit(position=Point(0, 0))
+# 	floor_plan = FloorPlan(rooms, ahu)
+	
+# 	routes, fig, ax = route_ducts(floor_plan)
+	
+# 	assert len(routes) == 1
+# 	path, costs = routes[0]
+# 	assert len(path) >= 2
+# 	# plt.close(fig)
+# 	with pytest.raises(ValueError, match="AHU must be set in floor plan before routing ducts"):
+# 		route_ducts(floor_plan)
+
+# def test_route_ducts_visualization():
+# 	# Create test floor plan
+# 	rooms = [
+# 		Room([Point(0, 0), Point(2, 0), Point(2, 2), Point(0, 2)])
+# 	]
+# 	ahu = AirHandlingUnit(position=Point(3, 3))
+# 	floor_plan = FloorPlan(rooms=rooms, ahu=ahu)
+	
+# 	# Test the routing function
+# 	routes, fig, ax = route_ducts(floor_plan)
+	
+# 	# Check visualization outputs
+# 	assert fig is not None
+# 	assert ax is not None
+# 	assert len(ax.lines) > 0  # Should have plotted at least one line
+	
+# 	# Clean up matplotlib objects
+# 	# plt.close(fig)

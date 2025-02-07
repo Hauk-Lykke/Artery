@@ -1,11 +1,30 @@
 from abc import ABC, abstractmethod
-import numpy as np
+from geometry import Point
 
 class Node:
-	def __init__(self, position: np.ndarray, parent=None):
+	"""A node class for A* pathfinding algorithm.
+	
+	Represents a point in the search space with associated path costs.
+	Used to track paths and determine optimal routes.
+	
+	Attributes:
+		position (Point): Coordinates of the node in the search space
+		parent (Node): Reference to the previous node in the path
+		g_cost (float): Cost from start node to this node
+		h (float): Heuristic estimate from this node to goal
+		f (float): Total cost (g_cost + h) used for path evaluation
+	"""
+	def __init__(self, position: Point, parentNode=None):
 		self.position = position
-		self.parent = parent
-		self.g = 0
+		self.parentNode = parentNode
+		if parentNode is not None:
+			if parentNode.parentBranch is not None:
+				self.parentBranch = parentNode.parentBranch
+			else:
+				self.parentBranch = None
+		else:
+			self.parentBranch = None
+		self.g_cost = 0
 		self.h = 0
 		self.f = 0
 
@@ -14,5 +33,5 @@ class Node:
 
 class Cost(ABC):
 	@abstractmethod
-	def calculate(self, current: np.ndarray, next: np.ndarray) -> float:
+	def calculate(self, current: Point, next: Point) -> float:
 		pass
