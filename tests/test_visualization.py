@@ -20,6 +20,14 @@ class TestVisualization:
 		assert fig
 		assert ax
 
+	@pytest.mark.usefixtures("room_plan_11_rooms_random_concrete_fixture")
+	def test_display_11_room_floor_plan(self, room_plan_11_rooms_random_concrete_fixture):
+		fig, ax = plt.subplots()
+		visualize_layout(room_plan_11_rooms_random_concrete_fixture,ax)
+		plt.show(block=True)
+		assert fig
+		assert ax
+
 	@pytest.mark.usefixtures("simple_floor_plan_fixture")
 	def test_visualization_updates(self,simple_floor_plan_fixture):
 		floor_plan = simple_floor_plan_fixture
