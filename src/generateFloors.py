@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 from shapely.geometry import Polygon
 
-def area(room):
+def area(room): #Integrate into floorplan class
     """Returns area of a rectangular room (x1, y1, x2, y2)."""
     (x1, y1, x2, y2) = room
     return abs(x2 - x1) * abs(y2 - y1)
