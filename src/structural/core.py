@@ -94,9 +94,9 @@ class Room:
 		return (max(width, length) / min(width, length)) <= max_ratio
 	
 	
-	def roomConformsToAspectRatio(self, min_aspect_ratio, max_aspect_ratio) -> bool:
+	def conformsToAspectRatio(self, min_aspect_ratio, max_aspect_ratio) -> bool:
 		"""Checks if room area and aspect ratio are within limits."""
-		return (min_aspect_ratio <= self.area()) and self.aspect_ratio_ok(self, max_aspect_ratio)
+		return (min_aspect_ratio <= self.area()) and self.aspectRatioOk(max_aspect_ratio)
 	
 	
 	def subdivide(self, direction) -> tuple['Room']:
@@ -120,7 +120,8 @@ class Room:
 
 		if direction == 'vertical':
 			# Split x between x1+1 and x2-1
-			split_x = random.randint(x0 + 1, x1 - 1)
+			# split_x = random.randint(x0 + 1, x1 - 1)
+			split_x = x0+1 + random.random()*(x1-1)
 			# room0 = (x0, y0, split_x, y1)
 			room0 = Room([Point(x0, y0),Point(split_x,y0),Point(split_x,y1),Point(x0,y1)])
 			# room1 = (split_x, y0, x1, y1)
@@ -128,9 +129,8 @@ class Room:
 			return (room0, room1)
 		else:
 			# Split y between y1+1 and y2-1
-			split_y = random.randint(y0 + 1, y1 - 1)
-			# room0 = (x0, y0, x1, split_y)
-			# room1 = (x0, split_y, x1, y1)
+			# split_y = random.randint(y0 + 1, y1 - 1)
+			split_y = y0+1 + random.random()*(y1-1)
 			room0 = Room([Point(x0, y0),Point(x1,y0),Point(x1,split_y),Point(x0,split_y)])
 			room1 = Room([Point(x0, split_y),Point(x1,split_y),Point(x1,y1),Point(x0,y1)])
 			return (room0, room1)
