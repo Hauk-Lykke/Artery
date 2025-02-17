@@ -1,12 +1,14 @@
 from datetime import datetime
 from typing import List
-from structural import Room, Wall, FloorPlan, WallType
+from structural.core import Room, Wall, WallType
 from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
 from geometry import Line, Point, Vector
 from abc import ABC, abstractmethod
 from math import sqrt
+
+from structural.floor_plan import FloorPlan
 
 class MovementCost(Cost):
 	def calculate(self, current: Point, next: Point) -> float:

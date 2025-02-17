@@ -2,7 +2,8 @@ import random
 import pytest
 from MEP import AirHandlingUnit
 from geometry import Point
-from structural import FloorPlan, Room, WallType
+from structural.core import Room, Wall, WallType
+from structural.floor_plan import FloorPlan
 
 @pytest.fixture
 def simple_fixture():
@@ -20,6 +21,24 @@ def simple_floor_plan_fixture():
 	room3 = Room(corners_room3)
 	room4 = Room(corners_room4)
 	return FloorPlan([room1, room2, room3, room4])
+
+
+@pytest.fixture
+def wall():
+	return Wall(Point(0,0,0), Point(3, 4,0))
+
+@pytest.fixture(scope="module")
+def room():
+	room = Room([
+		Point(0, 0),
+		Point(10, 0),
+		Point(10, 10),
+		Point(0, 10)
+	]) 
+	return room
+
+
+
 
 
 

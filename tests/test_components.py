@@ -1,18 +1,14 @@
 import pytest
 import numpy as np
 import shapely as sh
-from structural import WallType, Wall, Room, FloorPlan
-from MEP import AirHandlingUnit
+from structural.core import WallType, Wall, Room
+from structural.floor_plan import FloorPlan
 from geometry import Point, Vector
 
 def test_point_equality():
 	point0 = Point(1,2,3)
 	point1 = Point(1,2,3)
 	assert point0 == point1
-
-@pytest.fixture
-def wall():
-	return Wall(Point(0,0,0), Point(3, 4,0))
 
 def test_wall_properties(wall):
 	print(wall)
@@ -29,15 +25,8 @@ def test_wall_angle(wall):
 	angle = wall.vector.getAngleWith(vector)
 	assert 89 <= angle <= 91  # Should be 90 degrees ± numerical precision
 
-def test_room_walls():
+def test_room_walls(room):
 	# Create a simple square room
-	room = Room([
-		Point(0, 0),
-		Point(10, 0),
-		Point(10, 10),
-		Point(0, 10)
-	])  # Changed tuples to Points
-	
 	# Verify walls were created
 	assert hasattr(room, 'walls')
 	assert len(room.walls) == 4
@@ -98,13 +87,13 @@ def test_floor_plan_walls():
 		assert isinstance(wall, Wall)
 
 
-	def test_room_creation(self, complex_floor_plan_fixture):
-			"""Test that all rooms are created with correct attributes."""
-			for room in complex_floor_plan_fixture.rooms:
-				assert isinstance(room, Room)
-				assert hasattr(room, 'corners')
-				assert hasattr(room, 'center')
-			assert len(complex_floor_plan_fixture.rooms) == 12
+def test_room_creation(self, complex_floor_plan_fixture):
+	"""Test that all rooms are created with correct attributes."""
+	for room in complex_floor_plan_fixture.rooms:
+		assert isinstance(room, Room)
+		assert hasattr(room, 'corners')
+		assert hasattr(room, 'center')
+	assert len(complex_floor_plan_fixture.rooms) == 12
 
 def testSoundRating(simple_floor_plan_fixture):
 	assert(simple_floor_plan_fixture.rooms[0].soundRating==37)

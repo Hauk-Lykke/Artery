@@ -1,10 +1,11 @@
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-from structural import Room, FloorPlan, WallType
+from structural.core import Room, WallType
 from MEP import AirHandlingUnit
 import routing as routing
 from core import Point
+from structural.floor_plan import FloorPlan
 from visualization import save_figure, visualize_layout
 
 @pytest.fixture(autouse=True)

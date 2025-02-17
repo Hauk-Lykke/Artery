@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import os
 from pathfinding import Pathfinder
-from structural import FloorPlan, WallType
+from structural.core import WallType
 from geometry import Point
+from structural.floor_plan import FloorPlan
 
 
 def visualize_layout(floor_plan: FloorPlan, ax):

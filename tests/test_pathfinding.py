@@ -2,10 +2,11 @@ from core import Point
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-from structural import Wall, FloorPlan, Room
+from structural.core import Wall,Room
 from pathfinding import (EnhancedDistance, MovementCost, 
 	CompositeCost, CompositeHeuristic, Pathfinder, WallCost, SoundRatingCost
 )
+from structural.floor_plan import FloorPlan
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
