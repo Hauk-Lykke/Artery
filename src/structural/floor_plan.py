@@ -13,10 +13,9 @@ Planned changes:
 import random
 import os
 import matplotlib.pyplot as plt
-
 from shapely.geometry import Polygon
-
 from MEP import AirHandlingUnit
+from geometry import Point
 from structural.core import Room
 
 
@@ -47,98 +46,62 @@ class FloorPlan:
 		for room in rooms:
 			self.addRoom(room)
 
+	def area(self) -> float:
+		return sum([room.area() for room in self.rooms])
+
+	def generate(self,width=25, length=25, base_rooms=3,random_rooms=5,
+					min_ratio=0.05, max_ratio=0.40, max_aspect_ratio=4.0, ax=None):
+		"""
+		Generates rooms with random splits:
+		- Each room must meet area and aspect constraints (no discarding after).
+		- Stops if it reaches (base_rooms + i) total rooms, i in [0..5].
+		"""
+		total_a = width * length
+		min_aspect_ratio = total_a * min_ratio
+		max_aspect_ratio = total_a * max_ratio
+		extra_rooms = random.randint(0, random_rooms)
+		desired_rooms = base_rooms + extra_rooms
+
+		self.rooms = [Room([Point(0, 0, 0),Point(width, 0, 0), Point(width, length, 0), Point(0, length, 0)])]
+
+		attempts = 0
+		# Attempt random splits
+		for _ in range(50):
+			attempts += 1
+			if len(self.rooms) >= desired_rooms:
+				break
+
+			# Chooses a random room to devide
+			idx = random.randint(0, len(self.rooms) - 1)
+			old_room = self.rooms[idx]
+
+			# Splits the room into two
+			split_dir = random.choice(['vertical', 'horizontal'])
+			new_rooms = old_room.subdivide(split_dir)
+
+			# If the new rooms were not generated, try again
+			if new_rooms is None:
+				print("Subdivision failed")
+				break
+
+			# Choose if the new rooms should replace the original or not
+			new_room0, new_room1 = new_rooms
+			if new_room0.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio) and new_room1.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio):
+				self.rooms.remove(old_room)
+				self.rooms.append(new_room0)
+				self.rooms.append(new_room1)
+
+		print (str(attempts) + " attempts in order to create " + str(desired_rooms) + " rooms")
+		self.updateWalls()
+		return
+
+
+
+
 class Building:
 		def __init__(self, floorPlans: list = [FloorPlan]):
 			self.floor_plans = floorPlans
 
-
-
-# def area(room): #Integrate into floorplan class
-#     """Returns area of a rectangular room (x1, y1, x2, y2)."""
-#     (x1, y1, x2, y2) = room
-#     return abs(x2 - x1) * abs(y2 - y1)
-
-
-# def room_conforms(room, min_a, max_ratio):
-#     """Checks if room area and aspect ratio are within limits."""
-#     a = area(room)
-#     return (min_a <= a) and aspect_ratio_ok(room, max_ratio)
-
-# def subdivide_room(room, direction):
-#     """
-#     Splits room randomly in 'vertical' or 'horizontal' direction.
-#     Returns two new rooms if the split is valid, else None.
-#     """
-#     (x1, y1, x2, y2) = room
-#     w = abs(x2 - x1)
-#     h = abs(y2 - y1)
-
-#     # If too small, skip
-#     if w < 3 or h < 3:
-#         return None
-
-#     if direction == 'vertical':
-#         # Split x between x1+1 and x2-1
-#         split_x = random.randint(x1 + 1, x2 - 1)
-#         r1 = (x1, y1, split_x, y2)
-#         r2 = (split_x, y1, x2, y2)
-#         return (r1, r2)
-#     else:
-#         # Split y between y1+1 and y2-1
-#         split_y = random.randint(y1 + 1, y2 - 1)
-#         r1 = (x1, y1, x2, split_y)
-#         r2 = (x1, split_y, x2, y2)
-#         return (r1, r2)
-
-def generate_floor(width=25, length=25, base_rooms=3,random_rooms=5,
-                   min_ratio=0.05, max_ratio=0.40, max_ar=4.0):
-    """
-    Generates rooms with random splits:
-      - Each room must meet area and aspect constraints (no discarding after).
-      - Stops if it reaches (base_rooms + i) total rooms, i in [0..5].
-    """
-    total_a = width * length
-    min_a = total_a * min_ratio
-    max_a = total_a * max_ratio
-    extra_rooms = random.randint(0, random_rooms)
-    desired_rooms = base_rooms + extra_rooms
-
-    rooms = [(0, 0, width, length)]
-
-    attempts = 0
-    # Attempt random splits
-    for _ in range(50):
-        attempts += 1
-        if len(rooms) >= desired_rooms:
-            break
-
-        # Chooses a random room to devide
-        idx = random.randint(0, len(rooms) - 1)
-        old_room = rooms[idx]
-
-        # Splits the room into two
-        split_dir = random.choice(['vertical', 'horizontal'])
-        new_rs = subdivide_room(old_room, split_dir)
-
-        # If the new rooms were not generated, try again
-        if new_rs is None:
-            print("subdivision failed")
-            break
-
-        # Choose if the new rooms should replace the original or not
-        r1, r2 = new_rs
-        if room_conforms(r1, min_a, max_ar) and room_conforms(r2, min_a, max_ar):
-            rooms.pop(idx)
-            rooms.append(r1)
-            rooms.append(r2)
-
-    print (str(attempts) + " attempts in order to create " + str(desired_rooms) + " rooms")
-    return rooms
-
-
-# def room_to_polygon(room):
-#     x1, y1, x2, y2 = room
-#     return Polygon([(x1, y1), (x2, y1), (x2, y2), (x1, y2)])
 
 # def plot_floor(rooms, ax):
 #     for room in rooms:
