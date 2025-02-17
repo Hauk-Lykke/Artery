@@ -59,10 +59,10 @@ class Building:
 #     return abs(x2 - x1) * abs(y2 - y1)
 
 
-def room_conforms(room, min_a, max_ratio):
-    """Checks if room area and aspect ratio are within limits."""
-    a = area(room)
-    return (min_a <= a) and aspect_ratio_ok(room, max_ratio)
+# def room_conforms(room, min_a, max_ratio):
+#     """Checks if room area and aspect ratio are within limits."""
+#     a = area(room)
+#     return (min_a <= a) and aspect_ratio_ok(room, max_ratio)
 
 def subdivide_room(room, direction):
     """

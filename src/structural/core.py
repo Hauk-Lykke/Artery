@@ -78,7 +78,7 @@ class Room:
 	def area(self) -> float:
 		return self._shapelyPoly.area
 
-	def aspect_ratio_ok(self, max_ratio) -> bool:
+	def aspectRatioOk(self, max_ratio) -> bool:
 		# self._shapelyPoly.
 		"""Checks if room's bounding box meets max aspect ratio."""
 		if not self.isRectangular:
@@ -91,4 +91,11 @@ class Room:
 		if min(width, length) == 0:
 			return False
 		return (max(width, length) / min(width, length)) <= max_ratio
+	
+	
+	def roomConformsToAspectRatio(self, min_aspect_ratio, max_aspect_ratio) -> bool:
+		"""Checks if room area and aspect ratio are within limits."""
+		return (min_aspect_ratio <= self.area()) and self.aspect_ratio_ok(self, max_aspect_ratio)
+	
+	
 
