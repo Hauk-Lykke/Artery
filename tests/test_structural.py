@@ -1,9 +1,6 @@
-import pytest
-from geometry import Point
 from structural.core import Room
 import shapely as sh
 from structural.floor_plan import FloorPlan
-from tests.conftest import room
 
 
 # @pytest.fixture

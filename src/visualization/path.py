@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import os
 from pathfinding import Pathfinder
-from structural.core import WallType
 from geometry import Point
-from structural.floor_plan import FloorPlan
 
 
 class PathfindingVisualizer:
@@ -81,9 +79,9 @@ class PathfindingVisualizer:
 		self.ax.plot(neighbor_pos.x, neighbor_pos.y, 'o', 
 					color=color, markersize=2)
 		
-		# Maintain visualization bounds
-		self.ax.set_xlim(self.ax._xlim)
-		self.ax.set_ylim(self.ax._ylim)
+		# # Maintain visualization bounds
+		# self.ax.set_xlim(self.ax._xlim)
+		# self.ax.set_ylim(self.ax._ylim)
 		
 		# Update the colorbar
 		self.ax._colorbar.update_normal(self.ax._cost_mapper)
@@ -126,50 +124,3 @@ def save_figure(ax, test_name: str):
 	ax.figure.savefig(filename)
 	print(f"Saved figure to {filename}")
 
-
-class FloorPlanVisualizer:
-	def _init_(self, floorPlan: FloorPlan, ax: plt.Axes):
-		self.floorPlan = floorPlan
-		self.ax = ax
-
-	def show(self):
-		# Add wall type legend
-		from matplotlib.lines import Line2D
-		legend_elements = [
-			Line2D([0], [0], color='k', label='Outer Wall', linewidth=2),
-			Line2D([0], [0], color='r', label='Concrete Wall', linewidth=2),
-			Line2D([0], [0], color='b', label='Regular Wall', linewidth=2),
-			Line2D([0], [0], color='none', marker='s', markerfacecolor='r', 
-				label='AHU', markersize=10),
-			Line2D([0], [0], color='none', marker='o', markerfacecolor='g', 
-				label='Room Center', markersize=5)
-		]
-		self.ax.legend(handles=legend_elements, loc='lower right')
-		
-		self.ax.set_title("Building Layout")
-		self.ax.axis('equal')
-		self.ax.grid(True)
-		self.update()
-
-	def update(self):
-		# Plot rooms
-		for wall in self.floor_plan.walls:
-				if wall.wallType == WallType.OUTER_WALL:
-					color = 'k'  # Black for outer walls
-				elif wall.wallType == WallType.CONCRETE:
-					color = 'r'  # Red for concrete walls
-				else:
-					color = 'b'  # Blue for regular walls
-				
-				self.ax.plot([wall.start.x, wall.end.x], 
-						[wall.start.y, wall.end.y], 
-						color=color, linewidth=2)
-		
-		# Plot AHU
-		if self.floor_plan.ahu is not None:
-			self.ax.plot(self.floor_plan.ahu.position.x, self.floor_plan.ahu.position.y, 'rs', markersize=10)
-		
-		# Plot room centers
-		for room in self.floor_plan.rooms:
-			self.ax.plot(room.center.x, room.center.y, 'go', markersize=5)
-		

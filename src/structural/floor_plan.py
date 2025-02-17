@@ -13,14 +13,14 @@ Planned changes:
 import random
 import os
 import matplotlib.pyplot as plt
-from shapely.geometry import Polygon
 from MEP import AirHandlingUnit
 from geometry import Point
 from structural.core import Room
+from visualization.path import FloorPlanVisualizer
 
 
 class FloorPlan:
-	def __init__(self, rooms: list[Room] = None, ahu: AirHandlingUnit = None):
+	def __init__(self, rooms: list[Room] = None, visualizer: FloorPlanVisualizer=None, ahu: AirHandlingUnit = None):
 		self.walls = set()
 		self.ahu = None  # Initialize as None by default
 		self.rooms = []
@@ -28,6 +28,7 @@ class FloorPlan:
 			self.addRooms(rooms)
 		if ahu is not None:
 			self.ahu = ahu
+		self._visualizer = visualizer
 
 	def addRoom(self, room):
 		self.rooms.append(room)
@@ -50,7 +51,7 @@ class FloorPlan:
 		return sum([room.area() for room in self.rooms])
 
 	def generate(self,width=25, length=25, base_rooms=3,random_rooms=5,
-					min_ratio=0.05, max_ratio=0.40, max_aspect_ratio=4.0, ax=None):
+					min_ratio=0.05, max_ratio=0.40, max_aspect_ratio=4.0):
 		"""
 		Generates rooms with random splits:
 		- Each room must meet area and aspect constraints (no discarding after).
@@ -93,6 +94,9 @@ class FloorPlan:
 
 		print (str(attempts) + " attempts in order to create " + str(desired_rooms) + " rooms")
 		self.updateWalls()
+
+		if self._visualizer is not None:
+			self._visualizer.update(self)
 		return
 
 
@@ -129,37 +133,39 @@ class Building:
 #     # Faded grid
 #     #ax.grid(color="gray", linestyle="--", linewidth=0.5, alpha=0.3)
 
-def main():
-    random.seed(42)
-    fig, axes = plt.subplots(2, 4, figsize=(16, 8))
+
+#----------------- Yet to be implemented -------------------------
+# def main():
+#     random.seed(42)
+#     fig, axes = plt.subplots(2, 4, figsize=(16, 8))
 
 
-    # Input parameters
-    width = 25          # Total story width
-    length = 25         # Total story heiht
-    base_rooms = 6      # The least possible number of rooms    
-    random_rooms = 3    # The upper limit of the aditional rooms. 
-    min_ratio = 0.05            
-    max_ratio = 0.4         
-    max_ar = 3          
+#     # Input parameters
+#     width = 25          # Total story width
+#     length = 25         # Total story heiht
+#     base_rooms = 6      # The least possible number of rooms    
+#     random_rooms = 3    # The upper limit of the aditional rooms. 
+#     min_ratio = 0.05            
+#     max_ratio = 0.4         
+#     max_ar = 3          
 
-    for i in range(2):
-        for j in range(4):
-            ax = axes[i][j]
-            rooms = generate_floor(width=width, length=length, base_rooms=base_rooms, random_rooms=random_rooms,
-                                   min_ratio=min_ratio, max_ratio=max_ratio, max_ar=max_ar)
-            columns = [(0, 0), (width, 0), (width, length), (0, length)]
-            for col in columns:
-                ax.plot(col[0], col[1], marker='s', color='crimson', markersize=4)
-            plot_floor(rooms, ax)
-            style_axes(ax)
-            ax.set_title(f"Floor plan {i*4 + j+1}", color="gray")
+#     for i in range(2):
+#         for j in range(4):
+#             ax = axes[i][j]
+#             rooms = generate_floor(width=width, length=length, base_rooms=base_rooms, random_rooms=random_rooms,
+#                                    min_ratio=min_ratio, max_ratio=max_ratio, max_ar=max_ar)
+#             columns = [(0, 0), (width, 0), (width, length), (0, length)]
+#             for col in columns:
+#                 ax.plot(col[0], col[1], marker='s', color='crimson', markersize=4)
+#             plot_floor(rooms, ax)
+#             style_axes(ax)
+#             ax.set_title(f"Floor plan {i*4 + j+1}", color="gray")
 
-    #plt.tight_layout()
-    fig.subplots_adjust(wspace=0.4, hspace=0.4)
-    os.makedirs("output", exist_ok=True)
-    plt.savefig("output/multiple_floors.png", dpi=200)
-    plt.close(fig)
+#     #plt.tight_layout()
+#     fig.subplots_adjust(wspace=0.4, hspace=0.4)
+#     os.makedirs("output", exist_ok=True)
+#     plt.savefig("output/multiple_floors.png", dpi=200)
+#     plt.close(fig)
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

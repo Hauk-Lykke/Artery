@@ -1,7 +1,7 @@
 import pytest
 from matplotlib import pyplot as plt
 from routing import Branch2D, Network
-from visualization import FloorPlanVisualizer, PathfindingVisualizer, visualize_layout, save_figure
+from visualization.path import FloorPlanVisualizer, PathfindingVisualizer, save_figure
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
