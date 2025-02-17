@@ -9,45 +9,6 @@ from geometry import Point
 from structural.floor_plan import FloorPlan
 
 
-def visualize_layout(floor_plan: FloorPlan, ax):
-	# Plot rooms
-	for wall in floor_plan.walls:
-			if wall.wallType == WallType.OUTER_WALL:
-				color = 'k'  # Black for outer walls
-			elif wall.wallType == WallType.CONCRETE:
-				color = 'r'  # Red for concrete walls
-			else:
-				color = 'b'  # Blue for regular walls
-			
-			ax.plot([wall.start.x, wall.end.x], 
-					[wall.start.y, wall.end.y], 
-					color=color, linewidth=2)
-	
-	# Plot AHU
-	if floor_plan.ahu is not None:
-		ax.plot(floor_plan.ahu.position.x, floor_plan.ahu.position.y, 'rs', markersize=10)
-	
-	# Plot room centers
-	for room in floor_plan.rooms:
-		ax.plot(room.center.x, room.center.y, 'go', markersize=5)
-	
-	# Add wall type legend
-	from matplotlib.lines import Line2D
-	legend_elements = [
-		Line2D([0], [0], color='k', label='Outer Wall', linewidth=2),
-		Line2D([0], [0], color='r', label='Concrete Wall', linewidth=2),
-		Line2D([0], [0], color='b', label='Regular Wall', linewidth=2),
-		Line2D([0], [0], color='none', marker='s', markerfacecolor='r', 
-			   label='AHU', markersize=10),
-		Line2D([0], [0], color='none', marker='o', markerfacecolor='g', 
-			   label='Room Center', markersize=5)
-	]
-	ax.legend(handles=legend_elements, loc='lower right')
-	
-	ax.set_title("Building Layout and Duct Routing")
-	ax.axis('equal')
-	ax.grid(True)
-
 class PathfindingVisualizer:
 	def __init__(self, pathfinder: Pathfinder, ax: plt.Axes, startTime: datetime):
 		"""Initialize visualizer with matplotlib axis"""
@@ -164,3 +125,51 @@ def save_figure(ax, test_name: str):
 	filename = f"{base_filename}_{counter}.png"
 	ax.figure.savefig(filename)
 	print(f"Saved figure to {filename}")
+
+
+class FloorPlanVisualizer:
+	def _init_(self, floorPlan: FloorPlan, ax: plt.Axes):
+		self.floorPlan = floorPlan
+		self.ax = ax
+
+	def show(self):
+		# Add wall type legend
+		from matplotlib.lines import Line2D
+		legend_elements = [
+			Line2D([0], [0], color='k', label='Outer Wall', linewidth=2),
+			Line2D([0], [0], color='r', label='Concrete Wall', linewidth=2),
+			Line2D([0], [0], color='b', label='Regular Wall', linewidth=2),
+			Line2D([0], [0], color='none', marker='s', markerfacecolor='r', 
+				label='AHU', markersize=10),
+			Line2D([0], [0], color='none', marker='o', markerfacecolor='g', 
+				label='Room Center', markersize=5)
+		]
+		self.ax.legend(handles=legend_elements, loc='lower right')
+		
+		self.ax.set_title("Building Layout")
+		self.ax.axis('equal')
+		self.ax.grid(True)
+		self.update()
+
+	def update(self):
+		# Plot rooms
+		for wall in self.floor_plan.walls:
+				if wall.wallType == WallType.OUTER_WALL:
+					color = 'k'  # Black for outer walls
+				elif wall.wallType == WallType.CONCRETE:
+					color = 'r'  # Red for concrete walls
+				else:
+					color = 'b'  # Blue for regular walls
+				
+				self.ax.plot([wall.start.x, wall.end.x], 
+						[wall.start.y, wall.end.y], 
+						color=color, linewidth=2)
+		
+		# Plot AHU
+		if self.floor_plan.ahu is not None:
+			self.ax.plot(self.floor_plan.ahu.position.x, self.floor_plan.ahu.position.y, 'rs', markersize=10)
+		
+		# Plot room centers
+		for room in self.floor_plan.rooms:
+			self.ax.plot(room.center.x, room.center.y, 'go', markersize=5)
+		
