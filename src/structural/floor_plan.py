@@ -16,19 +16,48 @@ import matplotlib.pyplot as plt
 
 from shapely.geometry import Polygon
 
-def area(room): #Integrate into floorplan class
-    """Returns area of a rectangular room (x1, y1, x2, y2)."""
-    (x1, y1, x2, y2) = room
-    return abs(x2 - x1) * abs(y2 - y1)
+from MEP import AirHandlingUnit
+from structural.core import Room
 
-def aspect_ratio_ok(room, max_ratio):
-    """Checks if room's bounding box meets max aspect ratio."""
-    (x1, y1, x2, y2) = room
-    w = abs(x2 - x1)
-    h = abs(y2 - y1)
-    if min(w, h) == 0:
-        return False
-    return (max(w, h) / min(w, h)) <= max_ratio
+
+class FloorPlan:
+	def __init__(self, rooms: list[Room] = None, ahu: AirHandlingUnit = None):
+		self.walls = set()
+		self.ahu = None  # Initialize as None by default
+		self.rooms = []
+		if rooms is not None:
+			self.addRooms(rooms)
+		if ahu is not None:
+			self.ahu = ahu
+
+	def addRoom(self, room):
+		self.rooms.append(room)
+		self.updateWalls()
+
+	def updateWalls(self):
+		# uniqueWalls = set()
+		for room in self.rooms:
+			for wall in room.walls:
+				reverse_wall = wall.reverse()
+				if wall not in self.walls and reverse_wall not in self.walls:
+					self.walls.add(wall)
+		# self.walls = list(self.walls) # Would be nice if walls were somehow ordered, but that's for later
+
+	def addRooms(self, rooms):
+		for room in rooms:
+			self.addRoom(room)
+
+class Building:
+		def __init__(self, floorPlans: list = [FloorPlan]):
+			self.floor_plans = floorPlans
+
+
+
+# def area(room): #Integrate into floorplan class
+#     """Returns area of a rectangular room (x1, y1, x2, y2)."""
+#     (x1, y1, x2, y2) = room
+#     return abs(x2 - x1) * abs(y2 - y1)
+
 
 def room_conforms(room, min_a, max_ratio):
     """Checks if room area and aspect ratio are within limits."""

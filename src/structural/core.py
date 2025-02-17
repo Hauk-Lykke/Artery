@@ -1,8 +1,6 @@
-from abc import abstractmethod
-from typing import List
-from core import Cost
-from geometry import Point, Line, Vector
-from MEP import AirHandlingUnit
+from geometry import Point, Line
+import math
+import shapely as sh
 
 
 class WallType:
@@ -44,6 +42,8 @@ class Room:
 		self._create_walls()
 		self.soundRating = 37 # Default sound rating in decibel
 		self.supplyAirDemand = 0
+		self._shapelyPoly = sh.geometry.Polygon([[p.x, p.y, p.z] for p in self.corners])
+		self.checkRectangular()
 	
 	def _create_walls(self):
 		self.walls = []
@@ -66,35 +66,29 @@ class Room:
 				inside = not inside
 			j = i
 		return inside
+	
+	def checkRectangular(self):
+		poly = self._shapelyPoly
+		if math.isclose(poly.minimum_rotated_rectangle.area, poly.area):
+			self.isRectangular = True
+		else:
+			self.isRectangular = False
 
-class FloorPlan:
-	def __init__(self, rooms: list[Room] = None, ahu: AirHandlingUnit = None):
-		self.walls = set()
-		self.ahu = None  # Initialize as None by default
-		self.rooms = []
-		if rooms is not None:
-			self.addRooms(rooms)
-		if ahu is not None:
-			self.ahu = ahu
 
-	def addRoom(self, room):
-		self.rooms.append(room)
-		self.updateWalls()
+	def area(self) -> float:
+		return self._shapelyPoly.area
 
-	def updateWalls(self):
-		# uniqueWalls = set()
-		for room in self.rooms:
-			for wall in room.walls:
-				reverse_wall = wall.reverse()
-				if wall not in self.walls and reverse_wall not in self.walls:
-					self.walls.add(wall)
-		# self.walls = list(self.walls) # Would be nice if walls were somehow ordered, but that's for later
-
-	def addRooms(self, rooms):
-		for room in rooms:
-			self.addRoom(room)
-
-class Building:
-		def __init__(self, floorPlans: list = [FloorPlan]):
-			self.floor_plans = floorPlans
+	def aspect_ratio_ok(self, max_ratio) -> bool:
+		# self._shapelyPoly.
+		"""Checks if room's bounding box meets max aspect ratio."""
+		if not self.isRectangular:
+			raise ValueError("Room is not rectangular, aspect ratio check of non-rectangular rooms not implemented")
+		# (x1, y1, x2, y2) = room
+		width = abs(self.corners[2].x-self.corners[0].x)
+		# w = abs(x2 - x1)
+		length = abs(self.corners[2].y-self.corners[0].y)
+		# h = abs(y2 - y1)
+		if min(width, length) == 0:
+			return False
+		return (max(width, length) / min(width, length)) <= max_ratio
 
