@@ -104,7 +104,7 @@ class Room:
 		Splits room randomly in 'vertical' or 'horizontal' direction.
 		Returns two new rooms if the split is valid, else None.
 		"""
-		if self.isRectangular:
+		if not self.isRectangular:
 			raise ValueError("Method not defined for non-rectangular rooms.")
 		
 		x0 = self.corners[0].x
