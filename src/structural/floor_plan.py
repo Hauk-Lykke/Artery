@@ -16,11 +16,11 @@ import matplotlib.pyplot as plt
 from MEP import AirHandlingUnit
 from geometry import Point
 from structural.core import Room
-from visualization.path import FloorPlanVisualizer
+from visualization.room import RoomVisualizer
 
 
 class FloorPlan:
-	def __init__(self, rooms: list[Room] = None, visualizer: FloorPlanVisualizer=None, ahu: AirHandlingUnit = None):
+	def __init__(self, rooms: list[Room] = None, ax: plt.Axes = None, ahu: AirHandlingUnit = None):
 		self.walls = set()
 		self.ahu = None  # Initialize as None by default
 		self.rooms = []
@@ -28,7 +28,10 @@ class FloorPlan:
 			self.addRooms(rooms)
 		if ahu is not None:
 			self.ahu = ahu
-		self._visualizer = visualizer
+		self._visualizer = None
+		if ax is not None:
+			self.ax = ax
+			self._visualizer = RoomVisualizer(ax, self.rooms)
 
 	def addRoom(self, room):
 		self.rooms.append(room)
@@ -41,6 +44,8 @@ class FloorPlan:
 				reverse_wall = wall.reverse()
 				if wall not in self.walls and reverse_wall not in self.walls:
 					self.walls.add(wall)
+		if self._visualizer is not None:
+			self._visualizer.update(self.rooms)
 		# self.walls = list(self.walls) # Would be nice if walls were somehow ordered, but that's for later
 
 	def addRooms(self, rooms):
@@ -94,9 +99,6 @@ class FloorPlan:
 
 		print (str(attempts) + " attempts in order to create " + str(desired_rooms) + " rooms")
 		self.updateWalls()
-
-		if self._visualizer is not None:
-			self._visualizer.update(self)
 		return
 
 

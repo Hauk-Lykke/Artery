@@ -111,10 +111,11 @@ class PathfindingVisualizer:
 			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')
 
 			
-def save_figure(ax, test_name: str):
+def save_figure(ax, prefix: str):
 	"""Save the current figure with test name and timestamp"""
 	date_str = datetime.now().strftime("%Y%m%d")
-	base_filename = f"results_mep/{test_name}_{date_str}"
+	# base_filename = f"results_mep/{test_name}_{date_str}"
+	base_filename = f"{prefix}_{date_str}"
 	
 	counter = 0
 	while os.path.exists(f"{base_filename}_{counter}.png"):
