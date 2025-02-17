@@ -1,5 +1,6 @@
 from geometry import Point, Line
 import math
+import random
 import shapely as sh
 
 
@@ -98,4 +99,40 @@ class Room:
 		return (min_aspect_ratio <= self.area()) and self.aspect_ratio_ok(self, max_aspect_ratio)
 	
 	
+	def subdivide(self, direction) -> tuple['Room']:
+		"""
+		Splits room randomly in 'vertical' or 'horizontal' direction.
+		Returns two new rooms if the split is valid, else None.
+		"""
+		if self.isRectangular:
+			raise ValueError("Method not defined for non-rectangular rooms.")
+		
+		x0 = self.corners[0].x
+		y0 = self.corners[0].y
+		x1 = self.corners[2].x
+		y1 = self.corners[2].y
+		width = abs(x1 - x0)
+		length = abs(y1 - y0)
+
+		# If too small, skip
+		if width < 3 or length < 3:
+			return None
+
+		if direction == 'vertical':
+			# Split x between x1+1 and x2-1
+			split_x = random.randint(x0 + 1, x1 - 1)
+			# room0 = (x0, y0, split_x, y1)
+			room0 = Room([Point(x0, y0),Point(split_x,y0),Point(split_x,y1),Point(x0,y1)])
+			# room1 = (split_x, y0, x1, y1)
+			room1 = Room([Point(split_x, y0),Point(x1,y0),Point(x1,y1),Point(split_x,y1)])
+			return (room0, room1)
+		else:
+			# Split y between y1+1 and y2-1
+			split_y = random.randint(y0 + 1, y1 - 1)
+			# room0 = (x0, y0, x1, split_y)
+			# room1 = (x0, split_y, x1, y1)
+			room0 = Room([Point(x0, y0),Point(x1,y0),Point(x1,split_y),Point(x0,split_y)])
+			room1 = Room([Point(x0, split_y),Point(x1,split_y),Point(x1,y1),Point(x0,y1)])
+			return (room0, room1)
+
 

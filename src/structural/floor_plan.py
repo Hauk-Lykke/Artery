@@ -64,31 +64,31 @@ class Building:
 #     a = area(room)
 #     return (min_a <= a) and aspect_ratio_ok(room, max_ratio)
 
-def subdivide_room(room, direction):
-    """
-    Splits room randomly in 'vertical' or 'horizontal' direction.
-    Returns two new rooms if the split is valid, else None.
-    """
-    (x1, y1, x2, y2) = room
-    w = abs(x2 - x1)
-    h = abs(y2 - y1)
+# def subdivide_room(room, direction):
+#     """
+#     Splits room randomly in 'vertical' or 'horizontal' direction.
+#     Returns two new rooms if the split is valid, else None.
+#     """
+#     (x1, y1, x2, y2) = room
+#     w = abs(x2 - x1)
+#     h = abs(y2 - y1)
 
-    # If too small, skip
-    if w < 3 or h < 3:
-        return None
+#     # If too small, skip
+#     if w < 3 or h < 3:
+#         return None
 
-    if direction == 'vertical':
-        # Split x between x1+1 and x2-1
-        split_x = random.randint(x1 + 1, x2 - 1)
-        r1 = (x1, y1, split_x, y2)
-        r2 = (split_x, y1, x2, y2)
-        return (r1, r2)
-    else:
-        # Split y between y1+1 and y2-1
-        split_y = random.randint(y1 + 1, y2 - 1)
-        r1 = (x1, y1, x2, split_y)
-        r2 = (x1, split_y, x2, y2)
-        return (r1, r2)
+#     if direction == 'vertical':
+#         # Split x between x1+1 and x2-1
+#         split_x = random.randint(x1 + 1, x2 - 1)
+#         r1 = (x1, y1, split_x, y2)
+#         r2 = (split_x, y1, x2, y2)
+#         return (r1, r2)
+#     else:
+#         # Split y between y1+1 and y2-1
+#         split_y = random.randint(y1 + 1, y2 - 1)
+#         r1 = (x1, y1, x2, split_y)
+#         r2 = (x1, split_y, x2, y2)
+#         return (r1, r2)
 
 def generate_floor(width=25, length=25, base_rooms=3,random_rooms=5,
                    min_ratio=0.05, max_ratio=0.40, max_ar=4.0):
@@ -136,34 +136,35 @@ def generate_floor(width=25, length=25, base_rooms=3,random_rooms=5,
     return rooms
 
 
-def room_to_polygon(room):
-    x1, y1, x2, y2 = room
-    return Polygon([(x1, y1), (x2, y1), (x2, y2), (x1, y2)])
+# def room_to_polygon(room):
+#     x1, y1, x2, y2 = room
+#     return Polygon([(x1, y1), (x2, y1), (x2, y2), (x1, y2)])
 
-def plot_floor(rooms, ax):
-    for room in rooms:
-        poly = room_to_polygon(room)
-        x, y = poly.exterior.xy
-        ax.plot(x, y, color="black")
+# def plot_floor(rooms, ax):
+#     for room in rooms:
+#         poly = room_to_polygon(room)
+#         x, y = poly.exterior.xy
+#         ax.plot(x, y, color="black")
 
-def style_axes(ax):
-    # Make spines gray
-    for spine in ax.spines.values():
-        spine.set_color("gray")
-        spine.set_bounds([0,25])
-    ax.spines.right.set_visible(False)
-    ax.spines.top.set_visible(False)
-    # Make ticks gray
-    ax.tick_params(axis='x', colors='gray')
-    ax.tick_params(axis='y', colors='gray')
-    # Create a 5x5 grid
-    ax.set_xticks(range(0, 26, 5))
-    ax.set_yticks(range(0, 26, 5))
-    ax.set_xlim(-1, 26)
-    ax.set_ylim(-1, 26)
-    ax.set_aspect("equal", "box")
-    # Faded grid
-    #ax.grid(color="gray", linestyle="--", linewidth=0.5, alpha=0.3)
+# def style_axes(ax):
+#     # Covered in visualization.py
+#     # Make spines gray
+#     for spine in ax.spines.values():
+#         spine.set_color("gray")
+#         spine.set_bounds([0,25])
+#     ax.spines.right.set_visible(False)
+#     ax.spines.top.set_visible(False)
+#     # Make ticks gray
+#     ax.tick_params(axis='x', colors='gray')
+#     ax.tick_params(axis='y', colors='gray')
+#     # Create a 5x5 grid
+#     ax.set_xticks(range(0, 26, 5))
+#     ax.set_yticks(range(0, 26, 5))
+#     ax.set_xlim(-1, 26)
+#     ax.set_ylim(-1, 26)
+#     ax.set_aspect("equal", "box")
+#     # Faded grid
+#     #ax.grid(color="gray", linestyle="--", linewidth=0.5, alpha=0.3)
 
 def main():
     random.seed(42)
