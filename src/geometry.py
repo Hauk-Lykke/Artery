@@ -1,11 +1,7 @@
 import numpy as np
-from typing import Tuple, Union, List
+from typing import Tuple, Union
 from math import pi, sqrt, acos
 import shapely as sh
-from shapely.ops import nearest_points
-from shapely import affinity
-from shapely.geometry import Point as ShapelyPoint
-import string
 
 class XYZ:
 	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):

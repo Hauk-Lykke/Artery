@@ -1,4 +1,3 @@
-from core import Node
 from geometry import Point
 
 

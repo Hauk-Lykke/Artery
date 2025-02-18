@@ -4,7 +4,7 @@ from core import Node
 import matplotlib.pyplot as plt
 from structural.core import Room
 from pathfinding import Pathfinder
-from geometry import Line, Point, Vector
+from geometry import Line, Point
 from structural.floor_plan import FloorPlan
 from visualization.path import PathfindingVisualizer
 
