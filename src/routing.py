@@ -2,10 +2,11 @@ from datetime import datetime
 from typing import List, Tuple, Union
 from core import Node
 import matplotlib.pyplot as plt
-from structural import FloorPlan, Room
+from structural.core import Room
 from pathfinding import Pathfinder
 from geometry import Line, Point, Vector
-from visualization import PathfindingVisualizer
+from structural.floor_plan import FloorPlan
+from visualization.path import PathfindingVisualizer
 
 class Path:
 	'''Class for storing Mechanical, Electrical and Plumbing routes. Each bend/fitting is a node.'''
@@ -161,7 +162,7 @@ class Network:
 			# sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax, self.startTime)
 			sub_branch = Branch2D(self.floorPlan, new_node, destination,self.ax, self.startTime)
 			sub_branch.generate()
-			from visualization import save_figure
+			from visualization.path import save_figure
 			# if self.ax is not None:
 			# 	save_figure(self.ax,"test_network")
 			self.mainBranch.sub_branches.append(sub_branch)

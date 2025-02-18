@@ -1,7 +1,8 @@
 from geometry import Point
-from structural import Room, FloorPlan
+from structural.core import Room
 from MEP import AirHandlingUnit
 from routing import Branch2D, Network
+from structural.floor_plan import FloorPlan
 
 class TestRouting:	
 	def test_fixture(self,simple_fixture):

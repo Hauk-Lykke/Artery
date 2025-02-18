@@ -1,6 +1,8 @@
 import pytest
-from structural import FloorPlan, WallType
-from tests.conftest import room_plan_11_rooms_random_concrete_fixture
+from geometry import Point
+from structural.core import Wall, WallType
+from structural.floor_plan import FloorPlan
+
 
 class TestRandomConcreteFixture:
 	def test_returns_floor_plan(self, room_plan_11_rooms_random_concrete_fixture):

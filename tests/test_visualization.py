@@ -1,7 +1,9 @@
+from datetime import datetime
 import pytest
 from matplotlib import pyplot as plt
 from routing import Branch2D, Network
-from visualization import PathfindingVisualizer, visualize_layout, save_figure
+from visualization.room import RoomVisualizer
+from visualization.path import PathfindingVisualizer, save_figure
 
 @pytest.fixture(autouse=True)
 def mpl_test_settings():
@@ -15,7 +17,9 @@ class TestVisualization:
 	@pytest.mark.usefixtures("simple_floor_plan_fixture")
 	def test_display_floor_plan(self,simple_floor_plan_fixture):
 		fig, ax = plt.subplots()
-		visualize_layout(simple_floor_plan_fixture,ax)
+		visualizer = RoomVisualizer(simple_floor_plan_fixture.rooms,ax)
+		simple_floor_plan_fixture._visualizer = visualizer
+		simple_floor_plan_fixture._visualizer.show()
 		plt.show(block=True)
 		assert fig
 		assert ax
@@ -23,18 +27,23 @@ class TestVisualization:
 	@pytest.mark.usefixtures("room_plan_11_rooms_random_concrete_fixture")
 	def test_display_11_room_floor_plan(self, room_plan_11_rooms_random_concrete_fixture):
 		fig, ax = plt.subplots()
-		visualize_layout(room_plan_11_rooms_random_concrete_fixture,ax)
+		visualizer = RoomVisualizer(room_plan_11_rooms_random_concrete_fixture.rooms,ax)
+		room_plan_11_rooms_random_concrete_fixture._visualizer = visualizer
+		room_plan_11_rooms_random_concrete_fixture._visualizer.show()
 		plt.show(block=True)
 		assert fig
 		assert ax
 
+
 	@pytest.mark.usefixtures("simple_floor_plan_fixture")
 	def test_visualization_updates(self,simple_floor_plan_fixture):
 		floor_plan = simple_floor_plan_fixture
-		start = simple_floor_plan_fixture.rooms[0].center
+		start = floor_plan.rooms[0].center
 		fig, ax = plt.subplots()
-		visualize_layout(simple_floor_plan_fixture, ax)
-		branch = Branch2D(floor_plan,start,ax=ax)
+		visualizer = RoomVisualizer(simple_floor_plan_fixture.rooms, ax)
+		floor_plan._visualizer = visualizer
+		floor_plan._visualizer.show()
+		branch = Branch2D(floor_plan,start,floor_plan.rooms[2].center, ax,datetime.now())
 		branch.generate()
 		plt.show(block=True)		
 		# Save figure if test_name is provided
@@ -46,20 +55,25 @@ class TestVisualization:
 	def test_visualization_multiple_branches(self,simple_floor_plan_fixture):
 		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
-		visualize_layout(simple_floor_plan_fixture, ax)
+		visualizer = RoomVisualizer(simple_floor_plan_fixture.rooms, ax)
+		simple_floor_plan_fixture._visualizer = visualizer
+		simple_floor_plan_fixture._visualizer.show()
 		mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
-		indexBranch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center, ax)
+		indexBranch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center, ax, datetime.now())
 		indexBranch.generate()
-		closestNode = indexBranch.getClosestNode(simple_floor_plan_fixture.rooms[2].center)
-		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, simple_floor_plan_fixture.rooms[3].center,ax)
+		(closestNode,_) = indexBranch.getClosestNodePair(simple_floor_plan_fixture.rooms[2].center)
+		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, simple_floor_plan_fixture.rooms[3].center,ax, datetime.now())
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
 		plt.show(block=True)
 
+	@pytest.mark.usefixtures("simple_floor_plan_fixture")
 	def test_vizualisation_network(self,simple_floor_plan_fixture):
 		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
-		visualize_layout(simple_floor_plan_fixture, ax)
+		simple_floor_plan_fixture.ax = ax
+		simple_floor_plan_fixture._visualizer = RoomVisualizer(simple_floor_plan_fixture.rooms, ax)
+		simple_floor_plan_fixture._visualizer.show()
 		network = Network(simple_floor_plan_fixture,start,ax)
 		network.generate()
 		save_figure(ax,"test_network")
