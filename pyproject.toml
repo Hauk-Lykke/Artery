@@ -1,16 +1,17 @@
 [project]
 name = "artery"
 version = "0.1.0"
-description = "Automatic drafting of duct and piping routings and column placement in buildings."
-requires-python = ">=3.8"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
 dependencies = [
-    "numpy",
-    "scipy",
+    "matplotlib>=3.10.0",
+    "numpy>=2.2.3",
+    "scipy>=1.15.2",
+    "shapely>=2.0.7",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "black",
-    "isort",
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.4",
 ]
