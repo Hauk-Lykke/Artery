@@ -87,7 +87,7 @@ def test_floor_plan_walls():
 		assert isinstance(wall, Wall)
 
 
-def test_room_creation(self, complex_floor_plan_fixture):
+def test_room_creation(complex_floor_plan_fixture):
 	"""Test that all rooms are created with correct attributes."""
 	for room in complex_floor_plan_fixture.rooms:
 		assert isinstance(room, Room)
