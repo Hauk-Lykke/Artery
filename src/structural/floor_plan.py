@@ -11,7 +11,6 @@ Planned changes:
 """
 
 import random
-import os
 import matplotlib.pyplot as plt
 from MEP import AirHandlingUnit
 from geometry import Point
@@ -24,14 +23,15 @@ class FloorPlan:
 		self.walls = set()
 		self.ahu = None  # Initialize as None by default
 		self.rooms = []
-		if rooms is not None:
-			self.addRooms(rooms)
-		if ahu is not None:
-			self.ahu = ahu
 		self._visualizer = None
 		if ax is not None:
 			self.ax = ax
 			self._visualizer = RoomVisualizer(ax, self.rooms)
+		if rooms is not None:
+			self.addRooms(rooms)
+		if ahu is not None:
+			self.ahu = ahu
+		
 
 	def addRoom(self, room):
 		self.rooms.append(room)
