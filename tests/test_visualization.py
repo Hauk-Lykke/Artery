@@ -1,3 +1,4 @@
+from datetime import datetime
 import pytest
 from matplotlib import pyplot as plt
 from routing import Branch2D, Network
@@ -62,12 +63,13 @@ class TestVisualization:
 		assert len(sub_branch) >= 2
 		plt.show(block=True)
 
+	@pytest.mark.usefixtures("simple_floor_plan_fixture")
 	def test_vizualisation_network(self,simple_floor_plan_fixture):
 		start = simple_floor_plan_fixture.rooms[0].center
 		fig, ax = plt.subplots()
-		# visualize_layout(simple_floor_plan_fixture, ax)
-		# visualizer = FloorPlanVisualizer(ax)
-		# visualizer.show()
+		simple_floor_plan_fixture.ax = ax
+		simple_floor_plan_fixture._visualizer = RoomVisualizer(ax, rooms = simple_floor_plan_fixture.rooms)
+		simple_floor_plan_fixture._visualizer.show()
 		network = Network(simple_floor_plan_fixture,start,ax)
 		network.generate()
 		save_figure(ax,"test_network")
