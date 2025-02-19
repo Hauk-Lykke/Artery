@@ -53,28 +53,31 @@ class TestVisualization:
 		assert isinstance(fig, plt.Figure)
 		
 	def test_visualization_multiple_branches(self,simple_floor_plan_fixture):
-		start = simple_floor_plan_fixture.rooms[0].center
+		floorPlan = simple_floor_plan_fixture
+		start = floorPlan.rooms[0].center
 		fig, ax = plt.subplots()
-		visualizer = RoomVisualizer(simple_floor_plan_fixture.rooms, ax)
-		simple_floor_plan_fixture._visualizer = visualizer
-		simple_floor_plan_fixture._visualizer.show()
+		floorPlan.ax = ax # Connect the floorplan with a figure axes pair
+		floorPlan.updateWalls()		# Updating walls in a floorPlan that is connected to a figure also updates the display of walls
 		mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
 		indexBranch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center, ax, datetime.now())
 		indexBranch.generate()
-		(closestNode,_) = indexBranch.getClosestNodePair(simple_floor_plan_fixture.rooms[2].center)
-		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, simple_floor_plan_fixture.rooms[3].center,ax, datetime.now())
+		remainingRooms = set(floorPlan.rooms)
+		remainingRooms.remove(floorPlan.rooms[0])
+		remainingRooms.remove(mostDistantRoom)
+		nextRoom = remainingRooms.pop()
+		closestNode = indexBranch.getClosestNode(nextRoom.center)
+		sub_branch = Branch2D(simple_floor_plan_fixture,closestNode, nextRoom.center,ax, datetime.now())
 		sub_branch.generate()
 		assert len(sub_branch) >= 2
 		plt.show(block=True)
 
-	@pytest.mark.usefixtures("simple_floor_plan_fixture")
 	def test_vizualisation_network(self,simple_floor_plan_fixture):
-		start = simple_floor_plan_fixture.rooms[0].center
+		floorPlan = simple_floor_plan_fixture
+		start = floorPlan.rooms[0].center
 		fig, ax = plt.subplots()
-		simple_floor_plan_fixture.ax = ax
-		simple_floor_plan_fixture._visualizer = RoomVisualizer(simple_floor_plan_fixture.rooms, ax)
-		simple_floor_plan_fixture._visualizer.show()
-		network = Network(simple_floor_plan_fixture,start,ax)
+		floorPlan.ax = ax # Connect the floorplan with a figure axes pair
+		floorPlan.updateWalls()		# Updating walls in a floorPlan that is connected to a figure also updates the display of walls
+		network = Network2D(simple_floor_plan_fixture,start,ax)
 		network.generate()
 		save_figure(ax,"test_network")
 		assert(isinstance(network.mainBranch, Branch2D))

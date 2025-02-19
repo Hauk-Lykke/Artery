@@ -27,7 +27,7 @@ class TestRouting:
 			Room([Point(10, 10), Point(12, 10), Point(12, 12), Point(10, 12)])
 		]
 		ahu = AirHandlingUnit(position=Point(6, 6))
-		floor_plan = FloorPlan(rooms, ahu)
+		floor_plan = FloorPlan(rooms,None, ahu)
 		start = ahu.position
 		mostDistantRoom = max(floor_plan.rooms, key=lambda room: room.center.distanceTo(start))
 		branch = Branch2D(floor_plan,start,mostDistantRoom.center)

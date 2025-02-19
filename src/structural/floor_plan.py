@@ -28,6 +28,8 @@ class FloorPlan:
 			self.ax = ax
 			if len(self.rooms):
 				self._visualizer = RoomVisualizer(self.rooms, ax)
+		else:
+			self.ax = None
 		if rooms is not None:
 			self.addRooms(rooms)
 		if ahu is not None:
