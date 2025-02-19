@@ -1,7 +1,7 @@
 from datetime import datetime
 import pytest
 from matplotlib import pyplot as plt
-from routing import Branch2D, Network
+from routing import Branch2D, Network2D
 from visualization.room import RoomVisualizer
 from visualization.path import PathfindingVisualizer, save_figure
 

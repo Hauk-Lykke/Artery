@@ -61,7 +61,7 @@ class Test11Rooms:
 		visualizer = RoomVisualizer(floorPlan.rooms, ax)
 		floorPlan._visualizer = visualizer
 		floorPlan._visualizer.show()
-		network = routing.Network(floorPlan, start, ax)
+		network = routing.Network2D(floorPlan, start, ax)
 		network.generate()
 		save_figure(ax, "integration_test_11-room-layout")
 		assert(isinstance(network.mainBranch, routing.Branch2D))
@@ -79,7 +79,7 @@ class Test11Rooms:
 		visualizer = RoomVisualizer(floorPlan.rooms, ax)
 		floorPlan._visualizer = visualizer
 		floorPlan._visualizer.show()
-		network = routing.Network(floorPlan, start, ax)
+		network = routing.Network2D(floorPlan, start, ax)
 		network.generate()
 		save_figure(ax, "First concrete wall attempt")
 		assert(isinstance(network.mainBranch, routing.Branch2D))

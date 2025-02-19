@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from datetime import datetime
 from typing import List, Tuple, Union
 from core import Node
@@ -125,10 +126,9 @@ class Branch2D(Branch):
 
 	# def simplify(self):
 	# 	'''A method that first removes nodes that are redundant()'''
-		
 
 class Network:
-	def __init__(self, floorPlan: FloorPlan, startPoint: Point, ax: plt.Axes=None):
+	def __init__(self, floorPlan: FloorPlan, startPoint: Point):
 		if startPoint is None:
 			raise ValueError("startPoint must be provided")
 		else:
@@ -137,7 +137,6 @@ class Network:
 			else:
 				raise ValueError("Startpoint must be a Point")
 		self.floorPlan = floorPlan
-		self.ax = ax # Axes handle to a figure. Visualization will only occur if present
 		self.nodes = [] # All nodes in all branches
 		self.open_room_set = set(self.floorPlan.rooms) # Rooms remaining
 		self.closed_room_set = set() # Rooms that have a supply
@@ -146,29 +145,7 @@ class Network:
 		self.closed_room_set.add(self.sourceRoom)
 		self.CLEARANCE_TO_FITTINGS = 0.1
 
-	def generate(self):
-		self.startTime = datetime.now()
-		destination = self.findMostDistantRoom(self.startPoint).center
-		self.mainBranch = Branch2D(self.floorPlan, self.startPoint, destination,self.ax, self.startTime)
-		self.branches = [self.mainBranch] # All existing branches in the network
-		self.mainBranch.generate()
-		self.nodes.extend(self.mainBranch.nodes)
-		while self.open_room_set:
-			room = self.open_room_set.pop()
-			destination = room.center
-			# node0,node1 = self.mainBranch.findClosestNodePair(destination)
-			new_node = self.generateClosestNode(destination)
-			# closestNode = self.getClosestNode(destination)
-			# sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax, self.startTime)
-			sub_branch = Branch2D(self.floorPlan, new_node, destination,self.ax, self.startTime)
-			sub_branch.generate()
-			from visualization.path import save_figure
-			# if self.ax is not None:
-			# 	save_figure(self.ax,"test_network")
-			self.mainBranch.sub_branches.append(sub_branch)
-			self.branches.append(sub_branch)
-			self.nodes.extend(sub_branch.nodes)
-
+	
 	def getSourceRoom(self) -> Union[Room, None]:
 		"""Find and return the room containing the starting node."""
 		for room in self.floorPlan.rooms:
@@ -234,3 +211,35 @@ class Network:
 			
 		# Fallback to closest existing node if no segments found
 		return self.getClosestNode(point)
+	
+	@abstractmethod
+	def generate(self):
+		pass
+
+class Network2D(Network):
+	def __init__(self, floorPlan: FloorPlan, startPoint: Point, ax: plt.Axes=None):
+		super().__init__(floorPlan, startPoint)
+		self.ax = ax # Axes handle to a figure. Visualization will only occur if present
+
+	def generate(self):
+		self.startTime = datetime.now()
+		destination = self.findMostDistantRoom(self.startPoint).center
+		self.mainBranch = Branch2D(self.floorPlan, self.startPoint, destination,self.ax, self.startTime)
+		self.branches = [self.mainBranch] # All existing branches in the network
+		self.mainBranch.generate()
+		self.nodes.extend(self.mainBranch.nodes)
+		while self.open_room_set:
+			room = self.open_room_set.pop()
+			destination = room.center
+			# node0,node1 = self.mainBranch.findClosestNodePair(destination)
+			new_node = self.generateClosestNode(destination)
+			# closestNode = self.getClosestNode(destination)
+			# sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax, self.startTime)
+			sub_branch = Branch2D(self.floorPlan, new_node, destination,self.ax, self.startTime)
+			sub_branch.generate()
+			from visualization.path import save_figure
+			# if self.ax is not None:
+			# 	save_figure(self.ax,"test_network")
+			self.mainBranch.sub_branches.append(sub_branch)
+			self.branches.append(sub_branch)
+			self.nodes.extend(sub_branch.nodes)

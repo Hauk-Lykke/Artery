@@ -1,7 +1,7 @@
 from geometry import Point
 from structural.core import Room
 from MEP.components import AirHandlingUnit
-from routing import Branch2D, Network
+from routing import Branch2D, Network2D
 from structural.floor_plan import FloorPlan
 
 class TestRouting:	
@@ -37,7 +37,7 @@ class TestRouting:
 	def test_network(self,simple_floor_plan_fixture):
 		start = simple_floor_plan_fixture.rooms[0].center
 		# mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
-		network = Network(simple_floor_plan_fixture,start)
+		network = Network2D(simple_floor_plan_fixture,start)
 		network.generate()
 		assert(isinstance(network.mainBranch, Branch2D))
 		assert(isinstance(network.branches, list))
