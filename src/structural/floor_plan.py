@@ -26,7 +26,8 @@ class FloorPlan:
 		self._visualizer = None
 		if ax is not None:
 			self.ax = ax
-			self._visualizer = RoomVisualizer(ax, self.rooms)
+			if len(self.rooms):
+				self._visualizer = RoomVisualizer(self.rooms, ax)
 		if rooms is not None:
 			self.addRooms(rooms)
 		if ahu is not None:
@@ -45,7 +46,12 @@ class FloorPlan:
 				if wall not in self.walls and reverse_wall not in self.walls:
 					self.walls.add(wall)
 		if self._visualizer is not None:
-			self._visualizer.update(self.rooms)
+			self._visualizer.update()
+		else:
+			if self.ax:
+				self._visualizer = RoomVisualizer(self.rooms, self.ax)
+				# self._visualizer.update(self.rooms)
+				self._visualizer.update()
 		# self.walls = list(self.walls) # Would be nice if walls were somehow ordered, but that's for later
 
 	def addRooms(self, rooms):

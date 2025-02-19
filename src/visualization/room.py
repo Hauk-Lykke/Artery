@@ -6,8 +6,15 @@ from structural.core import Room, WallType
 
 class RoomVisualizer:
 	def __init__(self, rooms: list[Room], ax: plt.Axes):
-		self.ax = ax
-		self.rooms = rooms
+		if isinstance(rooms, list) and isinstance(rooms[0], Room):
+			self.rooms = rooms
+		else:
+			raise ValueError("rooms must be a list of Room")
+		if isinstance(ax, plt.Axes):
+			self.ax = ax
+		else:
+			raise ValueError("ax must be pyplot.Axes")
+		
 
 	def show(self):
 		# Add wall type legend
