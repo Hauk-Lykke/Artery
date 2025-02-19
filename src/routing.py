@@ -33,7 +33,6 @@ class Path:
 			self.nodes = [self.startNode]
 		self.endNode = None
 		self.cost = self.nodes[-1].g_cost
-		self.goal = None
 		self._segments = None
 	
 	def maxCost(self) -> float:
@@ -79,7 +78,11 @@ class Path:
 		nodes = self.nodes.copy()
 		nodes.sort(key=lambda x: x.position.distanceTo(point))
 		if len(nodes)>1:
-			return (nodes[0],nodes[1])	
+			# Ensure that the two closest nodes are actually adjacent. If not, send the closest node and the one next to it.
+			if nodes[0].parentNode == nodes[1] or nodes[1].parentNode == nodes[0]:
+				return (nodes[0],nodes[1])	
+			else:
+				return (nodes[0], nodes[0].parentNode)
 		else:
 			return (nodes[0])
 
@@ -88,6 +91,22 @@ class Path:
 			if node.position == point:
 				return node
 		raise ValueError("No node at given position.")
+	
+	def getClosestNode(self, point: Point) -> Node:
+		"""Find and return the closest Node to the given point.
+		
+		Args:
+			point (Point): Target point to find closest node to
+			
+		Returns:
+			Node: The closest node from the network
+			
+		Raises:
+			ValueError: If no nodes exist in the network
+		"""
+		if not self.nodes:
+			raise ValueError("No nodes available in network")
+		return min(self.nodes, key=lambda node: node.position.distanceTo(point))
 
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):
@@ -176,33 +195,38 @@ class Network:
 		Raises:
 			ValueError: If no nodes exist in the network
 		"""
+
 		if not self.nodes:
 			raise ValueError("No nodes available in network")
-		return min(self.nodes, key=lambda node: node.position.distanceTo(point))
+		closestNode = min(self.nodes, key=lambda node: node.position.distanceTo(point))
+		closestNodes = self.mainBranch.getClosestNodePair(point)
+		
+		if isinstance(closestNodes, Node): # Short branch
+			return closestNode
+		elif len(closestNodes)==2:
+			if closestNode.distanceTo(point) == closestNodes[1].distanceTo(point): # If two points are equally close, just return the closest one.
+				return closestNode
+		return self.generateClosestNode(point)
 	
 	def generateClosestNode(self, point: Point) -> Node:
 		"""Find closest point on any path segment and create new node there."""
+		closestNodes = self.mainBranch.getClosestNodePair(point)
 		closest_projection = None
 		
-		
 		# Get closest node pair in this branch
-		nodes = self.mainBranch.getClosestNodePair(point)
-		if isinstance(nodes, Node): # Short branch
-			return self.getClosestNode(nodes.position)
-		elif len(nodes)==2:
-			try:
-				node1, node2 = nodes
-				line = Line(node1.position, node2.position)
-				# Project point onto line segment
-				projected = line.interpolate(point)
-				dist = point.distanceTo(projected)
-				min_distance = dist
-				closest_projection = (node1, node2, projected)
-					
-			except ValueError:
-				# Fallback to closest existing node if no segments found
-				return self.getClosestNode(point)
-			
+		try:
+			node1, node2 = closestNodes # If not, interpolate and make a new one.
+			line = Line(node1.position, node2.position)
+			# Project point onto line segment
+			projected = line.interpolate(point)
+			dist = point.distanceTo(projected)
+			min_distance = dist
+			closest_projection = (node1, node2, projected)
+				
+		except ValueError:
+			# Fallback to closest existing node if no segments found
+			return self.getClosestNode(point)
+		
 		if closest_projection:
 			node1, node2, projected = closest_projection
 			# Create and insert new node at projection point
@@ -232,7 +256,7 @@ class Network2D(Network):
 			room = self.open_room_set.pop()
 			destination = room.center
 			# node0,node1 = self.mainBranch.findClosestNodePair(destination)
-			new_node = self.generateClosestNode(destination)
+			new_node = self.getClosestNode(destination)
 			# closestNode = self.getClosestNode(destination)
 			# sub_branch = Branch2D(self.floorPlan, closestNode, destination,self.ax, self.startTime)
 			sub_branch = Branch2D(self.floorPlan, new_node, destination,self.ax, self.startTime)
