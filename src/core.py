@@ -15,7 +15,10 @@ class Node:
 		f (float): Total cost (g_cost + h) used for path evaluation
 	"""
 	def __init__(self, position: Point, parentNode=None):
-		self.position = position
+		if isinstance(position, Point):
+			self.position = position
+		else:
+			raise ValueError("First argument must be a Point.")
 		self.parentNode = parentNode
 		if parentNode is not None:
 			if parentNode.parentBranch is not None:
@@ -24,12 +27,20 @@ class Node:
 				self.parentBranch = None
 		else:
 			self.parentBranch = None
+		
 		self.g_cost = 0
 		self.h = 0
 		self.f = 0
 
 	def __lt__(self, other):
 		return self.f < other.f
+	
+	def __repr__(self) -> str:
+		output = ("Node({},{},{})").format(self.x,self.y,self.z)
+		return output
+
+	def distanceTo(self,geometry) -> float:
+		return self.position.distanceTo(geometry)
 
 class Cost(ABC):
 	@abstractmethod

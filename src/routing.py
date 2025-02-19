@@ -76,7 +76,7 @@ class Path:
 
 	def getClosestNodePair(self,point: Point) -> Tuple[Point]:
 		nodes = self.nodes.copy()
-		nodes.sort(key=lambda x: x.position.distanceTo(point))
+		nodes.sort(key=lambda x: x.distanceTo(point))
 		if len(nodes)>1:
 			# Ensure that the two closest nodes are actually adjacent. If not, send the closest node and the one next to it.
 			if nodes[0].parentNode == nodes[1] or nodes[1].parentNode == nodes[0]:
@@ -106,7 +106,7 @@ class Path:
 		"""
 		if not self.nodes:
 			raise ValueError("No nodes available in network")
-		return min(self.nodes, key=lambda node: node.position.distanceTo(point))
+		return min(self.nodes, key=lambda node: node.distanceTo(point))
 
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):
@@ -198,7 +198,7 @@ class Network:
 
 		if not self.nodes:
 			raise ValueError("No nodes available in network")
-		closestNode = min(self.nodes, key=lambda node: node.position.distanceTo(point))
+		closestNode = min(self.nodes, key=lambda node: node.distanceTo(point))
 		closestNodes = self.mainBranch.getClosestNodePair(point)
 		
 		if isinstance(closestNodes, Node): # Short branch
