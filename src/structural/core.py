@@ -10,19 +10,19 @@ class WallType:
 	CONCRETE = 2
 	OUTER_WALL = 3
 
-class Wall(Line):
+class Wall2D(Line):
 	def __init__(self, start: Point, end: Point, wallType: WallType = WallType.DRYWALL):
 		super().__init__(start,end)
 		self.wallType = wallType
 		self.line = Line(start,end)
 
-	def reverse(self) -> 'Wall':
+	def reverse(self) -> 'Wall2D':
 		"""Switch places of start and end points"""
-		return Wall(self.end, self.start)
+		return Wall2D(self.end, self.start)
 	
 	def __eq__(self, other):
 		"""Overload equality operator to compare walls"""
-		if not isinstance(other, Wall):
+		if not isinstance(other, Wall2D):
 			return False
 		return self.start == other.start and self.end == other.end and self.wallType == other.wallType
 	
@@ -51,7 +51,7 @@ class Room:
 		for i, corner in enumerate(self.corners):
 			start = corner
 			end = self.corners[(i + 1) % len(self.corners)]
-			self.walls.append(Wall(start, end))
+			self.walls.append(Wall2D(start, end))
 		return
 
 	def isInsideRoom(self,point: Point) ->bool:

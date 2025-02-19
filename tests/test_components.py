@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import shapely as sh
-from structural.core import WallType, Wall, Room
+from structural.core import WallType, Wall2D, Room
 from structural.floor_plan import FloorPlan
 from geometry import Point, Vector
 
@@ -33,7 +33,7 @@ def test_room_walls(room):
 	
 	# Verify wall properties
 	for wall in room.walls:
-		assert isinstance(wall, Wall)
+		assert isinstance(wall, Wall2D)
 		assert wall.length == 10.0
 
 def test_room_center():
@@ -55,18 +55,18 @@ def test_floor_plan_room_addition():
 	
 def test_wall_reversal():
 	# Original wall
-	original_wall = Wall(Point(0, 0), Point(3, 4))
+	original_wall = Wall2D(Point(0, 0), Point(3, 4))
 	
 	# Create reversed wall
-	reversed_wall = Wall(original_wall.end, original_wall.start)
+	reversed_wall = Wall2D(original_wall.end, original_wall.start)
 	
 	# Test wall vectors are opposite
 	assert np.allclose(original_wall.vector.to_numpy(), -reversed_wall.vector.to_numpy())
 	assert original_wall.length == reversed_wall.length
 
 def test_wall_equality():
-	wall0 = Wall(Point(0, 0), Point(3, 4))
-	wall1 = Wall(Point(0, 0), Point(3, 4))
+	wall0 = Wall2D(Point(0, 0), Point(3, 4))
+	wall1 = Wall2D(Point(0, 0), Point(3, 4))
 	assert wall0==wall1
 
 
@@ -84,7 +84,7 @@ def test_floor_plan_walls():
 	
 	# Verify walls list contains actual Wall objects
 	for wall in floor_plan.walls:
-		assert isinstance(wall, Wall)
+		assert isinstance(wall, Wall2D)
 
 
 def test_room_creation(complex_floor_plan_fixture):

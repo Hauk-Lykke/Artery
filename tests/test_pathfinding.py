@@ -2,7 +2,7 @@ from core import Point
 import pytest
 import numpy as np
 import matplotlib.pyplot as plt
-from structural.core import Wall,Room
+from structural.core import Wall2D,Room
 from pathfinding import (EnhancedDistance, MovementCost, 
 	CompositeCost, CompositeHeuristic, Pathfinder, WallCost, SoundRatingCost
 )
@@ -37,7 +37,7 @@ def test_movement_cost():
 	assert np.allclose(cost.calculate(start, end), np.sqrt(2))
 
 def test_wall_crossing_cost():
-	wall = Wall(Point(0, 0), Point(10, 0))  # Horizontal wall
+	wall = Wall2D(Point(0, 0), Point(10, 0))  # Horizontal wall
 	costWeights={
 			"distance":1,
 			"wallProximity":1,
@@ -64,7 +64,7 @@ def test_wall_crossing_cost():
 
 def test_composite_cost():
 	cost1 = MovementCost()
-	wall = Wall(Point(0, 0), Point(10, 0))
+	wall = Wall2D(Point(0, 0), Point(10, 0))
 	costWeights={
 		"distance":1,
 		"wallProximity":1,

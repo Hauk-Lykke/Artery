@@ -1,6 +1,6 @@
 import pytest
 from geometry import Point
-from structural.core import Wall, WallType
+from structural.core import Wall2D, WallType
 from structural.floor_plan import FloorPlan
 
 

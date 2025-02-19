@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List
-from structural.core import Wall, WallType
+from structural.core import Wall2D, WallType
 from core import Node, Cost
 from queue import PriorityQueue
 import matplotlib.pyplot as plt
@@ -21,7 +21,7 @@ class WallCost(Cost):
 	PROXIMITY_THRESHOLD = 0.5  # Distance at which wall proximity starts affecting cost
 	ANGLE_TOLERANCE = 2 # Degrees of tolerance in angle calculations
 	
-	def __init__(self, wall: Wall, costWeights: dict[str, float]):
+	def __init__(self, wall: Wall2D, costWeights: dict[str, float]):
 		self.wall = wall
 		self.costWeights = costWeights
 		self._pathVector = None
@@ -146,7 +146,7 @@ class Pathfinder:
 			"soundRating":1.5
 		}
 	
-	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall]:
+	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall2D]:
 		"""Get walls within specified radius of position"""
 		return [wall for wall in self.floor_plan.walls 
 				if min(position.distanceTo(wall.start), 
