@@ -24,12 +24,10 @@ class FloorPlan:
 		self.ahu = None  # Initialize as None by default
 		self.rooms = []
 		self._visualizer = None
-		if ax is not None:
+		if ax is not None and isinstance(ax, plt.Axes):
 			self.ax = ax
-			if len(self.rooms):
-				self._visualizer = RoomVisualizer(self.rooms, ax)
-		else:
-			self.ax = None
+		elif ax is not None:
+			raise ValueError("Ax must be of type plt.Axes")
 		if rooms is not None:
 			self.addRooms(rooms)
 		if ahu is not None:
@@ -47,13 +45,7 @@ class FloorPlan:
 				reverse_wall = wall.reverse()
 				if wall not in self.walls and reverse_wall not in self.walls:
 					self.walls.add(wall)
-		if self._visualizer is not None:
-			self._visualizer.update()
-		else:
-			if self.ax:
-				self._visualizer = RoomVisualizer(self.rooms, self.ax)
-				# self._visualizer.update(self.rooms)
-				self._visualizer.update()
+		
 		# self.walls = list(self.walls) # Would be nice if walls were somehow ordered, but that's for later
 
 	def addRooms(self, rooms):
@@ -108,6 +100,16 @@ class FloorPlan:
 		print (str(attempts) + " attempts in order to create " + str(desired_rooms) + " rooms")
 		self.updateWalls()
 		return
+	
+	def show(self, ax: plt.Axes = None):
+		if isinstance(ax, plt.Axes):
+			self.ax = ax
+		if self.ax is None:
+			raise ValueError("FloorPlan has no axes stored.")
+		if self._visualizer is None:
+			self._visualizer = RoomVisualizer(self.rooms, self.ax)
+		self._visualizer.show()
+		
 
 
 

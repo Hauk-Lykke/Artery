@@ -78,7 +78,7 @@ class Test11Rooms:
 		floorPlan = FloorPlan(None, ax)
 		floorPlan.rooms = room_plan_11_rooms_random_concrete_fixture.rooms
 		floorPlan.ahu = room_plan_11_rooms_random_concrete_fixture.ahu
-		floorPlan.updateWalls()
+		floorPlan.show()
 		assert(isinstance(floorPlan, FloorPlan))
 		assert(isinstance(floorPlan.ahu, AirHandlingUnit))
 		start = floorPlan.ahu.position
@@ -121,6 +121,7 @@ def test_scenarioOptimization_randomize_visual():
 	for i, ax in enumerate(axs):
 		scenarioOptimization.scenarios[i].floorPlan.ax = ax # TODO: No walls displayed
 		scenarioOptimization.scenarios[i].network.ax = ax
+		scenarioOptimization[i].floorPlan.show()
 	optimalScenario = scenarioOptimization.optimize()
 	plt.show(block=True)
 
