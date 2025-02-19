@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import matplotlib.pyplot as plt
 from structural.core import Room, WallType
-from MEP import AirHandlingUnit
+from MEP.components import AirHandlingUnit
 import routing as routing
 from core import Point
 from structural.floor_plan import FloorPlan

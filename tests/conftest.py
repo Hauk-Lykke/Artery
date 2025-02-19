@@ -1,6 +1,6 @@
 import random
 import pytest
-from MEP import AirHandlingUnit
+from MEP.components import AirHandlingUnit
 from geometry import Point
 from structural.core import Room, Wall2D, WallType
 from structural.floor_plan import FloorPlan
@@ -36,7 +36,6 @@ def room():
 		Point(0, 10)
 	]) 
 	return room
-
 
 
 

@@ -1,6 +1,6 @@
 from geometry import Point
 from structural.core import Room
-from MEP import AirHandlingUnit
+from MEP.components import AirHandlingUnit
 from routing import Branch2D, Network
 from structural.floor_plan import FloorPlan
 

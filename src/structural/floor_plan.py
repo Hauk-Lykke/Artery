@@ -12,7 +12,7 @@ Planned changes:
 
 import random
 import matplotlib.pyplot as plt
-from MEP import AirHandlingUnit
+from MEP.components import AirHandlingUnit
 from geometry import Point
 from structural.core import Room
 from visualization.room import RoomVisualizer
