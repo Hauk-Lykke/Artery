@@ -6,6 +6,7 @@ from MEP.components import AirHandlingUnit
 import routing as routing
 from core import Point
 from structural.floor_plan import FloorPlan
+from structural.scenario import ScenarioOptimization
 from visualization.room import RoomVisualizer
 from visualization.path import save_figure
 
@@ -110,4 +111,18 @@ def test_show_generated_floorPlan():
 	assert(isinstance(fig, plt.Figure))
 	plt.show(block=True)
 
+	
+def test_scenarioOptimization_randomize_visual():
+	cm = 1/2.54  # centimeters in inches
+	fig, axMatrix = plt.subplots(nrows=2, ncols=2, figsize=(20*cm, 20*cm))
+	axs = [ax for axArray in axMatrix for ax in axArray]
+	scenarioOptimization = ScenarioOptimization()
+	scenarioOptimization.randomize(4)
+	for i, ax in enumerate(axs):
+		scenarioOptimization.scenarios[i].floorPlan.ax = ax # TODO: No walls displayed
+		scenarioOptimization.scenarios[i].network.ax = ax
+	optimalScenario = scenarioOptimization.optimize()
 	plt.show(block=True)
+
+	
+

@@ -2,6 +2,7 @@ from datetime import datetime
 import pytest
 from matplotlib import pyplot as plt
 from routing import Branch2D, Network2D
+from structural.floor_plan import FloorPlan
 from visualization.room import RoomVisualizer
 from visualization.path import PathfindingVisualizer, save_figure
 
@@ -85,3 +86,9 @@ class TestVisualization:
 		assert isinstance(ax, plt.Axes)
 		assert isinstance(fig, plt.Figure)
 		plt.show(block=True)
+
+def test_visualize_scenario():
+	fig,ax = plt.subplots()
+	floorPlan = FloorPlan(None,ax)
+	floorPlan.generate()
+	plt.show(block=True) 
