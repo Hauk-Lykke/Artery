@@ -101,13 +101,13 @@ def testSoundRating(simple_floor_plan_fixture):
 def test_exteriorWalls_basic():
 	room0 = Room([Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)])
 	floorPlan = FloorPlan([room0])
-	outsideWalls = floorPlan.getOutsideWalls()
+	outsideWalls = floorPlan.getExteriorWalls()
 	assert(len(outsideWalls) == 4)
 	assert(isinstance(list(outsideWalls)[0], Wall2D))
 
 def test_exteriorWalls_fixture(simple_floor_plan_fixture):
 	floorPlan = simple_floor_plan_fixture
-	outsideWalls = floorPlan.getOutsideWalls()
+	outsideWalls = floorPlan.getExteriorWalls()
 	assert(len(outsideWalls) == 8)
 	assert(isinstance(list(outsideWalls)[0], Wall2D))
 

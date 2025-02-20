@@ -81,7 +81,7 @@ class FloorPlan:
 		desired_rooms = base_rooms + extra_rooms
 
 		self.addRoom(Room([Point(0, 0, 0),Point(width, 0, 0), Point(width, length, 0), Point(0, length, 0)]))
-		self._outsideWalls = self.getOutsideWalls()
+		self._outsideWalls = self.getExteriorWalls()
 		for wall in self._outsideWalls:
 			wall.wallType = WallType.OUTER_WALL
 
@@ -93,25 +93,31 @@ class FloorPlan:
 				break
 
 			# Chooses a random room to devide
-			idx = random.randint(0, len(self.rooms) - 1)
-			old_room = self.rooms[idx]
+			idx = random.randint(0, len(self._rooms) - 1)
+			oldRoom = self._rooms[idx]
 
 			# Splits the room into two
 			split_dir = random.choice(['vertical', 'horizontal'])
-			new_rooms = old_room.subdivide(split_dir)
+			newRooms = oldRoom.subdivide(split_dir)
 
 			# If the new rooms were not generated, try again
-			if new_rooms is None:
+			if newRooms is None:
 				print("Subdivision failed")
 				break
 
 			# Choose if the new rooms should replace the original or not
-			new_room0, new_room1 = new_rooms
-			if new_room0.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio) and new_room1.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio):
-				self.removeRoom(old_room)
-				self.addRoom(new_room0)
-				self.addRoom(new_room1)
+			newRoom0, newRoom1 = newRooms
+			if newRoom0.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio) and newRoom1.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio):
+				self.removeRoom(oldRoom)
+				# newRoom0 = self._mapWallTypes(oldRoom, newRoom0)
+				# newRoom1 = self._mapWallTypes(oldRoom, newRoom1)
+				self.addRoom(newRoom0)
+				self.addRoom(newRoom1)
 
+		for wall in self.getInteriorWalls():
+			wall.wallType = random.choices([WallType.DRYWALL, WallType.CONCRETE], weights=[70, 30])[0]
+		for wall in self.getExteriorWalls():
+			wall.wallType = WallType.OUTER_WALL
 		print (str(attempts) + " attempts in order to create " + str(desired_rooms) + " rooms")
 		return
 	
@@ -124,14 +130,30 @@ class FloorPlan:
 			self._visualizer = RoomVisualizer(self._rooms, self.ax)
 		self._visualizer.show()
 		
-	def getOutsideWalls(self) -> list[Wall2D]:
+	def getExteriorWalls(self) -> set[Wall2D]:
 		polygon = Polygon(self._points)
 		outsideWallPoly = Polygon.convexHull(polygon)
-		outsideWalls = []
+		outsideWalls = set()
 		for wall in self.walls:
-			if wall.start in outsideWallPoly and wall.end in outsideWallPoly:
-				outsideWalls.append(wall)
+			if outsideWallPoly.contains(wall):
+				outsideWalls.add(wall)
 		return outsideWalls
+	
+	def _mapWallTypes(self,oldRoom, newRoom) -> Room:
+		for newWall in newRoom.walls:
+			for oldWall in oldRoom.walls:
+				if oldWall.contains(newWall):
+					newWall.wallType = oldWall.wallType
+		return newRoom
+	
+	def getInteriorWalls(self) -> set[Wall2D]:
+		outsideWalls = self.getExteriorWalls()
+		interiorWalls = self.walls - outsideWalls
+		# for wall in interiorWalls:
+		# 	if wall.reverse() in interiorWalls:
+		# 		interiorWalls.remove(wall)
+		return interiorWalls
+
 		
 
 
