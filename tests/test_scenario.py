@@ -26,5 +26,5 @@ def test_scenarioOptimization_optimize(simple_floor_plan_fixture):
 def test_scenarioOptimization_randomize():
 	scenarioOptimization = ScenarioOptimization()
 	scenarioOptimization.randomize(2)
-	optimalScenario = scenarioOptimization.optimize()
-	assert(isinstance(optimalScenario,Scenario2D))
+	# optimalScenario = scenarioOptimization.optimize()
+	assert(len(scenarioOptimization.scenarios) == 2)

@@ -3,6 +3,7 @@ import pytest
 from matplotlib import pyplot as plt
 from routing import Branch2D, Network2D
 from structural.floor_plan import FloorPlan
+from structural.scenario import Scenario2D
 from visualization.room import RoomVisualizer
 from visualization.path import PathfindingVisualizer, save_figure
 
@@ -80,8 +81,23 @@ class TestVisualization:
 		assert isinstance(fig, plt.Figure)
 		plt.show(block=True)
 
+	def test_vizualisation_network_assign_ax_afterwards(self,simple_floor_plan_fixture):
+		floorPlan = simple_floor_plan_fixture
+		start = floorPlan.rooms[0].center
+		fig, ax = plt.subplots()
+		floorPlan.show(ax)	
+		network = Network2D(simple_floor_plan_fixture,start)
+		network.generate()
+		network.show(ax)
+		# save_figure(ax,"test_network")
+		assert(isinstance(network.mainBranch, Branch2D))
+		assert(isinstance(network.branches, list))
+		assert isinstance(ax, plt.Axes)
+		assert isinstance(fig, plt.Figure)
+		plt.show(block=True)
+
 def test_visualize_scenario():
 	fig,ax = plt.subplots()
-	floorPlan = FloorPlan(None,ax)
-	floorPlan.generate()
+	scenario = Scenario2D(generateScenario=True)
+	scenario.show(ax)
 	plt.show(block=True) 
