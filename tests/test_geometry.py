@@ -29,9 +29,9 @@ def test_vector_hash():
 
 def test_vector_numpy_conversion():
 	v = Vector(1, 2, 3)
-	np_array = v.to_numpy()
+	np_array = v.toNumpy()
 	assert np.array_equal(np_array, np.array([1, 2, 3]))
-	v_from_np = Vector.from_numpy(np.array([4, 5, 6]))
+	v_from_np = Vector.fromNumpy(np.array([4, 5, 6]))
 	assert v_from_np == Vector(4, 5, 6)
 
 def test_vector_angle():

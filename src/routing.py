@@ -264,6 +264,6 @@ class Network2D(Network):
 			from visualization.path import save_figure
 			# if self.ax is not None:
 			# 	save_figure(self.ax,"test_network")
-			self.mainBranch.sub_branches.append(sub_branch)
+			self.mainBranch.subBranches.append(sub_branch)
 			self.branches.append(sub_branch)
 			self.nodes.extend(sub_branch.nodes)
