@@ -45,6 +45,7 @@ class Room:
 		self.supplyAirDemand = 0
 		self._shapelyPoly = sh.geometry.Polygon([[p.x, p.y, p.z] for p in self.corners])
 		self.checkRectangular()
+		self._area = self._shapelyPoly.area
 	
 	def _create_walls(self):
 		self.walls = []
@@ -75,9 +76,10 @@ class Room:
 		else:
 			self.isRectangular = False
 
-
+	@property
 	def area(self) -> float:
-		return self._shapelyPoly.area
+		self._area = self._shapelyPoly.area
+		return self._area
 
 	def aspectRatioOk(self, max_ratio) -> bool:
 		# self._shapelyPoly.
@@ -96,7 +98,7 @@ class Room:
 	
 	def conformsToAspectRatio(self, min_aspect_ratio, max_aspect_ratio) -> bool:
 		"""Checks if room area and aspect ratio are within limits."""
-		return (min_aspect_ratio <= self.area()) and self.aspectRatioOk(max_aspect_ratio)
+		return (min_aspect_ratio <= self.area) and self.aspectRatioOk(max_aspect_ratio)
 	
 	
 	def subdivide(self, direction) -> tuple['Room']:

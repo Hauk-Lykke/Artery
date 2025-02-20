@@ -15,7 +15,7 @@ def test_room_polygon(room):
 	assert(isinstance(poly, sh.geometry.Polygon))
 
 def test_room_area(room):
-	area = room.area()
+	area = room.area
 	assert(isinstance(area,float))
 	assert(area==100)
 
@@ -32,12 +32,12 @@ def test_subdivide_room(room):
 	(room0,room1) = room.subdivide(direction='vertical')
 	assert(isinstance(room0, Room))
 	assert(isinstance(room1, Room))
-	assert(room0.area() + room1.area() == room.area())
+	assert(room0.area + room1.area == room.area)
 
 	(room2, room3) = room.subdivide(direction='horizontal')
 	assert(isinstance(room2, Room))
 	assert(isinstance(room3, Room))
-	assert(room2.area() + room3.area() == room.area())
+	assert(room2.area + room3.area == room.area)
 
 def test_generate_floorPlan():
 	floorPlan = FloorPlan()

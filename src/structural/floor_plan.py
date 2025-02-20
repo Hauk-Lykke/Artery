@@ -52,8 +52,9 @@ class FloorPlan:
 		for room in rooms:
 			self.addRoom(room)
 
+	@property
 	def area(self) -> float:
-		return sum([room.area() for room in self.rooms])
+		return self._area
 
 	def generate(self,width=25, length=25, base_rooms=3,random_rooms=5,
 					min_ratio=0.05, max_ratio=0.40, max_aspect_ratio=4.0):
