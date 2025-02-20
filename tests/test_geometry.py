@@ -104,4 +104,10 @@ def test_convexHull():
 		assert(point in convexHullPoly.points)
 
 
-	
+def test_line_contains_line():
+	p0 = Point(0,0,0)
+	p1 = Point(5,5,0)
+	p2 = Point(10,0,0)
+	shortLine = Line(p0,p1)
+	longLine = Line(p0, p2)
+	assert(longLine.contains(shortLine))
