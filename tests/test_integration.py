@@ -87,7 +87,7 @@ class Test11Rooms:
 		# floorPlan._visualizer.show()
 		network = routing.Network2D(floorPlan, start, ax)
 		network.generate()
-		save_figure(ax, "First concrete wall attempt")
+		save_figure(ax, "results_mep\First concrete wall attempt")
 		assert(isinstance(network.mainBranch, routing.Branch2D))
 		assert(isinstance(network.branches, list))
 		assert(isinstance(ax, plt.Axes))
