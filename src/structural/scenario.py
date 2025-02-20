@@ -18,18 +18,10 @@ class Scenario2D(Scenario):
 	def __init__(self,floorPlan: FloorPlan=None, network: Network2D=None, generateScenario: bool=False):
 		if floorPlan:
 			super().__init__(floorPlan)
-		elif generateScenario:
-			floorPlan = FloorPlan()
-			floorPlan.generate()
-			self.floorPlan = floorPlan
 		if network:
 			self.network = network
 		elif generateScenario:			
-			roomsBySize = self.floorPlan.rooms.copy()
-			roomsBySize.sort(key=lambda room: room.area)
-			startPoint = roomsBySize[0].center
-			self.network = Network2D(self.floorPlan, startPoint)
-			self.evaluate()
+			self.generate()
 
 	def evaluate(self):
 		self.network.generate()
@@ -42,6 +34,15 @@ class Scenario2D(Scenario):
 		self.ax = ax
 		self.floorPlan.show(self.ax)
 		self.network.show(self.ax)
+
+	def generate(self):
+		self.floorPlan = FloorPlan()
+		self.floorPlan.generate()
+		roomsBySize = self.floorPlan._rooms.copy()
+		roomsBySize.sort(key=lambda room: room.area)
+		startPoint = roomsBySize[0].center
+		self.network = Network2D(self.floorPlan, startPoint)
+		self.evaluate()
 
 
 class ScenarioOptimization:
