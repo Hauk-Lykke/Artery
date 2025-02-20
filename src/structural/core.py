@@ -31,7 +31,7 @@ class Wall2D(Line):
 		return hash((self.start, self.end, self.wallType))
 	
 	def __repr__(self) -> str:
-		return "Wall from {0} to {1} of type {2}".format(self.start, self.end, self.wallType)
+		return "Wall2D from {0} to {1} of type {2}".format(self.start, self.end, self.wallType)
 
 class Room:
 	def __init__(self, corners: list[Point]):
