@@ -111,7 +111,7 @@ class Path:
 class Branch(Path): # Mechanical, Electrical, Plumbing branch
 	def __init__(self, startNode: Node):
 		super().__init__(startNode)
-		self.sub_branches = []
+		self.subBranches = []
 
 class Branch2D(Branch):
 	def __init__(self, floorPlan: FloorPlan, startPoint: Union[Node, Point], targetPoint: Point, ax: plt.Axes=None, startTime: datetime=None):
@@ -154,6 +154,8 @@ class Branch2D(Branch):
 		self._visualizer.update_path()
 		[branch.show(self.ax) for branch in self.subBranches]
 			
+
+
 	# def simplify(self):
 	# 	'''A method that first removes nodes that are redundant()'''
 
@@ -236,7 +238,7 @@ class Network:
 				
 		except ValueError:
 			# Fallback to closest existing node if no segments found
-			return self.getClosestNode(point)
+			return self.mainBranch.getClosestNode(point)
 		
 		if closest_projection:
 			node1, node2, projected = closest_projection
@@ -245,7 +247,7 @@ class Network:
 			return new_node
 			
 		# Fallback to closest existing node if no segments found
-		return self.getClosestNode(point)
+		return self.mainBranch.getClosestNode(point)
 	
 	@abstractmethod
 	def generate(self):
