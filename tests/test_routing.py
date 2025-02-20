@@ -13,9 +13,9 @@ class TestRouting:
 
 	def test_route_ducts_basic(self, simple_floor_plan_fixture):
 		assert isinstance(simple_floor_plan_fixture, FloorPlan)
-		assert isinstance(simple_floor_plan_fixture.rooms[0].center, Point)
-		start = simple_floor_plan_fixture.rooms[0].center
-		mostDistantRoom = max(simple_floor_plan_fixture.rooms, key=lambda room: room.center.distanceTo(start))
+		assert isinstance(simple_floor_plan_fixture._rooms[0].center, Point)
+		start = simple_floor_plan_fixture._rooms[0].center
+		mostDistantRoom = max(simple_floor_plan_fixture._rooms, key=lambda room: room.center.distanceTo(start))
 		branch = Branch2D(simple_floor_plan_fixture,start, mostDistantRoom.center)	
 		branch.generate()
 		assert len(branch.nodes) >= 2
@@ -29,7 +29,7 @@ class TestRouting:
 		ahu = AirHandlingUnit(position=Point(6, 6))
 		floor_plan = FloorPlan(rooms,None, ahu)
 		start = ahu.position
-		mostDistantRoom = max(floor_plan.rooms, key=lambda room: room.center.distanceTo(start))
+		mostDistantRoom = max(floor_plan._rooms, key=lambda room: room.center.distanceTo(start))
 		branch = Branch2D(floor_plan,start,mostDistantRoom.center)
 		branch.generate()
 		assert len(branch) >= 2

@@ -70,7 +70,7 @@ class SoundRatingCost(Cost):
 		self._maxSoundRating = 70
 	
 	def calculate(self, current: Point, next: Point) -> float:
-		for room in self.floorPlan.rooms:
+		for room in self.floorPlan._rooms:
 			if room.isInsideRoom(next):
 				distance = current.distanceTo(next)
 				return (self._maxSoundRating-room.soundRating)*distance

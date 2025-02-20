@@ -76,7 +76,7 @@ class Test11Rooms:
 		cm = 1/2.54  # centimeters in inches
 		fig, ax = plt.subplots(figsize=(20*cm, 20*cm))
 		floorPlan = FloorPlan(None, ax)
-		floorPlan.rooms = room_plan_11_rooms_random_concrete_fixture.rooms
+		floorPlan._rooms = room_plan_11_rooms_random_concrete_fixture._rooms
 		floorPlan.ahu = room_plan_11_rooms_random_concrete_fixture.ahu
 		floorPlan.show()
 		assert(isinstance(floorPlan, FloorPlan))
@@ -101,7 +101,7 @@ def test_show_generated_floorPlan():
 	floorPlan = FloorPlan(None,ax)
 	floorPlan.generate(width=25, length=25, base_rooms=3,random_rooms=5,
 					min_ratio=0.05, max_ratio=0.40, max_aspect_ratio=4.0)
-	visualizer = RoomVisualizer(floorPlan.rooms, ax)
+	visualizer = RoomVisualizer(floorPlan._rooms, ax)
 	# floorPlan._visualizer = visualizer
 	# floorPlan._visualizer.show()
 	visualizer.show()

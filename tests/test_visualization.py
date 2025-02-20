@@ -101,3 +101,4 @@ def test_visualize_scenario():
 	scenario = Scenario2D(generateScenario=True)
 	scenario.show(ax)
 	plt.show(block=True) 
+

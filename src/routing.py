@@ -170,7 +170,7 @@ class Network:
 				raise ValueError("Startpoint must be a Point")
 		self.floorPlan = floorPlan
 		self.nodes = [] # All nodes in all branches
-		self.open_room_set = set(self.floorPlan.rooms) # Rooms remaining
+		self.open_room_set = set(self.floorPlan._rooms) # Rooms remaining
 		self.closed_room_set = set() # Rooms that have a supply
 		self.sourceRoom = self.getSourceRoom()
 		self.startPoint = self.sourceRoom.center
@@ -180,7 +180,7 @@ class Network:
 	
 	def getSourceRoom(self) -> Union[Room, None]:
 		"""Find and return the room containing the starting node."""
-		for room in self.floorPlan.rooms:
+		for room in self.floorPlan._rooms:
 			if room.isInsideRoom(self.startPoint):
 				self.closed_room_set.add(room)
 				self.open_room_set.remove(room)
@@ -190,9 +190,9 @@ class Network:
 	def findMostDistantRoom(self, start: Point) -> Room:
 		if not isinstance(start, Point):
 			raise ValueError("Start must be a Point.")
-		if not self.floorPlan.rooms:
+		if not self.floorPlan._rooms:
 			raise ValueError("Floor plan must have rooms before finding most distant room")
-		return max(self.floorPlan.rooms, key=lambda room: room.center.distanceTo(start))
+		return max(self.floorPlan._rooms, key=lambda room: room.center.distanceTo(start))
 
 					
 					

@@ -22,7 +22,7 @@ class FloorPlan:
 	def __init__(self, rooms: list[Room] = None, ax: plt.Axes = None, ahu: AirHandlingUnit = None):
 		self.walls = set()
 		self.ahu = None  # Initialize as None by default
-		self.rooms = []
+		self._rooms = []
 		self._visualizer = None
 		if ax is not None and isinstance(ax, plt.Axes):
 			self.ax = ax
@@ -36,20 +36,20 @@ class FloorPlan:
 			self.ahu = ahu
 
 	def addRoom(self, room):
-		self.rooms.append(room)
+		self._rooms.append(room)
 		if self._area is None:
 			self._area = 0
 		self._area += room.area
 		self.updateWalls()
 
 	def removeRoom(self, room):
-		self.rooms.remove(room)
+		self._rooms.remove(room)
 		self._area -= room.area
 		self.updateWalls()
 
 	def updateWalls(self):
 		# uniqueWalls = set()
-		for room in self.rooms:
+		for room in self._rooms:
 			for wall in room.walls:
 				reverse_wall = wall.reverse()
 				if wall not in self.walls and reverse_wall not in self.walls:
@@ -81,16 +81,15 @@ class FloorPlan:
 		desired_rooms = base_rooms + extra_rooms
 
 		self.addRoom(Room([Point(0, 0, 0),Point(width, 0, 0), Point(width, length, 0), Point(0, length, 0)]))
-		self.updateWalls()
-		outsideWalls = self.getOutsideWalls()
-		for wall in outsideWalls:
+		self._outsideWalls = self.getOutsideWalls()
+		for wall in self._outsideWalls:
 			wall.wallType = WallType.OUTER_WALL
 
 		attempts = 0
 		# Attempt random splits
 		for _ in range(50):
 			attempts += 1
-			if len(self.rooms) >= desired_rooms:
+			if len(self._rooms) >= desired_rooms:
 				break
 
 			# Chooses a random room to devide
@@ -122,7 +121,7 @@ class FloorPlan:
 		if self.ax is None:
 			raise ValueError("FloorPlan has no axes stored.")
 		if self._visualizer is None:
-			self._visualizer = RoomVisualizer(self.rooms, self.ax)
+			self._visualizer = RoomVisualizer(self._rooms, self.ax)
 		self._visualizer.show()
 		
 	def getOutsideWalls(self) -> list[Wall2D]:
