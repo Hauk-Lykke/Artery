@@ -160,7 +160,7 @@ class Line:
 		return self._shapelyGeometry.intersects(other._shapelyGeometry)
 
 	def distanceTo(self, otherObject: Union[Point, 'Line']) -> float: # Todo: Implement 3D
-		if isinstance(otherObject,Point) or isinstance(otherObject, 'Line'):
+		if isinstance(otherObject, Line) or isinstance(otherObject,Point):
 			return self._shapelyGeometry.distance(otherObject._shapelyGeometry)
 		else:
 			raise ValueError("Method not overloaded for other classes than Line and Point.")
@@ -187,8 +187,13 @@ class Line:
 	
 	def contains(self, geometry) -> bool:
 		'''If the geometry is a point or a line, this method checks if the point or endpoints are on the line segment. '''
-		if isinstance(geometry, Line) or isinstance(geometry, Point):
-			return self.distanceTo(geometry)> 0.01
+		if isinstance(geometry, Point):
+			distance = self.distanceTo(geometry)
+			return distance == 0
+		elif isinstance(geometry, Line):
+			distanceToStart = self.distanceTo(geometry.start)
+			distanceToEnd = self.distanceTo(geometry.end)
+			return (distanceToStart==0 and distanceToEnd==0)
 		raise ValueError("Not defined for other types than Line or Point.")
 
 class Polygon:

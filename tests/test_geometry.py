@@ -104,10 +104,18 @@ def test_convexHull():
 		assert(point in convexHullPoly.points)
 
 
+# def test_shapely_distance():
+	
 def test_line_contains_line():
 	p0 = Point(0,0,0)
-	p1 = Point(5,5,0)
+	p1 = Point(5,0,0)
 	p2 = Point(10,0,0)
+	p3 = Point(12,0,0)
+	P4 = Point(14, 0, 0)
 	shortLine = Line(p0,p1)
 	longLine = Line(p0, p2)
+	otherLine = Line(p3,P4)
 	assert(longLine.contains(shortLine))
+	assert(not longLine.contains(otherLine))
+	# overlappingLine = Line(p2, p3)
+	# longLine.contains(overlappingLine)
