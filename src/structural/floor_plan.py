@@ -13,7 +13,7 @@ Planned changes:
 import random
 import matplotlib.pyplot as plt
 from MEP.components import AirHandlingUnit
-from geometry import Point
+from geometry import Point, Polygon
 from structural.core import Room, Wall2D, WallType
 from visualization.room import RoomVisualizer
 
@@ -82,6 +82,9 @@ class FloorPlan:
 
 		self.addRoom(Room([Point(0, 0, 0),Point(width, 0, 0), Point(width, length, 0), Point(0, length, 0)]))
 		self.updateWalls()
+		outsideWalls = self.getOutsideWalls()
+		for wall in outsideWalls:
+			wall.wallType = WallType.OUTER_WALL
 
 		attempts = 0
 		# Attempt random splits
@@ -122,6 +125,16 @@ class FloorPlan:
 			self._visualizer = RoomVisualizer(self.rooms, self.ax)
 		self._visualizer.show()
 		
+	def getOutsideWalls(self) -> list[Wall2D]:
+		polygon = Polygon(self._points)
+		outsideWallPoly = Polygon.convexHull(polygon)
+		outsideWalls = []
+		for wall in self.walls:
+			if wall.start in outsideWallPoly and wall.end in outsideWallPoly:
+				outsideWalls.append(wall)
+		return outsideWalls
+		
+
 
 
 

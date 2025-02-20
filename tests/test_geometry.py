@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
 from math import isclose, sqrt
-from geometry import Vector, Point, Line  # Replace `your_module` with the actual module name
+from geometry import Polygon, Vector, Point, Line  # Replace `your_module` with the actual module name
+import shapely as sh
 
 def test_vector_initialization():
 	v1 = Vector(1, 2, 3)
@@ -73,5 +74,34 @@ def test_line_distance_to_point():
 	distance = line.distanceTo(p3)
 	assert isclose(distance, sqrt(2) / 2, abs_tol=1e-5)
 
-if __name__ == "__main__":
-	pytest.main()
+def test_create_Polygon():
+	p1 = Point(0, 0, 0)
+	p2 = Point(1, 1, 1)
+	p3 = Point(1, 0, 0)
+	poly = Polygon([p1, p2, p3])
+	assert(isinstance(poly, Polygon))
+	assert(p1 in poly.points)
+
+def test_polygon_fromShapelyPoly():
+	p1 = sh.Point(0,0,0)
+	p2 = sh.Point(1, 1, 1)
+	p3 = sh.Point(1, 0, 0)
+	shapelyPoly = sh.Polygon([p1, p2, p3])
+	assert(isinstance(shapelyPoly, sh.Polygon))
+	poly = Polygon.fromShapelyPolygon(shapelyPoly)
+	assert(isinstance(poly, Polygon))
+
+def test_convexHull():
+	p0 = Point(0,0,0)
+	p1 = Point(10,0,0)
+	p2 = Point(10,10,0)
+	p3 = Point(5,5,0)
+	p4 = Point(0,10,0)
+	points = [p0, p1, p2, p3, p4]
+	poly = Polygon(points)
+	convexHullPoly = Polygon.convexHull(poly)
+	for point in convexHullPoly.points:
+		assert(point in convexHullPoly.points)
+
+
+	
