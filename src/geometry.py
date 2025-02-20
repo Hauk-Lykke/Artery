@@ -2,6 +2,7 @@ import numpy as np
 from typing import Tuple, Union
 from math import pi, sqrt, acos
 import shapely as sh
+import pydantic
 
 class XYZ:
 	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0):
@@ -36,8 +37,9 @@ class XYZ:
 			self.x = float(x)
 			self.y = float(y)
 			self.z = float(z)
+		self._coords = [self.x, self.y, self.z]
 
-	def to_numpy(self) -> np.ndarray:
+	def toNumpy(self) -> np.ndarray:
 		return np.array([self.x, self.y, self.z])  # Return 3D numpy array# Return 3D numpy array
 	
 	def __repr__(self) -> str:
@@ -49,20 +51,18 @@ class XYZ:
 		yield self.y
 		yield self.z
 
-	@staticmethod
-	def from_numpy(arr: np.ndarray) -> 'Vector':
-		if len(arr) == 3:
-			return Vector(arr[0], arr[1],arr[2])
-		raise ValueError("Array must have 3 dimensions")
-		
 	def __hash__(self):
 		"""Overload hash operator to use instances in sets"""
 		return hash((self.x, self.y, self.z))
+	
+	def __getitem__(self, index) -> float:
+		'''Overload of index access. Readonly, to set variables, dot notation (point.x) must be used since __setitem__ is not implemented.'''
+		return self._coords[index]
 
 class Vector(XYZ):
 	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0, _skip_basis: bool = False):
 		super().__init__(x,y,z)
-		self.length = np.linalg.norm(self.to_numpy())
+		self.length = np.linalg.norm(self.toNumpy())
 		if self.x is None or self.y is None or self.z is None:
 			raise AttributeError("Invalid Vector definition")
 			
@@ -126,8 +126,8 @@ class Point(XYZ):
 		if isinstance(geometry, Line):
 			shapelyItem = geometry._shapely
 		if isinstance(geometry, Point):
-			shapelyItem = sh.Point(geometry.to_numpy())
-		shapelyPoint = sh.Point(self.to_numpy())
+			shapelyItem = sh.Point(geometry.toNumpy())
+		shapelyPoint = sh.Point(self.toNumpy())
 		distance = sh.distance(shapelyPoint,shapelyItem)
 		return distance
 	
@@ -190,3 +190,37 @@ class Line:
 		z = self.start.z + fraction * (self.end.z - self.start.z)
 		
 		return Point(interpolated_point.x, interpolated_point.y, z)
+	
+
+
+class Polygon:
+	points: list[Point]
+	_shapelyPoly : sh.Polygon
+
+	def __init__(self, points: list[Point]):
+		self.points = points
+		self._updateShapelyPoly()
+
+	def _updateShapelyPoly(self):
+		shapelyPoints = [sh.Point(point.toNumpy()) for point in self.points]
+		self._shapelyPoly = sh.Polygon(shapelyPoints)
+
+	def __getitem__(self,index) -> Point:
+		return self.points[index]
+	
+	def __setitem__(self, index, point):
+		self.points[index] = point
+		self._updateShapelyPoly()
+
+	@staticmethod
+	def fromShapelyPolygon(polygon: sh.Polygon) -> 'Polygon':
+		newPoints = [Point(shapelyPoint) for shapelyPoint in polygon.exterior.coords]
+		newPolygon = Polygon(newPoints)
+		return newPolygon
+			
+
+	def convexHull(self) -> 'Polygon':
+		shapelyConvexHullPolygon = sh.convex_hull(self._shapelyPoly)
+		newPolygon = Polygon.fromShapelyPolygon(shapelyConvexHullPolygon)
+		return newPolygon
+		

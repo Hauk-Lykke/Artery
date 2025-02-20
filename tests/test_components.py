@@ -39,7 +39,7 @@ def test_room_walls(room):
 def test_room_center():
 	# Test room center calculation
 	room = Room([Point(0, 0), Point(10, 0), Point(10, 10), Point(0, 10)])
-	assert np.allclose(room.center.to_numpy(), np.array([5, 5, 0]))
+	assert np.allclose(room.center.toNumpy(), np.array([5, 5, 0]))
 
 def test_floor_plan_room_addition():
 	floor_plan = FloorPlan()
@@ -61,7 +61,7 @@ def test_wall_reversal():
 	reversed_wall = Wall2D(original_wall.end, original_wall.start)
 	
 	# Test wall vectors are opposite
-	assert np.allclose(original_wall.vector.to_numpy(), -reversed_wall.vector.to_numpy())
+	assert np.allclose(original_wall.vector.toNumpy(), -reversed_wall.vector.toNumpy())
 	assert original_wall.length == reversed_wall.length
 
 def test_wall_equality():
