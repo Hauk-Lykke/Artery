@@ -58,6 +58,10 @@ class XYZ:
 	def __getitem__(self, index) -> float:
 		'''Overload of index access. Readonly, to set variables, dot notation (point.x) must be used since __setitem__ is not implemented.'''
 		return self._coords[index]
+	
+	@property
+	def _shapelyGeometry(self) -> sh.Point:
+		return sh.Point(self.toNumpy())
 
 class Vector(XYZ):
 	def __init__(self, x: Union[float, Tuple[float, float, float]] = 0, y: float = 0, z: float = 0, _skip_basis: bool = False):
@@ -123,12 +127,9 @@ class Point(XYZ):
 		return output
 	
 	def distanceTo(self,geometry) -> float:
-		if isinstance(geometry, Line):
-			shapelyItem = geometry._shapely
-		if isinstance(geometry, Point):
-			shapelyItem = sh.Point(geometry.toNumpy())
-		shapelyPoint = sh.Point(self.toNumpy())
-		distance = sh.distance(shapelyPoint,shapelyItem)
+		if isinstance(geometry, Line) or isinstance(geometry, Point) or isinstance(geometry, Polygon):
+			shapelyItem = geometry._shapelyGeometry
+		distance = sh.distance(self._shapelyGeometry,shapelyItem)
 		return distance
 	
 	def __add__(self, vector: Vector) -> 'Point':
@@ -151,23 +152,16 @@ class Line:
 			raise ValueError("Start and end points cannot be the same.")
 		self.start = start
 		self.end = end
-		self._shapely = sh.LineString([(start.x, start.y), (end.x, end.y)]) # Todo: Implement 3D
-		self.length = self._shapely.length
+		self._shapelyGeometry = sh.LineString([(start.x, start.y), (end.x, end.y)]) # Todo: Implement 3D
+		self.length = self._shapelyGeometry.length
 		self.vector = end-start
 
 	def intersects(self, other: 'Line') -> bool:
-		return self._shapely.intersects(other._shapely)
+		return self._shapelyGeometry.intersects(other._shapelyGeometry)
 
 	def distanceTo(self, otherObject: Union[Point, 'Line']) -> float: # Todo: Implement 3D
-		if isinstance(otherObject,Point):
-			point = otherObject
-			shapelyPoint = sh.Point(point.x,point.y)
-			return self._shapely.distance(shapelyPoint)
-		elif isinstance(otherObject, 'Line'):
-			line = otherObject
-			lineStart = sh.Point(line.start.x, line.start.y)
-			lineEnd = sh.Point(line.end.x, line.end.y)
-			return self._shapely.distance(sh.LineString(lineStart,lineEnd))
+		if isinstance(otherObject,Point) or isinstance(otherObject, 'Line'):
+			return self._shapelyGeometry.distance(otherObject._shapelyGeometry)
 		else:
 			raise ValueError("Method not overloaded for other classes than Line and Point.")
 	
@@ -179,10 +173,10 @@ class Line:
 		shapely_point = sh.Point(point.x, point.y, point.z)
 		
 		# Get the distance along the line of the nearest point
-		distance = self._shapely.project(shapely_point)
+		distance = self._shapelyGeometry.project(shapely_point)
 		
 		# Get the actual point coordinates
-		interpolated_point = self._shapely.interpolate(distance)
+		interpolated_point = self._shapelyGeometry.interpolate(distance)
 		
 		# Convert back to our Point class, preserving z-coordinate
 		# We linearly interpolate z based on distance along line
@@ -195,7 +189,8 @@ class Line:
 
 class Polygon:
 	points: list[Point]
-	_shapelyPoly : sh.Polygon
+	_lineSegments: list[Line]
+	_shapelyGeometry : sh.Polygon
 
 	def __init__(self, points: list[Point]):
 		self.points = points
@@ -203,7 +198,7 @@ class Polygon:
 
 	def _updateShapelyPoly(self):
 		shapelyPoints = [sh.Point(point.toNumpy()) for point in self.points]
-		self._shapelyPoly = sh.Polygon(shapelyPoints)
+		self._shapelyGeometry = sh.Polygon(shapelyPoints)
 
 	def __getitem__(self,index) -> Point:
 		return self.points[index]
@@ -220,7 +215,7 @@ class Polygon:
 			
 
 	def convexHull(self) -> 'Polygon':
-		shapelyConvexHullPolygon = sh.convex_hull(self._shapelyPoly)
+		shapelyConvexHullPolygon = sh.convex_hull(self._shapelyGeometry)
 		newPolygon = Polygon.fromShapelyPolygon(shapelyConvexHullPolygon)
 		return newPolygon
 		
