@@ -1,7 +1,7 @@
-from core import Node
 from routing import Network2D
 from structural.floor_plan import FloorPlan
 import random
+import matplotlib.pyplot as plt
 
 '''These classes facilitate optimization based on the different load scenarios.'''
 
@@ -14,6 +14,7 @@ class Scenario:
 
 
 class Scenario2D(Scenario):
+	ax: plt.Axes
 	def __init__(self,floorPlan: FloorPlan=None, network: Network2D=None, generateScenario: bool=False):
 		if floorPlan:
 			super().__init__(floorPlan)
@@ -23,21 +24,39 @@ class Scenario2D(Scenario):
 			self.floorPlan = floorPlan
 		if network:
 			self.network = network
-		elif generateScenario:
-			startPoint = random.choice([room.center for room in floorPlan.rooms])
+		elif generateScenario:			
+			roomsBySize = self.floorPlan.rooms.copy()
+			roomsBySize.sort(key=lambda room: room.area)
+			startPoint = roomsBySize[0].center
 			self.network = Network2D(self.floorPlan, startPoint)
+			self.evaluate()
 
 	def evaluate(self):
 		self.network.generate()
 		self.mepCost = max([node.g_cost for node in self.network.nodes])
 		# self.structuralCost = self.wallCost + self.columnCost
 
+	def show(self,ax):
+		if not isinstance(ax, plt.Axes):
+			raise ValueError("Axes must be of type plt.Axes")
+		self.ax = ax
+		self.floorPlan.show(self.ax)
+		self.network.show(self.ax)
+
+
 class ScenarioOptimization:
-	def __init__(self, scenarios: list[Scenario2D]=None):
+	ax: list[plt.Axes]
+	scenarios: list[Scenario2D]
+
+	def __init__(self, scenarios: list[Scenario2D]=None, ax: list[plt.Axes]=None):
 		if scenarios is not None:
 			self.scenarios = scenarios
 		else:
 			self.scenarios = []
+		self.ax = ax
+		if self.ax is not None and len(ax) != len(scenarios):
+			raise Warning("Number of axes is not equal to the number of scenarios")
+
 
 	def optimize(self) -> Scenario2D:
 		[scenario.evaluate() for scenario in self.scenarios]
