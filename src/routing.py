@@ -143,6 +143,17 @@ class Branch2D(Branch):
 		# for node in self.nodes:
 		# 	self._segments = 
 
+	def show(self,ax):
+		if not isinstance(ax, plt.Axes):
+			raise ValueError("Axes must be of type plt.Axes")
+		self.ax = ax
+		if self.ax is not None:
+			# Initialize the PathfindingVisualizer
+			self._visualizer = PathfindingVisualizer(self.pathfinder, self.ax)
+		self._visualizer.ax = self.ax
+		self._visualizer.update_path()
+		[branch.show(self.ax) for branch in self.subBranches]
+			
 	# def simplify(self):
 	# 	'''A method that first removes nodes that are redundant()'''
 

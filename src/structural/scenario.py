@@ -46,11 +46,13 @@ class ScenarioOptimization:
 		return self.scenarios[index]
 	
 	def randomize(self, numberOfCases: int=0):
+		'''Generate a random set of building layouts with generated networks.'''
 		if numberOfCases:
 			self.numberOfCases = numberOfCases
 		if len(self.scenarios):
 			for scenario in self.scenarios:
-				scenario.floorPlan.generate()
+				scenario.evaluate()
+				scenario.show()
 		else:
 			for _ in range(numberOfCases):
 				self.scenarios.append(Scenario2D(None, None, generateScenario=True))

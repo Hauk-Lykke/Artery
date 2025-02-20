@@ -8,7 +8,7 @@ from geometry import Point
 
 
 class PathfindingVisualizer:
-	def __init__(self, pathfinder: Pathfinder, ax: plt.Axes, startTime: datetime):
+	def __init__(self, pathfinder: Pathfinder, ax: plt.Axes, startTime: datetime=None):
 		"""Initialize visualizer with matplotlib axis"""
 		self.pathfinder = pathfinder
 		self.ax = ax
