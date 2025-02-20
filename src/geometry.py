@@ -185,7 +185,11 @@ class Line:
 		
 		return Point(interpolated_point.x, interpolated_point.y, z)
 	
-
+	def contains(self, geometry) -> bool:
+		'''If the geometry is a point or a line, this method checks if the point or endpoints are on the line segment. '''
+		if isinstance(geometry, Line) or isinstance(geometry, Point):
+			return self.distanceTo(geometry)> 0.01
+		raise ValueError("Not defined for other types than Line or Point.")
 
 class Polygon:
 	points: list[Point]
