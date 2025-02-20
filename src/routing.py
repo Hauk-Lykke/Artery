@@ -280,3 +280,11 @@ class Network2D(Network):
 			self.mainBranch.subBranches.append(sub_branch)
 			self.branches.append(sub_branch)
 			self.nodes.extend(sub_branch.nodes)
+
+	def show(self,ax):
+		'''Recursive method that shows all branches.'''
+		if not isinstance(ax, plt.Axes):
+			raise ValueError("Axes must be of type plt.Axes")
+		self.ax = ax
+		[branch.show(self.ax) for branch in self.branches]
+		
