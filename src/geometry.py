@@ -197,8 +197,15 @@ class Polygon:
 	_shapelyGeometry : sh.Polygon
 
 	def __init__(self, points: list[Point]):
-		self.points = points
+		self.points = list(points)
+		self._lineSegments = []
 		self._updateShapelyPoly()
+		self._updateLineSegments()
+
+	def _updateLineSegments(self):
+		if self.points:
+			for i, point in enumerate(self.points[1:]):
+				self._lineSegments.append(Line(self.points[i-1], point))
 
 	def _updateShapelyPoly(self):
 		shapelyPoints = [sh.Point(point.toNumpy()) for point in self.points]
@@ -210,6 +217,7 @@ class Polygon:
 	def __setitem__(self, index, point):
 		self.points[index] = point
 		self._updateShapelyPoly()
+		self._updateLineSegments(self)
 
 	@staticmethod
 	def fromShapelyPolygon(polygon: sh.Polygon) -> 'Polygon':
@@ -223,3 +231,13 @@ class Polygon:
 		newPolygon = Polygon.fromShapelyPolygon(shapelyConvexHullPolygon)
 		return newPolygon
 		
+	def contains(self, geometry) -> bool:
+		'''If the geometry is a point or a line, this method checks if the point or endpoints are on the polyline defining the polygon. 
+		It does NOT check if the geomtry is inside the polygon (like the centroid would be).'''
+		if isinstance(geometry, Line) or isinstance(geometry, Point):
+			for line in self._lineSegments:
+				if line.contains(geometry):
+					return True
+			return False
+		else:
+			raise ValueError("Not defined for other geometry than Line or Point yet")
