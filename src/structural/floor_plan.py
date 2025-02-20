@@ -14,7 +14,7 @@ import random
 import matplotlib.pyplot as plt
 from MEP.components import AirHandlingUnit
 from geometry import Point
-from structural.core import Room
+from structural.core import Room, Wall2D, WallType
 from visualization.room import RoomVisualizer
 
 
@@ -28,14 +28,23 @@ class FloorPlan:
 			self.ax = ax
 		elif ax is not None:
 			raise ValueError("Ax must be of type plt.Axes")
+		self._points = set()
+		self._area = None
 		if rooms is not None:
 			self.addRooms(rooms)
 		if ahu is not None:
 			self.ahu = ahu
-		
 
 	def addRoom(self, room):
 		self.rooms.append(room)
+		if self._area is None:
+			self._area = 0
+		self._area += room.area
+		self.updateWalls()
+
+	def removeRoom(self, room):
+		self.rooms.remove(room)
+		self._area -= room.area
 		self.updateWalls()
 
 	def updateWalls(self):
@@ -45,6 +54,8 @@ class FloorPlan:
 				reverse_wall = wall.reverse()
 				if wall not in self.walls and reverse_wall not in self.walls:
 					self.walls.add(wall)
+				self._points.add(wall.start)
+				self._points.add(wall.end)
 		
 		# self.walls = list(self.walls) # Would be nice if walls were somehow ordered, but that's for later
 
@@ -69,7 +80,8 @@ class FloorPlan:
 		extra_rooms = random.randint(0, random_rooms)
 		desired_rooms = base_rooms + extra_rooms
 
-		self.rooms = [Room([Point(0, 0, 0),Point(width, 0, 0), Point(width, length, 0), Point(0, length, 0)])]
+		self.addRoom(Room([Point(0, 0, 0),Point(width, 0, 0), Point(width, length, 0), Point(0, length, 0)]))
+		self.updateWalls()
 
 		attempts = 0
 		# Attempt random splits
@@ -94,12 +106,11 @@ class FloorPlan:
 			# Choose if the new rooms should replace the original or not
 			new_room0, new_room1 = new_rooms
 			if new_room0.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio) and new_room1.conformsToAspectRatio(min_aspect_ratio, max_aspect_ratio):
-				self.rooms.remove(old_room)
-				self.rooms.append(new_room0)
-				self.rooms.append(new_room1)
+				self.removeRoom(old_room)
+				self.addRoom(new_room0)
+				self.addRoom(new_room1)
 
 		print (str(attempts) + " attempts in order to create " + str(desired_rooms) + " rooms")
-		self.updateWalls()
 		return
 	
 	def show(self, ax: plt.Axes = None):

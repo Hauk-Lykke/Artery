@@ -41,7 +41,7 @@ def test_subdivide_room(room):
 
 def test_generate_floorPlan():
 	floorPlan = FloorPlan()
-	floorPlan.generate()
-	assert(floorPlan.area() == 25*25)
+	floorPlan.generate() # Default floor plan to be subdivided is a 25m by 25m square
+	assert(floorPlan.area == 25*25)
 	assert(len(floorPlan.rooms)<=8)
 	assert(len(floorPlan.rooms)>=3)
