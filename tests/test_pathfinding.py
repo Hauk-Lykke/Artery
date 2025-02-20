@@ -116,8 +116,8 @@ def test_a_star_simple_path():
 	path = pathfinder.path
 	
 	assert len(pathfinder) > 0, "No path found"
-	assert np.allclose(path[0].position.to_numpy(), start.toNumpy()), "Path doesn't start at start point"
-	assert np.allclose(path[-1].position.to_numpy(), goal.toNumpy()), "Path doesn't reach goal"
+	assert np.allclose(path[0].position.toNumpy(), start.toNumpy()), "Path doesn't start at start point"
+	assert np.allclose(path[-1].position.toNumpy(), goal.toNumpy()), "Path doesn't reach goal"
 
 
 def test_a_star_stops_at_goal():
@@ -140,5 +140,5 @@ def test_a_star_stops_at_goal():
 	iterations2 = len(pathfinder2.path)
 	
 	assert iterations1 == iterations2, "Algorithm continued after finding goal"
-	assert np.allclose(pathfinder.path[-1].position.to_numpy(), goal.toNumpy()), "Path doesn't reach goal"
-	assert np.allclose(pathfinder2.path[-1].position.to_numpy(), goal.toNumpy()), "Path doesn't reach goal"
+	assert np.allclose(pathfinder.path[-1].position.toNumpy(), goal.toNumpy()), "Path doesn't reach goal"
+	assert np.allclose(pathfinder2.path[-1].position.toNumpy(), goal.toNumpy()), "Path doesn't reach goal"

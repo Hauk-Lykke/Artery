@@ -12,8 +12,8 @@ def test_point_equality():
 
 def test_wall_properties(wall):
 	print(wall)
-	assert np.allclose(wall.start.to_numpy(), np.array([0, 0, 0]))
-	assert np.allclose(wall.end.to_numpy(), np.array([3, 4, 0]))
+	assert np.allclose(wall.start.toNumpy(), np.array([0, 0, 0]))
+	assert np.allclose(wall.end.toNumpy(), np.array([3, 4, 0]))
 	assert isinstance(wall.vector, Vector)
 	assert isinstance(wall._shapely, sh.LineString)
 	assert isinstance(wall.start, Point)
@@ -96,4 +96,36 @@ def test_room_creation(complex_floor_plan_fixture):
 	assert len(complex_floor_plan_fixture._rooms) == 12
 
 def testSoundRating(simple_floor_plan_fixture):
-	assert(simple_floor_plan_fixture.rooms[0].soundRating==37)
+	assert(simple_floor_plan_fixture._rooms[0].soundRating==37)
+
+def test_exteriorWalls_basic():
+	room0 = Room([Point(0, 0), Point(5, 0), Point(5, 5), Point(0, 5)])
+	floorPlan = FloorPlan([room0])
+	outsideWalls = floorPlan.getOutsideWalls()
+	assert(len(outsideWalls) == 4)
+	assert(isinstance(list(outsideWalls)[0], Wall2D))
+
+def test_exteriorWalls_fixture(simple_floor_plan_fixture):
+	floorPlan = simple_floor_plan_fixture
+	outsideWalls = floorPlan.getOutsideWalls()
+	assert(len(outsideWalls) == 8)
+	assert(isinstance(list(outsideWalls)[0], Wall2D))
+
+
+def test_floorPlan_generate():
+	floorPlan = FloorPlan()
+	floorPlan.generate()
+	assert(len(floorPlan._rooms) >= 3)
+	assert(len(floorPlan._rooms) <= 8)
+
+def test_simple_floorPlan_fixture(simple_floor_plan_fixture):
+	floorPlan = simple_floor_plan_fixture
+	assert(len(floorPlan._rooms) == 4)
+	assert(len(floorPlan.walls) == 12)
+
+def test_interiorWalls(simple_floor_plan_fixture):
+	floorPlan = simple_floor_plan_fixture
+	interiorWalls = floorPlan.getInteriorWalls()
+	assert(isinstance(list(interiorWalls)[0], Wall2D))
+	assert(len(interiorWalls) == 4)
+	
