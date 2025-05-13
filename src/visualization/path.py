@@ -49,7 +49,7 @@ class PathfindingVisualizer:
 	def save_figure(self, test_name: str):
 		"""Save the current figure with test name and timestamp"""
 		date_str = datetime.now().strftime("%Y%m%d")
-		base_filename = f"results_mep/{test_name}_{date_str}"
+		base_filename = f"results/results_mep/{test_name}_{date_str}"
 		
 		counter = 0
 		while os.path.exists(f"{base_filename}_{counter}.png"):
@@ -114,7 +114,7 @@ class PathfindingVisualizer:
 def save_figure(ax, prefix: str):
 	"""Save the current figure with test name and timestamp"""
 	date_str = datetime.now().strftime("%Y%m%d")
-	# base_filename = f"results_mep/{test_name}_{date_str}"
+	# base_filename = f"results/results_mep/{test_name}_{date_str}"
 	base_filename = f"{prefix}_{date_str}"
 	
 	counter = 0
