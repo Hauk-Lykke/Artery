@@ -80,18 +80,18 @@ Artery/
 ├── tests/                 # Test files
 │   ├── test_integration.py
 │   └── test_pathfinding.py
-├── results_vent/          # Generated visualization outputs
-├── results_combined
-├── results_mep
-├── results_presentation
-├── results_structural
+├── results/               # Generated visualization outputs
+│   └── results_combined
+│   └── results_mep
+│   └── results_presentation
+│   └── results_structural
 └── docs/                  # Documentation
 
 # Examples:
-![Example run of ventilation algorithm](results\results_presentation\Artery_test_20250114.png)
+![Example run of ventilation algorithm](results/results_presentation/Artery_test_20250114.png)
 
 Ventilation routing algorithm
 
-![Example run of structural algorithm](results\results_presentation\Load%20distribution%20for%20broken%20layout%202.png)
+![Example run of structural algorithm](results/results_presentation/Load%20distribution%20for%20broken%20layout%202.png)
 
 Load distribution optimization.
