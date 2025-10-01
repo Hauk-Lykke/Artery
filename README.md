@@ -1,6 +1,6 @@
 # Artery
 
-Automatic drafting of duct and piping routings and column placement in buildings. Code is written by the use of python, with first examples created by Cline with Claude 3.5 Sonnet by Anthropic or ChatGPT o1 by OpenAI. 
+Automatic drafting of duct and piping routings and column placement in buildings. Code is written by the use of python.
 
 ## Problem formulation
 The problem we want to address is that buildings are made by teams siloed by discipline, which is a natural result of human specialization. Because there's a limit to the time available to coordinate different disciplines, buildings are not holistically optimized. Each discipline have optimized their part and adjusted it according to the others. We want to optimize the building as one solution. This means finding the right form for all parts based on their importance and function in the building. This is insanely complex and were suspect only systems using intuition (read neural networks) will be able find solutions in a reasonable time.
@@ -70,6 +70,7 @@ $$
 $$
 
 ## Project Structure
+```
 Artery/
 ├── src/                    # Source code
 │   ├── core/              # Core data structures and utilities
@@ -78,14 +79,22 @@ Artery/
 │   ├── visualization.py   # Visualization utilities
 │   └── routing.py         # Duct routing algorithms
 ├── tests/                 # Test files
-│   ├── test_integration.py
-│   └── test_pathfinding.py
+│   ├── test_components.py    # Core component constructors and methods
+│   ├── test_conftest.py      # Common fixtures for tests
+│   ├── test_geometry.py      # Tests of geometry classes
+│   ├── test_integration.py   # Integration tests, ensuring everything fits together
+│   ├── test_pathfinding.py   # Pathfinding algorithms and classes
+│   ├── test_routing.py       # Tests for routing classes like branches and networks
+│   ├── test_scenario.py      # Merging MEP and structural components
+│   ├── test_structural.py    # Structural tests 
+│   └── test_visualization.py # Vizualisation
 ├── results/               # Generated visualization outputs
 │   └── results_combined
 │   └── results_mep
 │   └── results_presentation
 │   └── results_structural
 └── docs/                  # Documentation
+```
 
 # Examples:
 ![Example run of ventilation algorithm](results/results_presentation/Artery_test_20250114.png)
