@@ -109,7 +109,7 @@ class PathfindingVisualizer:
 		else:
 			self.ax._cost_mapper = plt.cm.ScalarMappable(cmap=self.colormap, norm=plt.Normalize(vmin=0, vmax=global_max_cost))
 			self.ax._colorbar = plt.colorbar(self.ax._cost_mapper, ax=self.ax, label='Path Cost')
-		#save_figure(self.ax,'animation_')
+		#save_figure(self.ax,'results/results_mep/animation_')
 
 			
 def save_figure(ax, prefix: str):
