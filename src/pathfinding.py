@@ -36,7 +36,7 @@ class WallCost(Cost):
 		elif wallType == WallType.CONCRETE:
 			return 50.0
 		else:  # OUTER_WALL
-			return 200.0
+			return 300.0
 
 	def calculate(self, current: Point, next: Point) -> float:
 		self._pathVector=next-current
@@ -141,9 +141,9 @@ class Pathfinder:
 		self.costWeights={
 			"distance":1,
 			"wallProximity":1,
-			"perpendicularWallCrossing":1,
+			"perpendicularWallCrossing":3,
 			"angledWallCrossing":200,
-			"soundRating":1.5
+			"soundRating":1.3
 		}
 	
 	def _get_nearby_walls(self, position: Point, radius: float = 5.0) -> List[Wall2D]:
