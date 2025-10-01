@@ -13,7 +13,7 @@ The experts that make structures or hvac systems use their intuition to draft po
 ## How to install
 
 ### Prerequisites
-- Python 3.13 or higher
+- Python 3.11 or higher
 - UV package manager ([installation guide](https://github.com/astral-sh/uv))
 
 ## Clone the repository and install locally:
@@ -28,10 +28,14 @@ uv pip install -e .
 ```
 
 Requirements:
-- Python 3.8+
+- Python 3.11+
 - NumPy
 - SciPy
-- NetworkX
+- Matplotlib
+- Pydantic
+- Shapely
+- Pytest
+
 
 ### Simplification of the problem
 The problem can be solved for any building with any geometry. For us to be able to train and test a NN with data we need to limit the complecity  so that we can create syntehic data for training. Sampling real 3D models is beoyond the scope of our project. 
