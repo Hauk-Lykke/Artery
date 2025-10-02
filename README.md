@@ -1,6 +1,6 @@
 # Artery
 
-Automatic drafting of duct and piping routings and column placement in buildings. Code is written by the use of python.
+Automatic drafting of duct and piping routings and column placement in buildings. Code is written in python.
 
 ## Problem formulation
 The problem we want to address is that buildings are made by teams siloed by discipline, which is a natural result of human specialization. Because there's a limit to the time available to coordinate different disciplines, buildings are not holistically optimized. Each discipline have optimized their part and adjusted it according to the others. We want to optimize the building as one solution. This means finding the right form for all parts based on their importance and function in the building. This is insanely complex and were suspect only systems using intuition (read neural networks) will be able find solutions in a reasonable time.
